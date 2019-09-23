@@ -1,0 +1,10 @@
+.idea
+target
+.DS_Store
+.settings
+.vscode
+.attach_*
+*.json
+*.jar
+src/test/resources/mapping
+*.iml
