@@ -17,8 +17,6 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.apache.commons.lang.StringEscapeUtils.escapeHtml;
-
 public class TemplateLowerer {
 
 	@Parameter(names={"--basepath","-b"})
@@ -78,10 +76,8 @@ public class TemplateLowerer {
 
 		String output = writer.toString();
 
-		String escaped = escapeHtml(output);
-
 		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
-		out.write(escaped);
+		out.write(output);
 		out.close();
 	}
 
