@@ -4,6 +4,7 @@ import java.io.*;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import nu.xom.ParsingException;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -30,7 +31,7 @@ public class TemplateLowerer {
 
     private Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
-	public static void main(String ... argv) throws IOException {
+	public static void main(String ... argv) throws IOException, ParsingException {
 		TemplateLowerer lowerer = new TemplateLowerer();
 
 		JCommander.newBuilder()
@@ -48,7 +49,7 @@ public class TemplateLowerer {
 		destinationPath = basePath + destinationPath;
 	}
 
-	public void lower() throws IOException {
+	public void lower() throws IOException, ParsingException {
 
 		Repository repo = new SailRepository(new MemoryStore());
 		repo.init();
@@ -75,6 +76,7 @@ public class TemplateLowerer {
 		t.merge(context, writer);
 
 		String output = writer.toString();
+		output = Utils.format(output);
 
 		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
 		out.write(output);
