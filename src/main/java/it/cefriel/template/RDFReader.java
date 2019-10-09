@@ -69,11 +69,18 @@ public class RDFReader {
 
     // Returns the string value escaping XML special chars
     public List<Map<String, String>> executeQueryStringValueXML(String query) {
+        return executeQueryStringValueXML(query, false);
+    }
+
+    public List<Map<String, String>> executeQueryStringValueXML(String query, boolean debug) {
         Instant start = Instant.now();
         List<Map<String, String>> results = executeQueryStringValue(query);
         Instant end = Instant.now();
-        log.info("Query: " + query + "\nDuration: " + Long.toString(Duration.between(start, end).getSeconds()));
-        for (Map<String,String> result : results)
+        if (debug) {
+            log.info("Query: " + query + "\nDuration: " + Long.toString(Duration.between(start, end).getSeconds()));
+            log.info("Number of rows returned: " + results.size());
+        }
+        for (Map<String, String> result : results)
             result.replaceAll((k, v) -> StringEscapeUtils.escapeXml(v));
         return results;
     }
