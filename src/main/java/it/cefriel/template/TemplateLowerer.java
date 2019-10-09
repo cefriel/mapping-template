@@ -54,7 +54,6 @@ public class TemplateLowerer {
 	}
 
 	public void lower() throws IOException, ParsingException {
-
 		Repository repo = new SailRepository(new MemoryStore());
 		repo.init();
 

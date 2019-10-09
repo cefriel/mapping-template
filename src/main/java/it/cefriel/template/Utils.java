@@ -39,7 +39,7 @@ public class Utils {
     }
 
     // Get timestamp
-    public static String getTimestamp() {
+    public String getTimestamp() {
         DateTimeFormatter formatterOutput = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         return LocalDateTime.now().format(formatterOutput);
     }
@@ -56,6 +56,15 @@ public class Utils {
         Map<String, Map<String, String>> results_map = new HashMap<>();
         for (Map<String,String> result : results)
             results_map.put(result.get(key), result);
+        return results_map;
+    }
+
+    public Map<String, List<Map<String, String>>> getListMap(List<Map<String, String>> results, String key) {
+        Map<String, List<Map<String, String>>> results_map = new HashMap<>();
+        for (Map<String,String> result : results)
+            results_map.put(result.get(key), new ArrayList<>());
+        for (Map<String,String> result : results)
+            results_map.get(result.get(key)).add(result);
         return results_map;
     }
 
