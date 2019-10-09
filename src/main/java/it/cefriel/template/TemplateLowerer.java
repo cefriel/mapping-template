@@ -30,6 +30,8 @@ public class TemplateLowerer {
 	private String destinationPath = "output.xml";
 	@Parameter(names={"--version-output","-v"})
 	private String versionOutput = "any";
+	@Parameter(names={"--format-xml","-f"})
+	private boolean formatXml;
 
     private Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
@@ -70,6 +72,8 @@ public class TemplateLowerer {
 		Utils utils = new Utils();
 
 		log.info("template path: " + templatePath);
+		templatePath = utils.trimTemplate(templatePath);
+
 		Template t = velocityEngine.getTemplate(templatePath);
 		VelocityContext context = new VelocityContext();
 		context.put("reader", reader);
@@ -79,7 +83,8 @@ public class TemplateLowerer {
 		t.merge(context, writer);
 
 		String output = writer.toString();
-		output = Utils.format(output);
+		if (formatXml)
+			output = Utils.format(output);
 
 		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
 		out.write(output);

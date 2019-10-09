@@ -6,8 +6,16 @@ import nu.xom.Serializer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Utils {
 
@@ -44,4 +52,23 @@ public class Utils {
         return out.toString("UTF-8");
     }
 
+    public Map<String, Map<String, String>> getMap(List<Map<String, String>> results, String key) {
+        Map<String, Map<String, String>> results_map = new HashMap<>();
+        for (Map<String,String> result : results)
+            results_map.put(result.get(key), result);
+        return results_map;
+    }
+
+    public String trimTemplate(String templatePath) throws IOException {
+        String newTemplatePath = templatePath + ".tmp.vm";
+        List<String> newLines = new ArrayList<>();
+        for (String line : Files.readAllLines(Paths.get(templatePath), StandardCharsets.UTF_8)) {
+            newLines.add(line.trim().replace("\n", "").replace("\r",""));
+        }
+        String result = String.join(" ", newLines);
+        try (PrintWriter out = new PrintWriter(newTemplatePath)) {
+            out.println(result);
+        }
+        return newTemplatePath;
+    }
 }
