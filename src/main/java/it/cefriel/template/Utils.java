@@ -13,9 +13,19 @@ public class Utils {
 
     // Remove Prefix
     public String rp(String s) {
-        if (s.contains("#")) {
-            String[] split = s.split("#");
-            return split[1];
+        if (s!=null)
+            if (s.contains("#")) {
+                String[] split = s.split("#");
+                return split[1];
+            }
+        return s;
+    }
+    // Remove Prefix through regex
+    public String sp(String s, String regex) {
+        if (s!=null) {
+            String[] split = s.split(regex);
+            if (split.length > 1)
+                return split[1];
         }
         return s;
     }

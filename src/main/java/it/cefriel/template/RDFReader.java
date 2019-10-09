@@ -1,5 +1,7 @@
 package it.cefriel.template;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +17,13 @@ import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RDFReader {
+
+    private Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
+
     private Repository repository;
 
     public List<Map<String,Value>> executeQuery(String query) {
@@ -33,7 +41,6 @@ public class RDFReader {
                 }
                 results.add(result);
             }
-
             return results;
         }
     }
@@ -62,25 +69,13 @@ public class RDFReader {
 
     // Returns the string value escaping XML special chars
     public List<Map<String, String>> executeQueryStringValueXML(String query) {
-        try (RepositoryConnection con = this.repository.getConnection()) {
-            TupleQuery tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL, query);
-            List<BindingSet> resultList;
-            List<Map<String,String>> results = new ArrayList<>();
-            try (TupleQueryResult result = tupleQuery.evaluate()) {
-                resultList = QueryResults.asList(result);
-            }
-            for (BindingSet bindingSet : resultList) {
-                Map<String,String> result = new HashMap<>();
-                for (String bindingName : bindingSet.getBindingNames()) {
-                    Value v = bindingSet.getValue(bindingName);
-                    String value = (v != null) ? v.stringValue() : null ;
-                    result.put(bindingName, StringEscapeUtils.escapeXml(value));
-                }
-                results.add(result);
-            }
-
-            return results;
-        }
+        Instant start = Instant.now();
+        List<Map<String, String>> results = executeQueryStringValue(query);
+        Instant end = Instant.now();
+        log.info("Query: " + query + "\nDuration: " + Long.toString(Duration.between(start, end).getSeconds()));
+        for (Map<String,String> result : results)
+            result.replaceAll((k, v) -> StringEscapeUtils.escapeXml(v));
+        return results;
     }
 
     public Repository getRepository() {

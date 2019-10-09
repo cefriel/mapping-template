@@ -28,6 +28,8 @@ public class TemplateLowerer {
 	private String triplesPath = "input.ttl";
 	@Parameter(names={"--output","-o"})
 	private String destinationPath = "output.xml";
+	@Parameter(names={"--version-output","-v"})
+	private String versionOutput = "any";
 
     private Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
@@ -72,6 +74,7 @@ public class TemplateLowerer {
 		VelocityContext context = new VelocityContext();
 		context.put("reader", reader);
 		context.put("functions", utils);
+		context.put("version", versionOutput);
 		StringWriter writer = new StringWriter();
 		t.merge(context, writer);
 
