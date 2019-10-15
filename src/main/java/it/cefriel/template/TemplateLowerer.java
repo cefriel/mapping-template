@@ -5,6 +5,8 @@ import java.util.*;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import nu.xom.Builder;
+import nu.xom.Document;
 import nu.xom.ParsingException;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -39,8 +41,8 @@ public class TemplateLowerer {
 	private static String REPOSITORY_ID = "SNAP";
 	@Parameter(names={"--skip-init","-s"})
 	private boolean skip;
-	@Parameter(names={"--indent-xml","-x"})
-	private boolean indent;
+	@Parameter(names={"--in-memory-xml","-m"})
+	private boolean memory;
 
     private org.slf4j.Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
@@ -101,25 +103,25 @@ public class TemplateLowerer {
 		context.put("version", versionOutput);
 
 		Writer writer;
-		if(!indent)
-			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
-		else
+		if(memory)
 			writer = new StringWriter();
+		else
+			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
 
 		t.merge(context, writer);
 		repo.shutDown();
 
-		if(indent) {
-			String output = writer.toString();
-			if (formatXml)
-				output = Utils.format(output);
-
-			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
-			out.write(output);
-			out.close();
-		}
+		if(memory)
+			Utils.format(writer.toString(), destinationPath);
 
 		writer.close();
-	}
 
+		if(!memory) {
+			Builder builder = new Builder();
+			InputStream ins = new BufferedInputStream(new FileInputStream(destinationPath));
+			Document doc = builder.build(ins);
+			Utils.format(doc, destinationPath);
+		}
+
+	}
 }

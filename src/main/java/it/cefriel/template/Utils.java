@@ -1,12 +1,11 @@
 package it.cefriel.template;
 
 import nu.xom.Builder;
+import nu.xom.Document;
 import nu.xom.ParsingException;
 import nu.xom.Serializer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -44,12 +43,18 @@ public class Utils {
         return LocalDateTime.now().format(formatterOutput);
     }
 
-    public static String format(String xml) throws ParsingException, IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Serializer serializer = new Serializer(out);
-        serializer.setIndent(4);  // or whatever you like
-        serializer.write(new Builder().build(xml, ""));
-        return out.toString("UTF-8");
+    public static void format(String xml, String path) throws ParsingException, IOException {
+        Document doc = new Builder().build(xml, "");
+        format(doc, path);
+    }
+
+    public static void format(Document doc, String path) throws IOException {
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(path)));
+        Serializer serializer = new Serializer(bos, "ISO-8859-1");
+        serializer.setIndent(4);
+        serializer.setMaxLength(0);
+        serializer.write(doc);
+        bos.close();
     }
 
     public Map<String, Map<String, String>> getMap(List<Map<String, String>> results, String key) {
