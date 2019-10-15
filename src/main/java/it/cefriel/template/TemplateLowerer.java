@@ -1,6 +1,7 @@
 package it.cefriel.template;
 
 import java.io.*;
+import java.util.*;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -12,12 +13,11 @@ import org.apache.velocity.app.VelocityEngine;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
-import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 
-import org.eclipse.rdf4j.sail.memory.MemoryStore;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 
 public class TemplateLowerer {
 
@@ -40,9 +40,18 @@ public class TemplateLowerer {
 	@Parameter(names={"--skip-init","-s"})
 	private boolean skip;
 
-    private Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
+    private org.slf4j.Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
 	public static void main(String ... argv) throws IOException, ParsingException {
+
+		Set<String> loggers = new HashSet<>(Arrays.asList("org.apache.http"));
+
+		for(String log:loggers) {
+			Logger logger = (Logger)LoggerFactory.getLogger(log);
+			logger.setLevel(Level.INFO);
+			logger.setAdditive(false);
+		}
+
 		TemplateLowerer lowerer = new TemplateLowerer();
 
 		JCommander.newBuilder()
@@ -88,8 +97,18 @@ public class TemplateLowerer {
 		context.put("reader", reader);
 		context.put("functions", utils);
 		context.put("version", versionOutput);
-		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(destinationPath));
+		StringWriter writer = new StringWriter();
 		t.merge(context, writer);
+
+		repo.shutDown();
+
+		String output = writer.toString();
+		if (formatXml)
+			output = Utils.format(output);
+
+		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
+		out.write(output);
+		out.close();
 
 	}
 
