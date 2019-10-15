@@ -69,7 +69,7 @@ public class RDFReader {
 
     // Returns the string value escaping XML special chars
     public List<Map<String, String>> executeQueryStringValueXML(String query) {
-        return executeQueryStringValueXML(query, false);
+        return executeQueryStringValueXML(query, true);
     }
 
     public List<Map<String, String>> executeQueryStringValueXML(String query, boolean debug) {

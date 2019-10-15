@@ -11,6 +11,7 @@ import org.apache.velocity.app.VelocityEngine;
 
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 
@@ -32,6 +33,12 @@ public class TemplateLowerer {
 	private String versionOutput = "any";
 	@Parameter(names={"--format-xml","-f"})
 	private boolean formatXml;
+	@Parameter(names={"--graphdb-address","-g"})
+	private static String GRAPHDB_SERVER = "http://localhost:7200/";
+	@Parameter(names={"--repository","-r"})
+	private static String REPOSITORY_ID = "SNAP";
+	@Parameter(names={"--skip-init","-s"})
+	private boolean skip;
 
     private Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
@@ -53,14 +60,17 @@ public class TemplateLowerer {
 		destinationPath = basePath + destinationPath;
 	}
 
-	public void lower() throws IOException, ParsingException {
-		Repository repo = new SailRepository(new MemoryStore());
-		repo.init();
 
-		File file = new File(triplesPath);
-		String baseURI = "";
-		try (RepositoryConnection con = repo.getConnection()) {
-			con.add(file, baseURI, RDFFormat.TURTLE);
+	public void lower() throws IOException, ParsingException {
+		Repository repo = new HTTPRepository(GRAPHDB_SERVER, REPOSITORY_ID);
+		repo.initialize();
+
+		if(!skip) {
+			File file = new File(triplesPath);
+			String baseURI = "";
+			try (RepositoryConnection con = repo.getConnection()) {
+				con.add(file, baseURI, RDFFormat.TURTLE);
+			}
 		}
 
 		VelocityEngine velocityEngine = new VelocityEngine();
@@ -78,16 +88,9 @@ public class TemplateLowerer {
 		context.put("reader", reader);
 		context.put("functions", utils);
 		context.put("version", versionOutput);
-		StringWriter writer = new StringWriter();
+		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(destinationPath));
 		t.merge(context, writer);
 
-		String output = writer.toString();
-		if (formatXml)
-			output = Utils.format(output);
-
-		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
-		out.write(output);
-		out.close();
 	}
 
 }
