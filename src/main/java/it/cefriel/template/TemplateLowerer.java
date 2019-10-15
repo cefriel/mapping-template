@@ -39,6 +39,8 @@ public class TemplateLowerer {
 	private static String REPOSITORY_ID = "SNAP";
 	@Parameter(names={"--skip-init","-s"})
 	private boolean skip;
+	@Parameter(names={"--indent-xml","-x"})
+	private boolean indent;
 
     private org.slf4j.Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
@@ -97,19 +99,27 @@ public class TemplateLowerer {
 		context.put("reader", reader);
 		context.put("functions", utils);
 		context.put("version", versionOutput);
-		StringWriter writer = new StringWriter();
-		t.merge(context, writer);
 
+		Writer writer;
+		if(!indent)
+			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
+		else
+			writer = new StringWriter();
+
+		t.merge(context, writer);
 		repo.shutDown();
 
-		String output = writer.toString();
-		if (formatXml)
-			output = Utils.format(output);
+		if(indent) {
+			String output = writer.toString();
+			if (formatXml)
+				output = Utils.format(output);
 
-		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
-		out.write(output);
-		out.close();
+			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
+			out.write(output);
+			out.close();
+		}
 
+		writer.close();
 	}
 
 }
