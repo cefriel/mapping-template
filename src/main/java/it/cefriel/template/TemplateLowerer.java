@@ -15,8 +15,10 @@ import org.apache.velocity.app.VelocityEngine;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -39,8 +41,8 @@ public class TemplateLowerer {
 	private static String GRAPHDB_SERVER = "http://localhost:7200/";
 	@Parameter(names={"--repository","-r"})
 	private static String REPOSITORY_ID = "SNAP";
-	@Parameter(names={"--skip-init","-s"})
-	private boolean skip;
+	@Parameter(names={"--triples-store","-ts"})
+	private boolean triplesStore;
 	@Parameter(names={"--in-memory-xml","-m"})
 	private boolean memory;
 
@@ -75,10 +77,14 @@ public class TemplateLowerer {
 
 
 	public void lower() throws IOException, ParsingException {
-		Repository repo = new HTTPRepository(GRAPHDB_SERVER, REPOSITORY_ID);
+		Repository repo;
+		if (triplesStore)
+			repo = new HTTPRepository(GRAPHDB_SERVER, REPOSITORY_ID);
+		else
+			repo = new SailRepository(new MemoryStore());
 		repo.initialize();
 
-		if(!skip) {
+		if(!triplesStore) {
 			File file = new File(triplesPath);
 			String baseURI = "";
 			try (RepositoryConnection con = repo.getConnection()) {

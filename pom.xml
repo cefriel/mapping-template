@@ -12,9 +12,9 @@
       <version>1.7</version>
     </dependency>
     <dependency>
-        <groupId>com.ontotext.graphdb</groupId>
-        <artifactId>graphdb-free-runtime</artifactId>
-        <version>8.5.0</version>
+      <groupId>org.eclipse.rdf4j</groupId>
+      <artifactId>rdf4j-runtime</artifactId>
+      <version>3.0.0</version>
     </dependency>
     <dependency>
         <groupId>com.beust</groupId>
