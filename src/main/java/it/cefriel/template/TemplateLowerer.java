@@ -25,6 +25,8 @@ import ch.qos.logback.classic.Logger;
 
 public class TemplateLowerer {
 
+	private Utils utils = new Utils();
+
 	@Parameter(names={"--basepath","-b"})
 	private String basePath = "./";
 	@Parameter(names={"--template","-t"})
@@ -33,17 +35,20 @@ public class TemplateLowerer {
 	private String triplesPath = "input.ttl";
 	@Parameter(names={"--output","-o"})
 	private String destinationPath = "output.xml";
-	@Parameter(names={"--version-output","-v"})
-	private String versionOutput = "any";
-	@Parameter(names={"--format-xml","-f"})
+	@Parameter(names={"--key-value","-kv"})
+	private String keyValuePairsPath;
+	@Parameter(names={"--key-value-csv","-kvc"})
+	private String keyValueCsvPath;
+	@Parameter(names={"--xml","-x"})
 	private boolean formatXml;
 	@Parameter(names={"--graphdb-address","-g"})
 	private static String GRAPHDB_SERVER = "http://localhost:7200/";
 	@Parameter(names={"--repository","-r"})
 	private static String REPOSITORY_ID = "SNAP";
+	//If --triples-store is set the triplesPath is ignored. Triples should be already in the specified remote repository.
 	@Parameter(names={"--triples-store","-ts"})
 	private boolean triplesStore;
-	@Parameter(names={"--in-memory-xml","-m"})
+	@Parameter(names={"--in-memory","-m"})
 	private boolean memory;
 
     private org.slf4j.Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
@@ -82,7 +87,7 @@ public class TemplateLowerer {
 			repo = new HTTPRepository(GRAPHDB_SERVER, REPOSITORY_ID);
 		else
 			repo = new SailRepository(new MemoryStore());
-		repo.initialize();
+		repo.init();
 
 		if(!triplesStore) {
 			File file = new File(triplesPath);
@@ -97,16 +102,23 @@ public class TemplateLowerer {
 
 		RDFReader reader = new RDFReader();
 		reader.setRepository(repo);
-		Utils utils = new Utils();
 
-		log.info("template path: " + templatePath);
+		log.info("Template path: " + templatePath);
 		templatePath = utils.trimTemplate(templatePath);
 
 		Template t = velocityEngine.getTemplate(templatePath);
 		VelocityContext context = new VelocityContext();
 		context.put("reader", reader);
 		context.put("functions", utils);
-		context.put("version", versionOutput);
+
+		Map<String, String> map = new HashMap<>();
+		if(keyValuePairsPath !=  null)
+			map.putAll(utils.parseMap(keyValuePairsPath));
+		if(keyValueCsvPath !=  null)
+			map.putAll(utils.parseCsvMap(keyValueCsvPath));
+		if(!map.containsKey("version"))
+			map.put("version", "any");
+		context.put("map", map);
 
 		Writer writer;
 		if(memory)
@@ -118,15 +130,15 @@ public class TemplateLowerer {
 		repo.shutDown();
 
 		if(memory)
-			Utils.format(writer.toString(), destinationPath);
+			utils.writeToFile(writer.toString(), destinationPath, formatXml);
 
 		writer.close();
 
-		if(!memory) {
+		if(!memory && formatXml) {
 			Builder builder = new Builder();
 			InputStream ins = new BufferedInputStream(new FileInputStream(destinationPath));
 			Document doc = builder.build(ins);
-			Utils.format(doc, destinationPath);
+			utils.writeToFileXml(doc, destinationPath);
 		}
 
 	}

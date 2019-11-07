@@ -7,16 +7,22 @@ import nu.xom.Serializer;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Utils {
+
+    public static DateTimeFormatter formatterOutput = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     // Remove Prefix
     public String rp(String s) {
@@ -39,16 +45,33 @@ public class Utils {
 
     // Get timestamp
     public String getTimestamp() {
-        DateTimeFormatter formatterOutput = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         return LocalDateTime.now().format(formatterOutput);
     }
 
-    public static void format(String xml, String path) throws ParsingException, IOException {
-        Document doc = new Builder().build(xml, "");
-        format(doc, path);
+    // Get formatted date
+    public String getFormattedDate(int year, int month, int dayOfMonth, int hour, int minute) {
+        LocalDateTime dt = LocalDateTime.of(0,0,0,0,0);
+        return dt.format(formatterOutput);
     }
 
-    public static void format(Document doc, String path) throws IOException {
+    // Format GTFS date
+    public static String formatGTFSDate(String dateString) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        DateTimeFormatter formatterOutput = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        return LocalDate.parse(dateString, formatter).format(formatterOutput);
+    }
+
+    public void writeToFile(String text, String path, boolean formatXml) throws ParsingException, IOException {
+        if (formatXml) {
+            Document doc = new Builder().build(text, "");
+            writeToFileXml(doc, path);
+        } else {
+            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path)));
+            out.write(text);
+        }
+    }
+
+    public void writeToFileXml(Document doc, String path) throws IOException {
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(path)));
         Serializer serializer = new Serializer(bos, "ISO-8859-1");
         serializer.setIndent(4);
@@ -84,5 +107,26 @@ public class Utils {
             out.println(result);
         }
         return newTemplatePath;
+    }
+
+    public Map<String,String> parseMap(String filePath) throws IOException {
+        Path path = FileSystems.getDefault().getPath(filePath);
+        Map<String, String> mapFromFile = Files.lines(path)
+                .filter(s -> s.matches("^\\w+:.+"))
+                .collect(Collectors.toMap(k -> k.split(":")[0], v -> v.substring(v.indexOf(":") + 1)));
+        return mapFromFile;
+    }
+
+    public Map<String,String> parseCsvMap(String filePath) throws IOException {
+        Path path = FileSystems.getDefault().getPath(filePath);
+        List<String[]> fromCSV = Files.lines(path)
+                .map(s -> s.split(","))
+                .collect(Collectors.toList());
+        Map<String,String> mapFromFile = new HashMap<>();
+        String[] keys = fromCSV.get(0);
+        String[] values = fromCSV.get(1);
+        for(int i = 0; i < keys.length; i++)
+            mapFromFile.put(keys[i], values[i]);
+        return mapFromFile;
     }
 }
