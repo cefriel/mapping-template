@@ -23,17 +23,23 @@ import java.util.stream.Collectors;
 public class Utils {
 
     public static DateTimeFormatter formatterOutput = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private String prefix;
 
     // Remove Prefix
     public String rp(String s) {
-        if (s!=null)
-            if (s.contains("#")) {
-                String[] split = s.split("#");
-                return split[1];
+        if (s!=null && prefix!=null)
+            if (s.contains(prefix)) {
+                return s.replace(prefix, "");
             }
         return s;
     }
-    // Remove Prefix through regex
+
+    public void setPrefix(String prefix) {
+        if (prefix != null)
+            this.prefix = prefix;
+    }
+
+    // Get string after regex
     public String sp(String s, String regex) {
         if (s!=null) {
             String[] split = s.split(regex);
