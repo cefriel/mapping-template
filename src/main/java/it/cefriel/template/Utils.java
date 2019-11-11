@@ -39,12 +39,10 @@ public class Utils {
             this.prefix = prefix;
     }
 
-    // Get string after regex
-    public String sp(String s, String regex) {
+    // Get string after occurence of specified substring
+    public String sp(String s, String substring) {
         if (s!=null) {
-            String[] split = s.split(regex);
-            if (split.length > 1)
-                return split[1];
+            return s.substring(s.indexOf(substring) + 1);
         }
         return s;
     }
@@ -61,10 +59,26 @@ public class Utils {
     }
 
     // Format GTFS date
-    public static String formatGTFSDate(String dateString) {
+    public String formatGTFSDate(String dateString) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         DateTimeFormatter formatterOutput = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return LocalDate.parse(dateString, formatter).format(formatterOutput);
+    }
+
+    public Map<String, Map<String, String>> getMap(List<Map<String, String>> results, String key) {
+        Map<String, Map<String, String>> results_map = new HashMap<>();
+        for (Map<String,String> result : results)
+            results_map.put(result.get(key), result);
+        return results_map;
+    }
+
+    public Map<String, List<Map<String, String>>> getListMap(List<Map<String, String>> results, String key) {
+        Map<String, List<Map<String, String>>> results_map = new HashMap<>();
+        for (Map<String,String> result : results)
+            results_map.put(result.get(key), new ArrayList<>());
+        for (Map<String,String> result : results)
+            results_map.get(result.get(key)).add(result);
+        return results_map;
     }
 
     public void writeToFile(String text, String path, boolean formatXml) throws ParsingException, IOException {
@@ -84,22 +98,6 @@ public class Utils {
         serializer.setMaxLength(0);
         serializer.write(doc);
         bos.close();
-    }
-
-    public Map<String, Map<String, String>> getMap(List<Map<String, String>> results, String key) {
-        Map<String, Map<String, String>> results_map = new HashMap<>();
-        for (Map<String,String> result : results)
-            results_map.put(result.get(key), result);
-        return results_map;
-    }
-
-    public Map<String, List<Map<String, String>>> getListMap(List<Map<String, String>> results, String key) {
-        Map<String, List<Map<String, String>>> results_map = new HashMap<>();
-        for (Map<String,String> result : results)
-            results_map.put(result.get(key), new ArrayList<>());
-        for (Map<String,String> result : results)
-            results_map.get(result.get(key)).add(result);
-        return results_map;
     }
 
     public String trimTemplate(String templatePath) throws IOException {

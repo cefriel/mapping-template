@@ -41,8 +41,8 @@ public class TemplateLowerer {
 	private String keyValueCsvPath;
 	@Parameter(names={"--xml","-x"})
 	private boolean formatXml;
-	@Parameter(names={"--graphdb-address","-g"})
-	private static String GRAPHDB_SERVER = "http://localhost:7200/";
+	@Parameter(names={"--ts-address","-tsa"})
+	private static String DB_ADDRESS = "http://localhost:7200/";
 	@Parameter(names={"--repository","-r"})
 	private static String REPOSITORY_ID = "SNAP";
 	//If --triples-store is set the triplesPath is ignored. Triples should be already in the specified remote repository.
@@ -84,7 +84,7 @@ public class TemplateLowerer {
 	public void lower() throws IOException, ParsingException {
 		Repository repo;
 		if (triplesStore)
-			repo = new HTTPRepository(GRAPHDB_SERVER, REPOSITORY_ID);
+			repo = new HTTPRepository(DB_ADDRESS, REPOSITORY_ID);
 		else
 			repo = new SailRepository(new MemoryStore());
 		repo.init();
