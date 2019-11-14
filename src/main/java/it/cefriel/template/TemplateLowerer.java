@@ -1,6 +1,9 @@
 package it.cefriel.template;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 import com.beust.jcommander.JCommander;
@@ -41,19 +44,21 @@ public class TemplateLowerer {
 	private String keyValueCsvPath;
 	@Parameter(names={"--xml","-x"})
 	private boolean formatXml;
-	@Parameter(names={"--ts-address","-tsa"})
-	private static String DB_ADDRESS = "http://localhost:7200/";
+	@Parameter(names={"--ts-address","-ts"})
+	private String DB_ADDRESS;
 	@Parameter(names={"--repository","-r"})
-	private static String REPOSITORY_ID = "SNAP";
-	//If --triples-store is set the triplesPath is ignored. Triples should be already in the specified remote repository.
-	@Parameter(names={"--triples-store","-ts"})
-	private boolean triplesStore;
+	private String REPOSITORY_ID;
 	@Parameter(names={"--in-memory","-m"})
 	private boolean memory;
+	@Parameter(names={"--query","-q"})
+	private String queryFile;
+
+	private VelocityEngine velocityEngine;
+	private int count = 0;
 
     private org.slf4j.Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
-	public static void main(String ... argv) throws IOException, ParsingException {
+	public static void main(String ... argv) throws Exception {
 
 		Set<String> loggers = new HashSet<>(Arrays.asList("org.apache.http"));
 
@@ -81,8 +86,9 @@ public class TemplateLowerer {
 	}
 
 
-	public void lower() throws IOException, ParsingException {
+	public void lower() throws Exception {
 		Repository repo;
+		boolean triplesStore = (DB_ADDRESS != null) && (REPOSITORY_ID != null);
 		if (triplesStore)
 			repo = new HTTPRepository(DB_ADDRESS, REPOSITORY_ID);
 		else
@@ -97,7 +103,7 @@ public class TemplateLowerer {
 			}
 		}
 
-		VelocityEngine velocityEngine = new VelocityEngine();
+		velocityEngine = new VelocityEngine();
 		velocityEngine.init();
 
 		RDFReader reader = new RDFReader();
@@ -106,7 +112,6 @@ public class TemplateLowerer {
 		log.info("Template path: " + templatePath);
 		templatePath = utils.trimTemplate(templatePath);
 
-		Template t = velocityEngine.getTemplate(templatePath);
 		VelocityContext context = new VelocityContext();
 		context.put("reader", reader);
 		context.put("functions", utils);
@@ -120,26 +125,60 @@ public class TemplateLowerer {
 			map.put("version", "any");
 		context.put("map", map);
 
+		if(queryFile != null) {
+			String query = new String(Files.readAllBytes(Paths.get(queryFile)), StandardCharsets.UTF_8);
+			log.info("Parametric Template executed with query: " + templatePath);
+			List<Map<String, String>> rows = reader.executeQueryStringValueXML(query);
+
+			for (Map<String, String> row : rows)
+				executeTemplate(context, row);
+		} else {
+			executeTemplate(context);
+		}
+
+		repo.shutDown();
+
+	}
+
+	private void executeTemplate(VelocityContext context) throws Exception {
+		executeTemplate(context, null);
+	}
+
+	private void executeTemplate(VelocityContext context, Map<String, String> row) throws Exception {
+		String id;
+		if (row != null) {
+			context.put("x", row);
+			if (row.containsKey("id"))
+				id = "-" + row.get("id");
+			else {
+				id = "-" + count;
+				count += 1;
+			}
+		} else
+			id = "";
+
+		log.info("Executing Template" + id);
+
 		Writer writer;
 		if(memory)
 			writer = new StringWriter();
 		else
-			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath)));
+			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath + id)));
 
+		Template t = velocityEngine.getTemplate(templatePath);
 		t.merge(context, writer);
-		repo.shutDown();
 
 		if(memory)
-			utils.writeToFile(writer.toString(), destinationPath, formatXml);
+			utils.writeToFile(writer.toString(), destinationPath + id, formatXml);
 
 		writer.close();
 
 		if(!memory && formatXml) {
 			Builder builder = new Builder();
-			InputStream ins = new BufferedInputStream(new FileInputStream(destinationPath));
+			InputStream ins = new BufferedInputStream(new FileInputStream(destinationPath + id));
 			Document doc = builder.build(ins);
-			utils.writeToFileXml(doc, destinationPath);
+			utils.writeToFileXml(doc, destinationPath + id);
 		}
-
 	}
+
 }
