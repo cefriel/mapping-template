@@ -158,26 +158,27 @@ public class TemplateLowerer {
 			id = "";
 
 		log.info("Executing Template" + id);
+		String pathId = destinationPath + id;
 
 		Writer writer;
 		if(memory)
 			writer = new StringWriter();
 		else
-			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(destinationPath + id)));
+			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(pathId)));
 
 		Template t = velocityEngine.getTemplate(templatePath);
 		t.merge(context, writer);
 
 		if(memory)
-			utils.writeToFile(writer.toString(), destinationPath + id, formatXml);
+			utils.writeToFile(writer.toString(), pathId, formatXml);
 
 		writer.close();
 
 		if(!memory && formatXml) {
 			Builder builder = new Builder();
-			InputStream ins = new BufferedInputStream(new FileInputStream(destinationPath + id));
+			InputStream ins = new BufferedInputStream(new FileInputStream(pathId));
 			Document doc = builder.build(ins);
-			utils.writeToFileXml(doc, destinationPath + id);
+			utils.writeToFileXml(doc, pathId);
 		}
 	}
 

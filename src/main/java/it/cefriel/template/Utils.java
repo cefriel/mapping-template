@@ -47,6 +47,14 @@ public class Utils {
         return s;
     }
 
+    // Escape URL
+    public String eu(String url) {
+        if (url != null)
+            return url.replaceAll("/", "\\\\/");
+        return null;
+    }
+
+
     // Get timestamp
     public String getTimestamp() {
         return LocalDateTime.now().format(formatterOutput);
