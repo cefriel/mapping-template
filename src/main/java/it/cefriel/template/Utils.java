@@ -42,7 +42,7 @@ public class Utils {
     // Get string after occurence of specified substring
     public String sp(String s, String substring) {
         if (s!=null) {
-            return s.substring(s.indexOf(substring) + 1);
+            return s.substring(s.indexOf(substring) + substring.length());
         }
         return s;
     }
@@ -140,5 +140,14 @@ public class Utils {
         for(int i = 0; i < keys.length; i++)
             mapFromFile.put(keys[i], values[i]);
         return mapFromFile;
+    }
+
+    public String getPathId(String destinationPath, String id) {
+        String pathId = destinationPath + id;
+        if (destinationPath.contains(".")) {
+            String extension = destinationPath.substring(destinationPath.lastIndexOf(".") + 1);
+            pathId = destinationPath.substring(0, destinationPath.lastIndexOf(".")) + id + "." + extension;
+        }
+        return pathId;
     }
 }

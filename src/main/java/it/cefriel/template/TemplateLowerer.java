@@ -158,7 +158,7 @@ public class TemplateLowerer {
 			id = "";
 
 		log.info("Executing Template" + id);
-		String pathId = destinationPath + id;
+		String pathId = utils.getPathId(destinationPath, id);
 
 		Writer writer;
 		if(memory)
