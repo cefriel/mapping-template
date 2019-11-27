@@ -77,8 +77,9 @@ public class RDFReader {
         List<Map<String, String>> results = executeQueryStringValue(query);
         Instant end = Instant.now();
         if (debug) {
-            log.info("Query: " + query + "\nDuration: " + Long.toString(Duration.between(start, end).getSeconds()));
-            log.info("Number of rows returned: " + results.size());
+            if(results.size() < 1)
+                log.info("Query: " + query + "\n");
+            log.info("Info query: [duration: " + Long.toString(Duration.between(start, end).toMillis()) + ", num_rows: " + results.size() + "]");
         }
         for (Map<String, String> result : results)
             result.replaceAll((k, v) -> StringEscapeUtils.escapeXml(v));
