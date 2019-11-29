@@ -151,7 +151,7 @@ public class TemplateLowerer {
 			if (row.containsKey("id"))
 				id = "-" + row.get("id");
 			else {
-				id = "-" + count;
+				id = "-T-id-" + count;
 				count += 1;
 			}
 		} else
