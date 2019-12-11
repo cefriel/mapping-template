@@ -54,6 +54,11 @@ public class Utils {
         return null;
     }
 
+    public static String hash(String s) {
+        if (s == null)
+            return null;
+        return Integer.toString(Math.abs(s.hashCode()));
+    }
 
     // Get timestamp
     public String getTimestamp() {
