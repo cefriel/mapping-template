@@ -2,15 +2,18 @@ package it.cefriel.template;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
+import it.cefriel.template.utils.LoweringUtils;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.ParsingException;
+import nu.xom.Serializer;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -23,107 +26,58 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.LoggerFactory;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 
 public class TemplateLowerer {
 
-	private Utils utils = new Utils();
-
-	@Parameter(names={"--basepath","-b"})
-	private String basePath = "./";
-	@Parameter(names={"--template","-t"})
-	private String templatePath = "template.vm";
-	@Parameter(names={"--input","-i"})
-	private String triplesPath = "input.ttl";
-	@Parameter(names={"--output","-o"})
-	private String destinationPath = "output.xml";
-	@Parameter(names={"--key-value","-kv"})
-	private String keyValuePairsPath;
-	@Parameter(names={"--key-value-csv","-kvc"})
-	private String keyValueCsvPath;
-	@Parameter(names={"--xml","-x"})
-	private boolean formatXml;
-	@Parameter(names={"--ts-address","-ts"})
-	private String DB_ADDRESS;
-	@Parameter(names={"--repository","-r"})
-	private String REPOSITORY_ID;
-	@Parameter(names={"--in-memory","-m"})
-	private boolean memory;
-	@Parameter(names={"--query","-q"})
-	private String queryFile;
+	private org.slf4j.Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
 	private VelocityEngine velocityEngine;
+	private RDFReader reader;
+	private LoweringUtils lu;
+
+	private String templatePath;
+	private String destinationPath;
+	private String keyValuePairsPath;
+	private String keyValueCsvPath;
+
 	private int count = 0;
 
-    private org.slf4j.Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
-
-	public static void main(String ... argv) throws Exception {
-
-		Set<String> loggers = new HashSet<>(Arrays.asList("org.apache.http"));
-
-		for(String log:loggers) {
-			Logger logger = (Logger)LoggerFactory.getLogger(log);
-			logger.setLevel(Level.INFO);
-			logger.setAdditive(false);
-		}
-
-		TemplateLowerer lowerer = new TemplateLowerer();
-
-		JCommander.newBuilder()
-				.addObject(lowerer)
-				.build()
-				.parse(argv);
-
-		lowerer.updateBasePath();
-		lowerer.lower();
+    public TemplateLowerer(String templatePath, String destinationPath) {
+    	this.templatePath = templatePath;
+    	this.destinationPath = destinationPath;
+    	this.lu = new LoweringUtils();
 	}
 
-	public void updateBasePath(){
-		templatePath = basePath + templatePath;
-		triplesPath = basePath + triplesPath;
-		destinationPath = basePath + destinationPath;
+	public TemplateLowerer(String templatePath, String destinationPath, LoweringUtils lu) {
+		this.templatePath = templatePath;
+		this.destinationPath = destinationPath;
+		this.lu = lu;
 	}
 
-
-	public void lower() throws Exception {
-		Repository repo;
-		boolean triplesStore = (DB_ADDRESS != null) && (REPOSITORY_ID != null);
-		if (triplesStore)
-			repo = new HTTPRepository(DB_ADDRESS, REPOSITORY_ID);
-		else
-			repo = new SailRepository(new MemoryStore());
-		repo.init();
-
-		if(!triplesStore) {
-			File file = new File(triplesPath);
-			String baseURI = "";
-			try (RepositoryConnection con = repo.getConnection()) {
-				con.add(file, baseURI, RDFFormat.TURTLE);
-			}
-		}
-
+	private VelocityContext initEngine(Repository repo) throws IOException {
 		velocityEngine = new VelocityEngine();
 		velocityEngine.init();
 
-		RDFReader reader = new RDFReader();
+		reader = new RDFReader();
 		reader.setRepository(repo);
-
-		log.info("Template path: " + templatePath);
-		templatePath = utils.trimTemplate(templatePath);
 
 		VelocityContext context = new VelocityContext();
 		context.put("reader", reader);
-		context.put("functions", utils);
+		context.put("functions", lu);
 
 		Map<String, String> map = new HashMap<>();
 		if(keyValuePairsPath !=  null)
-			map.putAll(utils.parseMap(keyValuePairsPath));
+			map.putAll(parseMap(keyValuePairsPath));
 		if(keyValueCsvPath !=  null)
-			map.putAll(utils.parseCsvMap(keyValueCsvPath));
-		if(!map.containsKey("version"))
-			map.put("version", "any");
+			map.putAll(parseCsvMap(keyValueCsvPath));
 		context.put("map", map);
+
+		return context;
+	}
+
+	private void executeLowering(String templatePath, String queryFile, VelocityContext context) throws Exception {
+		log.info("Template path: " + templatePath);
+		templatePath = trimTemplate(templatePath);
 
 		if(queryFile != null) {
 			String query = new String(Files.readAllBytes(Paths.get(queryFile)), StandardCharsets.UTF_8);
@@ -135,9 +89,42 @@ public class TemplateLowerer {
 		} else {
 			executeTemplate(context);
 		}
+	}
 
+	public void lower(String triplesPath) throws Exception {
+		lower(triplesPath, null);
+	}
+
+	public void lower(String triplesPath, String queryFile) throws Exception {
+		Repository repo;
+		repo = new SailRepository(new MemoryStore());
+		repo.init();
+
+		File file = new File(triplesPath);
+		String baseURI = "";
+		try (RepositoryConnection con = repo.getConnection()) {
+			con.add(file, baseURI, RDFFormat.TURTLE);
+		}
+
+		lower(repo, queryFile);
+	}
+
+	public void lower(TripleStoreConfig tsc) throws Exception {
+    	lower(tsc, null);
+	}
+
+	public void lower(TripleStoreConfig tsc, String queryFile) throws Exception {
+		Repository repo;
+		repo = new HTTPRepository(tsc.getAddress(), tsc.getRepositoryID());
+		repo.init();
+
+		lower(repo, queryFile);
+	}
+
+	private void lower(Repository repo, String queryFile) throws Exception {
+		VelocityContext context = initEngine(repo);
+		executeLowering(templatePath, queryFile, context);
 		repo.shutDown();
-
 	}
 
 	private void executeTemplate(VelocityContext context) throws Exception {
@@ -145,21 +132,14 @@ public class TemplateLowerer {
 	}
 
 	private void executeTemplate(VelocityContext context, Map<String, String> row) throws Exception {
-		String id;
-		if (row != null) {
+		String id = generateId(row);
+
+		if (row != null)
 			context.put("x", row);
-			if (row.containsKey("id"))
-				id = "-" + row.get("id");
-			else {
-				id = "-T-id-" + count;
-				count += 1;
-			}
-		} else
-			id = "";
 
 		log.info("Executing Template" + id);
-		String pathId = utils.getPathId(destinationPath, id);
-
+		String pathId = getPathId(destinationPath, id);
+		/* TODO
 		Writer writer;
 		if(memory)
 			writer = new StringWriter();
@@ -170,7 +150,7 @@ public class TemplateLowerer {
 		t.merge(context, writer);
 
 		if(memory)
-			utils.writeToFile(writer.toString(), pathId, formatXml);
+			writeToFile(writer.toString(), pathId, formatXml);
 
 		writer.close();
 
@@ -178,8 +158,100 @@ public class TemplateLowerer {
 			Builder builder = new Builder();
 			InputStream ins = new BufferedInputStream(new FileInputStream(pathId));
 			Document doc = builder.build(ins);
-			utils.writeToFileXml(doc, pathId);
+			writeToFileXml(doc, pathId);
 		}
+		*/
+	}
+
+	private String generateId(Map<String, String> row) {
+		if (row != null)
+			if (row.containsKey("id"))
+				return "-" + row.get("id");
+			else {
+				String id = "-T-id-" + count;
+				count += 1;
+				return id;
+			}
+		else
+			return "";
+	}
+
+	public void writeToFile(String text, String path, boolean formatXml) throws ParsingException, IOException {
+		if (formatXml) {
+			Document doc = new Builder().build(text, "");
+			writeToFileXml(doc, path);
+		} else {
+			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path)));
+			out.write(text);
+		}
+	}
+
+	public void writeToFileXml(Document doc, String path) throws IOException {
+		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(path)));
+		Serializer serializer = new Serializer(bos, "ISO-8859-1");
+		serializer.setIndent(4);
+		serializer.setMaxLength(0);
+		serializer.write(doc);
+		bos.close();
+	}
+
+	public String trimTemplate(String templatePath) throws IOException {
+		String newTemplatePath = templatePath + ".tmp.vm";
+		List<String> newLines = new ArrayList<>();
+		for (String line : Files.readAllLines(Paths.get(templatePath), StandardCharsets.UTF_8)) {
+			newLines.add(line.trim().replace("\n", "").replace("\r",""));
+		}
+		String result = String.join(" ", newLines);
+		try (PrintWriter out = new PrintWriter(newTemplatePath)) {
+			out.println(result);
+		}
+		return newTemplatePath;
+	}
+
+	public Map<String,String> parseMap(String filePath) throws IOException {
+		Path path = FileSystems.getDefault().getPath(filePath);
+		Map<String, String> mapFromFile = Files.lines(path)
+				.filter(s -> s.matches("^\\w+:.+"))
+				.collect(Collectors.toMap(k -> k.split(":")[0], v -> v.substring(v.indexOf(":") + 1)));
+		return mapFromFile;
+	}
+
+	public Map<String,String> parseCsvMap(String filePath) throws IOException {
+		Path path = FileSystems.getDefault().getPath(filePath);
+		List<String[]> fromCSV = Files.lines(path)
+				.map(s -> s.split(","))
+				.collect(Collectors.toList());
+		Map<String,String> mapFromFile = new HashMap<>();
+		String[] keys = fromCSV.get(0);
+		String[] values = fromCSV.get(1);
+		for(int i = 0; i < keys.length; i++)
+			mapFromFile.put(keys[i], values[i]);
+		return mapFromFile;
+	}
+
+	public String getPathId(String destinationPath, String id) {
+		String pathId = destinationPath + id;
+		if (destinationPath.contains(".")) {
+			String extension = destinationPath.substring(destinationPath.lastIndexOf(".") + 1);
+			pathId = destinationPath.substring(0, destinationPath.lastIndexOf(".")) + id + "." + extension;
+		}
+		return pathId;
+	}
+
+	public String getKeyValuePairsPath() {
+		return keyValuePairsPath;
+	}
+
+	public void setKeyValuePairsPath(String keyValuePairsPath) {
+		this.keyValuePairsPath = keyValuePairsPath;
+	}
+
+	public String getKeyValueCsvPath() {
+		return keyValueCsvPath;
+	}
+
+	public void setKeyValueCsvPath(String keyValueCsvPath) {
+		this.keyValueCsvPath = keyValueCsvPath;
 	}
 
 }
