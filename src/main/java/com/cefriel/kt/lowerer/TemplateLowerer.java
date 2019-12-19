@@ -1,4 +1,4 @@
-package it.cefriel.template;
+package com.cefriel.kt.lowerer;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -9,10 +9,11 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import it.cefriel.template.utils.LoweringUtils;
+import com.cefriel.kt.utils.LoweringUtils;
+import com.cefriel.kt.utils.rdf.RDFReader;
+import com.cefriel.kt.utils.rdf.TripleStoreConfig;
 import nu.xom.Builder;
 import nu.xom.Document;
-import nu.xom.ParsingException;
 import nu.xom.Serializer;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -31,15 +32,18 @@ public class TemplateLowerer {
 
 	private org.slf4j.Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
-	private VelocityEngine velocityEngine;
-	private RDFReader reader;
-	private LoweringUtils lu;
-
+	// Constructor parameters
 	private String templatePath;
 	private String destinationPath;
+	private LoweringUtils lu;
+
+	// Configurable parameters
 	private String keyValuePairsPath;
 	private String keyValueCsvPath;
+	private String format;
 
+	private VelocityEngine velocityEngine;
+	private RDFReader reader;
 	private int count = 0;
 
     public TemplateLowerer(String templatePath, String destinationPath) {
@@ -52,43 +56,6 @@ public class TemplateLowerer {
 		this.templatePath = templatePath;
 		this.destinationPath = destinationPath;
 		this.lu = lu;
-	}
-
-	private VelocityContext initEngine(Repository repo) throws IOException {
-		velocityEngine = new VelocityEngine();
-		velocityEngine.init();
-
-		reader = new RDFReader();
-		reader.setRepository(repo);
-
-		VelocityContext context = new VelocityContext();
-		context.put("reader", reader);
-		context.put("functions", lu);
-
-		Map<String, String> map = new HashMap<>();
-		if(keyValuePairsPath !=  null)
-			map.putAll(parseMap(keyValuePairsPath));
-		if(keyValueCsvPath !=  null)
-			map.putAll(parseCsvMap(keyValueCsvPath));
-		context.put("map", map);
-
-		return context;
-	}
-
-	private void executeLowering(String templatePath, String queryFile, VelocityContext context) throws Exception {
-		log.info("Template path: " + templatePath);
-		templatePath = trimTemplate(templatePath);
-
-		if(queryFile != null) {
-			String query = new String(Files.readAllBytes(Paths.get(queryFile)), StandardCharsets.UTF_8);
-			log.info("Parametric Template executed with query: " + templatePath);
-			List<Map<String, String>> rows = reader.executeQueryStringValueXML(query);
-
-			for (Map<String, String> row : rows)
-				executeTemplate(context, row);
-		} else {
-			executeTemplate(context);
-		}
 	}
 
 	public void lower(String triplesPath) throws Exception {
@@ -123,8 +90,45 @@ public class TemplateLowerer {
 
 	private void lower(Repository repo, String queryFile) throws Exception {
 		VelocityContext context = initEngine(repo);
-		executeLowering(templatePath, queryFile, context);
+		executeLowering(queryFile, context);
 		repo.shutDown();
+	}
+
+	private VelocityContext initEngine(Repository repo) throws IOException {
+		velocityEngine = new VelocityEngine();
+		velocityEngine.init();
+
+		reader = new RDFReader();
+		reader.setRepository(repo);
+
+		VelocityContext context = new VelocityContext();
+		context.put("reader", reader);
+		context.put("functions", lu);
+
+		Map<String, String> map = new HashMap<>();
+		if(keyValuePairsPath !=  null)
+			map.putAll(parseMap(keyValuePairsPath));
+		if(keyValueCsvPath !=  null)
+			map.putAll(parseCsvMap(keyValueCsvPath));
+		context.put("map", map);
+
+		return context;
+	}
+
+	private void executeLowering(String queryFile, VelocityContext context) throws Exception {
+		log.info("Template path: " + templatePath);
+		templatePath = trimTemplate(templatePath);
+
+		if(queryFile != null) {
+			String query = new String(Files.readAllBytes(Paths.get(queryFile)), StandardCharsets.UTF_8);
+			log.info("Parametric Template executed with query: " + templatePath);
+			List<Map<String, String>> rows = reader.executeQueryStringValueXML(query);
+
+			for (Map<String, String> row : rows)
+				executeTemplate(context, row);
+		} else {
+			executeTemplate(context);
+		}
 	}
 
 	private void executeTemplate(VelocityContext context) throws Exception {
@@ -132,35 +136,35 @@ public class TemplateLowerer {
 	}
 
 	private void executeTemplate(VelocityContext context, Map<String, String> row) throws Exception {
-		String id = generateId(row);
 
+    	String id = generateId(row);
 		if (row != null)
 			context.put("x", row);
 
 		log.info("Executing Template" + id);
 		String pathId = getPathId(destinationPath, id);
-		/* TODO
-		Writer writer;
-		if(memory)
-			writer = new StringWriter();
-		else
-			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(pathId)));
 
+		Writer writer;
+		writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(pathId)));
 		Template t = velocityEngine.getTemplate(templatePath);
 		t.merge(context, writer);
-
-		if(memory)
-			writeToFile(writer.toString(), pathId, formatXml);
-
 		writer.close();
 
-		if(!memory && formatXml) {
-			Builder builder = new Builder();
-			InputStream ins = new BufferedInputStream(new FileInputStream(pathId));
-			Document doc = builder.build(ins);
-			writeToFileXml(doc, pathId);
-		}
-		*/
+		handleFormat(pathId);
+	}
+
+	private void handleFormat(String pathId) throws Exception {
+    	if (format != null)
+			switch (format) {
+				case "xml":
+					Builder builder = new Builder();
+					InputStream ins = new BufferedInputStream(new FileInputStream(pathId));
+					Document doc = builder.build(ins);
+					writeToFileXml(doc, pathId);
+					break;
+				default:
+					return;
+			}
 	}
 
 	private String generateId(Map<String, String> row) {
@@ -174,16 +178,6 @@ public class TemplateLowerer {
 			}
 		else
 			return "";
-	}
-
-	public void writeToFile(String text, String path, boolean formatXml) throws ParsingException, IOException {
-		if (formatXml) {
-			Document doc = new Builder().build(text, "");
-			writeToFileXml(doc, path);
-		} else {
-			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path)));
-			out.write(text);
-		}
 	}
 
 	public void writeToFileXml(Document doc, String path) throws IOException {
@@ -252,6 +246,14 @@ public class TemplateLowerer {
 
 	public void setKeyValueCsvPath(String keyValueCsvPath) {
 		this.keyValueCsvPath = keyValueCsvPath;
+	}
+
+	public String getFormat() {
+		return format;
+	}
+
+	public void setFormat(String format) {
+		this.format = format;
 	}
 
 }

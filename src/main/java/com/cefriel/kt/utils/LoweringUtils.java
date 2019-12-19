@@ -1,4 +1,4 @@
-package it.cefriel.template.utils;
+package com.cefriel.kt.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
