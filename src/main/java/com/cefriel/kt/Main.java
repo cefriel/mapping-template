@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.cefriel.kt.utils.LoweringUtils;
 import com.cefriel.kt.utils.rdf.TripleStoreConfig;
 import com.cefriel.kt.lowerer.TemplateLowerer;
 import com.cefriel.kt.utils.TransmodelLoweringUtils;
@@ -69,16 +70,20 @@ public class Main {
 	public void exec() throws Exception {
 
 		TemplateLowerer tl;
+
+		LoweringUtils lu = new LoweringUtils();
 		if (utils != null)
-		switch (utils) {
-			case "transmodel":
-				tl = new TemplateLowerer(templatePath, destinationPath, new TransmodelLoweringUtils());
-				break;
-			default:
-				tl = new TemplateLowerer(templatePath, destinationPath);
-		} else {
-			tl = new TemplateLowerer(templatePath, destinationPath);
-		}
+			switch (utils) {
+				case "transmodel":
+					lu = new TransmodelLoweringUtils();
+					break;
+			}
+
+		boolean triplesStore = (DB_ADDRESS != null) && (REPOSITORY_ID != null);
+		if (triplesStore)
+			tl = new TemplateLowerer(new TripleStoreConfig(DB_ADDRESS, REPOSITORY_ID), lu);
+		else
+			tl = new TemplateLowerer(triplesPath, lu);
 
 		if (keyValueCsvPath != null)
 			tl.setKeyValueCsvPath(keyValueCsvPath);
@@ -87,11 +92,7 @@ public class Main {
 		if (format != null)
 			tl.setFormat(format);
 
-		boolean triplesStore = (DB_ADDRESS != null) && (REPOSITORY_ID != null);
-		if (triplesStore)
-			tl.lower(new TripleStoreConfig(DB_ADDRESS, REPOSITORY_ID), queryFile);
-		else
-			tl.lower(triplesPath, queryFile);
+		tl.lower(templatePath, destinationPath, queryFile);
 
 	}
 

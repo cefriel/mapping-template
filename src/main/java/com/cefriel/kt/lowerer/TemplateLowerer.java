@@ -33,8 +33,7 @@ public class TemplateLowerer {
 	private org.slf4j.Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
 	// Constructor parameters
-	private String templatePath;
-	private String destinationPath;
+	private Repository repo;
 	private LoweringUtils lu;
 
 	// Configurable parameters
@@ -46,24 +45,17 @@ public class TemplateLowerer {
 	private RDFReader reader;
 	private int count = 0;
 
-    public TemplateLowerer(String templatePath, String destinationPath) {
-    	this.templatePath = templatePath;
-    	this.destinationPath = destinationPath;
-    	this.lu = new LoweringUtils();
+	public TemplateLowerer(String triplesPath) throws Exception {
+		initFromFile(triplesPath);
+		this.lu = new LoweringUtils();
 	}
 
-	public TemplateLowerer(String templatePath, String destinationPath, LoweringUtils lu) {
-		this.templatePath = templatePath;
-		this.destinationPath = destinationPath;
-		this.lu = lu;
+    public TemplateLowerer(String triplesPath, LoweringUtils lu) throws Exception {
+		initFromFile(triplesPath);
+    	this.lu = lu;
 	}
 
-	public void lower(String triplesPath) throws Exception {
-		lower(triplesPath, null);
-	}
-
-	public void lower(String triplesPath, String queryFile) throws Exception {
-		Repository repo;
+	private void initFromFile(String triplesPath) throws Exception {
 		repo = new SailRepository(new MemoryStore());
 		repo.init();
 
@@ -72,29 +64,38 @@ public class TemplateLowerer {
 		try (RepositoryConnection con = repo.getConnection()) {
 			con.add(file, baseURI, RDFFormat.TURTLE);
 		}
-
-		lower(repo, queryFile);
 	}
 
-	public void lower(TripleStoreConfig tsc) throws Exception {
-    	lower(tsc, null);
+	public TemplateLowerer(TripleStoreConfig tsc) throws Exception {
+		initFromHTTP(tsc);
+		this.lu = new LoweringUtils();
 	}
 
-	public void lower(TripleStoreConfig tsc, String queryFile) throws Exception {
-		Repository repo;
+	public TemplateLowerer(TripleStoreConfig tsc, LoweringUtils lu) throws Exception {
+		initFromHTTP(tsc);
+		this.lu = lu;
+	}
+
+	private void initFromHTTP(TripleStoreConfig tsc) throws Exception {
 		repo = new HTTPRepository(tsc.getAddress(), tsc.getRepositoryID());
 		repo.init();
-
-		lower(repo, queryFile);
 	}
 
-	private void lower(Repository repo, String queryFile) throws Exception {
-		VelocityContext context = initEngine(repo);
-		executeLowering(queryFile, context);
+	public void lower(String templatePath, String destinationPath) throws Exception {
+		procedure(templatePath, destinationPath, null);
+	}
+
+	public void lower(String templatePath, String destinationPath, String queryFile) throws Exception {
+		procedure(templatePath, destinationPath, queryFile);
+	}
+
+	private void procedure(String templatePath, String destinationPath, String queryFile) throws Exception {
+		VelocityContext context = initEngine();
+		executeLowering(templatePath, destinationPath, queryFile, context);
 		repo.shutDown();
 	}
 
-	private VelocityContext initEngine(Repository repo) throws IOException {
+	private VelocityContext initEngine() throws IOException {
 		velocityEngine = new VelocityEngine();
 		velocityEngine.init();
 
@@ -115,7 +116,7 @@ public class TemplateLowerer {
 		return context;
 	}
 
-	private void executeLowering(String queryFile, VelocityContext context) throws Exception {
+	private void executeLowering(String templatePath, String destinationPath, String queryFile, VelocityContext context) throws Exception {
 		log.info("Template path: " + templatePath);
 		templatePath = trimTemplate(templatePath);
 
@@ -125,17 +126,17 @@ public class TemplateLowerer {
 			List<Map<String, String>> rows = reader.executeQueryStringValueXML(query);
 
 			for (Map<String, String> row : rows)
-				executeTemplate(context, row);
+				executeTemplate(templatePath, destinationPath, context, row);
 		} else {
-			executeTemplate(context);
+			executeTemplate(templatePath, destinationPath, context);
 		}
 	}
 
-	private void executeTemplate(VelocityContext context) throws Exception {
-		executeTemplate(context, null);
+	private void executeTemplate(String templatePath, String destinationPath, VelocityContext context) throws Exception {
+		executeTemplate(templatePath, destinationPath, context, null);
 	}
 
-	private void executeTemplate(VelocityContext context, Map<String, String> row) throws Exception {
+	private void executeTemplate(String templatePath, String destinationPath, VelocityContext context, Map<String, String> row) throws Exception {
 
     	String id = generateId(row);
 		if (row != null)
@@ -160,7 +161,7 @@ public class TemplateLowerer {
 					Builder builder = new Builder();
 					InputStream ins = new BufferedInputStream(new FileInputStream(pathId));
 					Document doc = builder.build(ins);
-					writeToFileXml(doc, pathId);
+					formatXML(doc, pathId);
 					break;
 				default:
 					return;
@@ -180,9 +181,9 @@ public class TemplateLowerer {
 			return "";
 	}
 
-	public void writeToFileXml(Document doc, String path) throws IOException {
+	public void formatXML(Document doc, String path) throws IOException {
 		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(path)));
-		Serializer serializer = new Serializer(bos, "ISO-8859-1");
+		Serializer serializer = new Serializer(bos, "utf-8");
 		serializer.setIndent(4);
 		serializer.setMaxLength(0);
 		serializer.write(doc);
