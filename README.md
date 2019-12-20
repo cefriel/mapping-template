@@ -26,10 +26,10 @@ We report here the subclasses of LoweringUtils, the functions introduced to exte
 ### Parametric Templates
 Providing a SPARQL query through the `-q` option is it possible to execute _parametric templates_ with respect to the given query, e.g., it is possible to run the same template for each element of a specific class contained in the database. The template is executed for each resulting row of the provided query; in each template execution the specific row is bound to a given variable (`x`) that is made accessible as a map (keys as specified for column names) in the template.
 
-### `velocity-lowerer.jar` ###
-This is the intended usage of the `velocity-lowerer.jar`.
+### `rdf-lowerer.jar` ###
+This is the intended usage of the `rdf-lowerer.jar`.
 ```
-usage: java -jar velocity-lowerer.jar <options>
+usage: java -jar rdf-lowerer.jar <options>
 options:
   -b, --basepath <arg>            Base path for files (input, template, output). Default value is './'.
   -f, --format <arg>              Activate procedures for specific output formats. Supported values: 'xml' (XML parsing to check                                           structure, indentation)
