@@ -69,4 +69,4 @@ If `-ts` and `-r` options are set a remote repository is used for queries and th
 - If it is feasible for the specific case, splitting templates in multiple files and then combining them improves performances. 
 - Different lowering procedures can be launched in parallel.
 - It is better to avoid nested cycles in the template
-- The component can be used also as an external library using class `TemplateLowerer`.
+- The component can be used also as an external library using class `com.cefriel.kt.lower.TemplateLowerer`.
