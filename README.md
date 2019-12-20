@@ -1,6 +1,6 @@
 # rdf-lowerer
 
-A template-based lowerer for RDF repositories exploiting Apache Velocity.
+A template-based lowerer for RDF repositories exploiting Apache Velocity and maintained by Cefriel Knowledge Technologies team as a building block of the [Chimera](https://github.com/cefriel/chimera) solution for semantic data conversion.
 
 ### Template Default Variables
 The `velocity-lowerer` component offers a set of already bound variables that can be used in the template:
