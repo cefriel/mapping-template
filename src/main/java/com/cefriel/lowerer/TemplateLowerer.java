@@ -1,4 +1,4 @@
-package com.cefriel.kt.lowerer;
+package com.cefriel.lowerer;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -9,9 +9,9 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.cefriel.kt.utils.LoweringUtils;
-import com.cefriel.kt.utils.rdf.RDFReader;
-import com.cefriel.kt.utils.rdf.TripleStoreConfig;
+import com.cefriel.utils.LoweringUtils;
+import com.cefriel.utils.rdf.RDFReader;
+import com.cefriel.utils.rdf.TripleStoreConfig;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Serializer;

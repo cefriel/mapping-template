@@ -1,13 +1,13 @@
-package com.cefriel.kt;
+package com.cefriel;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.cefriel.kt.utils.LoweringUtils;
-import com.cefriel.kt.utils.rdf.TripleStoreConfig;
-import com.cefriel.kt.lowerer.TemplateLowerer;
-import com.cefriel.kt.utils.TransmodelLoweringUtils;
+import com.cefriel.utils.LoweringUtils;
+import com.cefriel.utils.rdf.TripleStoreConfig;
+import com.cefriel.lowerer.TemplateLowerer;
+import com.cefriel.utils.TransmodelLoweringUtils;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;

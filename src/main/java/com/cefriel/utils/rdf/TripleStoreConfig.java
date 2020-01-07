@@ -1,4 +1,4 @@
-package com.cefriel.kt.utils.rdf;
+package com.cefriel.utils.rdf;
 
 public class TripleStoreConfig {
 

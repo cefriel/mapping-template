@@ -1,4 +1,4 @@
-package com.cefriel.kt.utils.rdf;
+package com.cefriel.utils.rdf;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.cefriel.kt.lowerer.TemplateLowerer;
+import com.cefriel.lowerer.TemplateLowerer;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
