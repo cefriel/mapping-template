@@ -5,7 +5,7 @@ A template-based lowerer for RDF repositories exploiting Apache Velocity and mai
 ### Functionalities
 The main functionalities provided by this component are:
 - Enable _SPARQL queries_ in the template accessing an HTTP Repository or an in-memory repository initialized with triples from a file
-- Possibility to access a portion of a remote repository contextualizing queries with respect to a specific named graph
+- Possibility to access a portion of the repository contextualizing queries with respect to a specific named graph
 - Access custom _utility functions_ in the template
 - Activate procedures for specific _output formats_ (e.g. XML option to validate and indent XML files)
 - Possibility to provide _generic key-value pairs_ at runtime then made accessible through a map data structure in the template
