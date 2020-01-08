@@ -24,6 +24,7 @@ import java.util.Map;
 
 import com.cefriel.lowerer.TemplateLowerer;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryLanguage;
@@ -33,6 +34,7 @@ import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 
+import org.eclipse.rdf4j.repository.contextaware.ContextAwareRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +43,7 @@ public class RDFReader {
     private Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
     private Repository repository;
+    private IRI context;
 
     public List<Map<String,Value>> executeQuery(String query) {
         try (RepositoryConnection con = this.repository.getConnection()) {
@@ -108,5 +111,23 @@ public class RDFReader {
 
     public void setRepository(Repository repository) {
         this.repository = repository;
+        if (context != null)
+            setContextAwareness();
+    }
+
+    public IRI getContext() {
+        return context;
+    }
+
+    public void setContext(IRI context) {
+        this.context = context;
+        if (repository != null)
+            setContextAwareness();
+    }
+
+    private void setContextAwareness() {
+        ContextAwareRepository cRep = new ContextAwareRepository(repository);
+        cRep.setReadContexts(context);
+        repository = cRep;
     }
 }

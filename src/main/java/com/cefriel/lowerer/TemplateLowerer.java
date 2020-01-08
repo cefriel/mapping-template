@@ -79,6 +79,8 @@ public class TemplateLowerer {
 		try (RepositoryConnection con = repo.getConnection()) {
 			con.add(file, baseURI, RDFFormat.TURTLE);
 		}
+		reader = new RDFReader();
+		reader.setRepository(repo);
 	}
 
 	public TemplateLowerer(TripleStoreConfig tsc) throws Exception {
@@ -94,6 +96,13 @@ public class TemplateLowerer {
 	private void initFromHTTP(TripleStoreConfig tsc) throws Exception {
 		repo = new HTTPRepository(tsc.getAddress(), tsc.getRepositoryID());
 		repo.init();
+
+		reader = new RDFReader();
+		reader.setRepository(repo);
+
+		if (tsc.getContext() != null) {
+			reader.setContext(tsc.getContext());
+		}
 	}
 
 	public void lower(String templatePath, String destinationPath) throws Exception {
@@ -113,9 +122,6 @@ public class TemplateLowerer {
 	private VelocityContext initEngine() throws IOException {
 		velocityEngine = new VelocityEngine();
 		velocityEngine.init();
-
-		reader = new RDFReader();
-		reader.setRepository(repo);
 
 		VelocityContext context = new VelocityContext();
 		context.put("reader", reader);

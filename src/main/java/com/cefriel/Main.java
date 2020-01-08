@@ -49,6 +49,8 @@ public class Main {
 	private String DB_ADDRESS;
 	@Parameter(names={"--repository","-r"})
 	private String REPOSITORY_ID;
+	@Parameter(names={"--contextIRI","-c"})
+	private String context;
 	@Parameter(names={"--query","-q"})
 	private String queryFile;
 
@@ -96,7 +98,7 @@ public class Main {
 
 		boolean triplesStore = (DB_ADDRESS != null) && (REPOSITORY_ID != null);
 		if (triplesStore)
-			tl = new TemplateLowerer(new TripleStoreConfig(DB_ADDRESS, REPOSITORY_ID), lu);
+			tl = new TemplateLowerer(new TripleStoreConfig(DB_ADDRESS, REPOSITORY_ID, context), lu);
 		else
 			tl = new TemplateLowerer(triplesPath, lu);
 

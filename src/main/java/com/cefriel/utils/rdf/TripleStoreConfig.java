@@ -15,14 +15,28 @@
  */
 package com.cefriel.utils.rdf;
 
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+
 public class TripleStoreConfig {
 
     private final String DB_ADDRESS;
     private final String REPOSITORY_ID;
+    private IRI context;
 
     public TripleStoreConfig(String address, String repository) {
         DB_ADDRESS = address;
         REPOSITORY_ID = repository;
+    }
+
+    public TripleStoreConfig(String address, String repository, String context) {
+        DB_ADDRESS = address;
+        REPOSITORY_ID = repository;
+        if (context != null && !context.equals("")) {
+            ValueFactory vf = SimpleValueFactory.getInstance();
+            this.context = vf.createIRI(context);
+        }
     }
 
     public String getAddress() {
@@ -31,6 +45,10 @@ public class TripleStoreConfig {
 
     public String getRepositoryID() {
         return REPOSITORY_ID;
+    }
+
+    public IRI getContext() {
+        return context;
     }
 
 }
