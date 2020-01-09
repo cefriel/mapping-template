@@ -41,7 +41,7 @@ We report here the subclasses of LoweringUtils, the functions introduced to exte
   - `formatGTFSDate(String dateString)`: format GTFS dates in `yyyy-MM-dd'T'HH:mm:ss` format.
   
 #### Parametric Templates
-Providing a SPARQL query through the `-q` option is it possible to execute _parametric templates_ with respect to the given query, e.g., it is possible to run the same template for each element of a specific class contained in the database. The template is executed for each resulting row of the provided query; in each template execution, the specific row is bound to a given variable (`x`) that is made accessible as a map (keys as specified for column names) in the template.
+Providing a SPARQL query through the `-q` option is it possible to execute _parametric templates_ with respect to the given query, e.g., it is possible to run the same template for each element of a specific class contained in the database. The template is executed for each resulting row of the provided query; in each template execution, the specific row is bound to a given variable (`$x`) that is made accessible as a map (keys as specified for column names) in the template.
 
 #### `rdf-lowerer.jar` ####
 This is the intended usage of the `rdf-lowerer.jar`.
@@ -71,4 +71,4 @@ If `-ts` and `-r` options are set a remote repository is used for queries and th
 #### Tips ####
 - If it is feasible for the specific case, splitting templates into multiple files and then combining them improves performances. 
 - It is better to avoid nested cycles in the template.
-- The component can be used also as an external library using class `com.cefriel.kt.lower.TemplateLowerer`, e.g., to configure it to launch multiple lowering procedures in parallel.
+- The component can be used also as an external library using class `com.cefriel.lower.TemplateLowerer`, e.g., to configure it to launch multiple lowering procedures in parallel.
