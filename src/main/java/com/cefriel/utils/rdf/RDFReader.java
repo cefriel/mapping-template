@@ -57,6 +57,11 @@ public class RDFReader {
         setContext(context);
     }
 
+    public RDFReader(String address, String repositoryId, IRI contextIRI) {
+        this.repository = new HTTPRepository(address, repositoryId);
+        setContext(contextIRI);
+    }
+
     public RDFReader(Repository repository) {
         this.repository = repository;
     }
@@ -64,6 +69,11 @@ public class RDFReader {
     public RDFReader(Repository repository, String context) {
         this.repository = repository;
         setContext(context);
+    }
+
+    public RDFReader(Repository repository, IRI contextIRI) {
+        this.repository = repository;
+        setContext(contextIRI);
     }
 
     public List<Map<String,Value>> executeQuery(String query) {
