@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 
 import com.cefriel.utils.LoweringUtils;
 import com.cefriel.utils.rdf.RDFReader;
-import com.cefriel.utils.rdf.TripleStoreConfig;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Serializer;
@@ -34,13 +33,13 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.repository.http.HTTPRepository;
-import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.contextaware.ContextAwareConnection;
 import org.eclipse.rdf4j.rio.RDFFormat;
 
-import org.eclipse.rdf4j.sail.memory.MemoryStore;
+import org.eclipse.rdf4j.rio.Rio;
 import org.slf4j.LoggerFactory;
 
 public class TemplateLowerer {
@@ -48,7 +47,6 @@ public class TemplateLowerer {
 	private org.slf4j.Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
 
 	// Constructor parameters
-	private Repository repo;
 	private LoweringUtils lu;
 
 	// Configurable parameters
@@ -60,49 +58,14 @@ public class TemplateLowerer {
 	private RDFReader reader;
 	private int count = 0;
 
-	public TemplateLowerer(String triplesPath) throws Exception {
-		initFromFile(triplesPath);
+	public TemplateLowerer(RDFReader reader) throws Exception {
+		this.reader = reader;
 		this.lu = new LoweringUtils();
 	}
 
-    public TemplateLowerer(String triplesPath, LoweringUtils lu) throws Exception {
-		initFromFile(triplesPath);
-    	this.lu = lu;
-	}
-
-	private void initFromFile(String triplesPath) throws Exception {
-		repo = new SailRepository(new MemoryStore());
-		repo.init();
-
-		File file = new File(triplesPath);
-		String baseURI = "";
-		try (RepositoryConnection con = repo.getConnection()) {
-			con.add(file, baseURI, RDFFormat.TURTLE);
-		}
-		reader = new RDFReader();
-		reader.setRepository(repo);
-	}
-
-	public TemplateLowerer(TripleStoreConfig tsc) throws Exception {
-		initFromHTTP(tsc);
-		this.lu = new LoweringUtils();
-	}
-
-	public TemplateLowerer(TripleStoreConfig tsc, LoweringUtils lu) throws Exception {
-		initFromHTTP(tsc);
+	public TemplateLowerer(RDFReader reader, LoweringUtils lu) throws Exception {
+		this.reader = reader;
 		this.lu = lu;
-	}
-
-	private void initFromHTTP(TripleStoreConfig tsc) throws Exception {
-		repo = new HTTPRepository(tsc.getAddress(), tsc.getRepositoryID());
-		repo.init();
-
-		reader = new RDFReader();
-		reader.setRepository(repo);
-
-		if (tsc.getContext() != null) {
-			reader.setContext(tsc.getContext());
-		}
 	}
 
 	public void lower(String templatePath, String destinationPath) throws Exception {
@@ -116,7 +79,6 @@ public class TemplateLowerer {
 	private void procedure(String templatePath, String destinationPath, String queryFile) throws Exception {
 		VelocityContext context = initEngine();
 		executeLowering(templatePath, destinationPath, queryFile, context);
-		repo.shutDown();
 	}
 
 	private VelocityContext initEngine() throws IOException {

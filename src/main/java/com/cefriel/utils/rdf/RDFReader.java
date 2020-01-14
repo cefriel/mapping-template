@@ -26,6 +26,8 @@ import com.cefriel.lowerer.TemplateLowerer;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.QueryResults;
@@ -35,6 +37,7 @@ import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 
 import org.eclipse.rdf4j.repository.contextaware.ContextAwareRepository;
+import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +47,24 @@ public class RDFReader {
 
     private Repository repository;
     private IRI context;
+
+    public RDFReader(String address, String repositoryId) {
+        this.repository = new HTTPRepository(address, repositoryId);
+    }
+
+    public RDFReader(String address, String repositoryId, String context) {
+        this.repository = new HTTPRepository(address, repositoryId);
+        setContext(context);
+    }
+
+    public RDFReader(Repository repository) {
+        this.repository = repository;
+    }
+
+    public RDFReader(Repository repository, String context) {
+        this.repository = repository;
+        setContext(context);
+    }
 
     public List<Map<String,Value>> executeQuery(String query) {
         try (RepositoryConnection con = this.repository.getConnection()) {
@@ -105,14 +126,8 @@ public class RDFReader {
         return results;
     }
 
-    public Repository getRepository() {
-        return repository;
-    }
-
-    public void setRepository(Repository repository) {
-        this.repository = repository;
-        if (context != null)
-            setContextAwareness();
+    public void shutDown() {
+        repository.shutDown();
     }
 
     public IRI getContext() {
@@ -121,13 +136,22 @@ public class RDFReader {
 
     public void setContext(IRI context) {
         this.context = context;
-        if (repository != null)
-            setContextAwareness();
+        if (repository != null) {
+            ContextAwareRepository cRep = new ContextAwareRepository(repository);
+            cRep.setReadContexts(context);
+            repository = cRep;
+        }
     }
 
-    private void setContextAwareness() {
-        ContextAwareRepository cRep = new ContextAwareRepository(repository);
-        cRep.setReadContexts(context);
-        repository = cRep;
+    public void setContext(String context) {
+        if (context != null && !context.equals("")) {
+            ValueFactory vf = SimpleValueFactory.getInstance();
+            setContext(vf.createIRI(context));
+        }
     }
+
+    public Repository getRepository() {
+        return repository;
+    }
+
 }

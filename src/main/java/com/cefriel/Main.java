@@ -20,11 +20,18 @@ import ch.qos.logback.classic.Logger;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cefriel.utils.LoweringUtils;
-import com.cefriel.utils.rdf.TripleStoreConfig;
 import com.cefriel.lowerer.TemplateLowerer;
 import com.cefriel.utils.TransmodelLoweringUtils;
+import com.cefriel.utils.rdf.RDFReader;
+import com.cefriel.utils.rdf.RDFWriter;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.http.HTTPRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 
 public class Main {
@@ -86,8 +93,6 @@ public class Main {
 
 	public void exec() throws Exception {
 
-		TemplateLowerer tl;
-
 		LoweringUtils lu = new LoweringUtils();
 		if (utils != null)
 			switch (utils) {
@@ -96,11 +101,21 @@ public class Main {
 					break;
 			}
 
+		Repository repo;
 		boolean triplesStore = (DB_ADDRESS != null) && (REPOSITORY_ID != null);
 		if (triplesStore)
-			tl = new TemplateLowerer(new TripleStoreConfig(DB_ADDRESS, REPOSITORY_ID, context), lu);
+			repo = new HTTPRepository(DB_ADDRESS, REPOSITORY_ID);
 		else
-			tl = new TemplateLowerer(triplesPath, lu);
+			repo = new SailRepository(new MemoryStore());
+
+		if ((new File(triplesPath)).exists()) {
+			RDFWriter.baseIRI = "http://www.cefriel.com/data/";
+			RDFWriter writer = new RDFWriter(repo, context);
+			writer.addFile(triplesPath);
+		}
+
+		RDFReader reader = new RDFReader(repo, context);
+		TemplateLowerer tl = new TemplateLowerer(reader, lu);
 
 		if (keyValueCsvPath != null)
 			tl.setKeyValueCsvPath(keyValueCsvPath);
@@ -110,6 +125,7 @@ public class Main {
 			tl.setFormat(format);
 
 		tl.lower(templatePath, destinationPath, queryFile);
+		reader.shutDown();
 
 	}
 
