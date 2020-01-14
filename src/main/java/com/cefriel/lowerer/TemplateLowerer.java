@@ -33,13 +33,6 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.repository.Repository;
-import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.repository.contextaware.ContextAwareConnection;
-import org.eclipse.rdf4j.rio.RDFFormat;
-
-import org.eclipse.rdf4j.rio.Rio;
 import org.slf4j.LoggerFactory;
 
 public class TemplateLowerer {
@@ -56,6 +49,7 @@ public class TemplateLowerer {
 
 	private VelocityEngine velocityEngine;
 	private RDFReader reader;
+
 	private int count = 0;
 
 	public TemplateLowerer(RDFReader reader) throws Exception {
