@@ -123,7 +123,7 @@ public class TemplateLowerer {
 		String pathId = getPathId(destinationPath, id);
 
 		Writer writer;
-		writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(pathId)));
+		writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(pathId), StandardCharsets.UTF_8));
 		Template t = velocityEngine.getTemplate(templatePath);
 		t.merge(context, writer);
 		writer.close();
@@ -174,7 +174,7 @@ public class TemplateLowerer {
 			newLines.add(line.trim().replace("\n", "").replace("\r",""));
 		}
 		String result = String.join(" ", newLines);
-		try (PrintWriter out = new PrintWriter(newTemplatePath)) {
+		try (PrintWriter out = new PrintWriter(newTemplatePath, StandardCharsets.UTF_8)) {
 			out.println(result);
 		}
 		return newTemplatePath;
