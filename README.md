@@ -12,7 +12,7 @@ The main functionalities provided by this component are:
 - Run _parametric templates_ executed once for each resulting row of the provided SPARQL query 
 
 #### Performance improvement
-- _Trim Template_: `-trim` option to remove newlines in the template before executing it (high reduction in memory usage)
+- _Trim Template_: `--trim` option to remove newlines in the template before executing it (high reduction in memory usage)
 - _FileOutputStream_: write template produced directly to file without retaining it in memory (reduction in memory usage)
 - _Support data structure_: definition of functions building support data structures to access query results in the template (reduction in execution time)
 
