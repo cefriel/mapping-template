@@ -12,7 +12,7 @@ The main functionalities provided by this component are:
 - Run _parametric templates_ executed once for each resulting row of the provided SPARQL query 
 
 #### Performance improvement
-- _Trim Template_: remove spaces and newlines in the template before executing it (high reduction in memory usage)
+- _Trim Template_: `-trim` option to remove newlines in the template before executing it (high reduction in memory usage)
 - _FileOutputStream_: write template produced directly to file without retaining it in memory (reduction in memory usage)
 - _Support data structure_: definition of functions building support data structures to access query results in the template (reduction in execution time)
 
@@ -31,6 +31,7 @@ The `velocity-lowerer` component offers a set of already bound variables that ca
   - `sp(String s, String substring)`: returns the substring of the parameter string after the first occurrence of the parameter substring.
   - `getMap(List<Map<String, String>> results, String key)`: creates a support data structure to access query results faster. Builds a map associating a single row with its value w.r.t a specified column (key parameter). The assumption is for each row the value for the given column is unique, otherwise, the result will be incompleted.
   - `getListMap(List<Map<String, String>> results, String key)`: creates a support data structure to access query results faster. Builds a map associating a value with all rows having that as value for a specified column (key parameter).
+  - `newline()` return a newline string.
 - `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
 
 #### LoweringUtils subclasses
@@ -62,6 +63,7 @@ options:
   -q, --query <arg>               Set a query for parametric templates execution.
   -r, --repository <arg>          Repository Id related to the triples store.
   -t, --template <arg>            Path of template file. Default: template.vm
+  -tr, --trim                     Trim newlines from the template before executing it to reduce memory usage.
   -ts, --ts-address <arg>         Triples store address.
   -u, --utils <arg>               Set a specific class of utils to be bound as $functions variable in the template.
                                   Default is generic functions (LoweringUtils). Supported values: 'transmodel'.
