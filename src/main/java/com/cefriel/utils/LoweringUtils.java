@@ -53,6 +53,10 @@ public class LoweringUtils {
         return null;
     }
 
+    public String newline() {
+        return "\n";
+    }
+
     public String hash(String s) {
         if (s == null)
             return null;

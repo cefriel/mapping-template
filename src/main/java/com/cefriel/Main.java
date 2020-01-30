@@ -59,6 +59,8 @@ public class Main {
 	private String context;
 	@Parameter(names={"--query","-q"})
 	private String queryFile;
+	@Parameter(names={"--trim","-tr"})
+	private boolean trimTemplate;
 
     private org.slf4j.Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -122,6 +124,8 @@ public class Main {
 			tl.setKeyValuePairsPath(keyValuePairsPath);
 		if (format != null)
 			tl.setFormat(format);
+		if (trimTemplate)
+			tl.setTrimTemplate(true);
 
 		tl.lower(templatePath, destinationPath, queryFile);
 		reader.shutDown();

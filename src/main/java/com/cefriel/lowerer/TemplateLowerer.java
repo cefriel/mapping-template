@@ -46,6 +46,7 @@ public class TemplateLowerer {
 	private String keyValuePairsPath;
 	private String keyValueCsvPath;
 	private String format;
+	private boolean trimTemplate;
 
 	private VelocityEngine velocityEngine;
 	private RDFReader reader;
@@ -95,7 +96,9 @@ public class TemplateLowerer {
 
 	private void executeLowering(String templatePath, String destinationPath, String queryFile, VelocityContext context) throws Exception {
 		log.info("Template path: " + templatePath);
-		templatePath = trimTemplate(templatePath);
+
+		if(trimTemplate)
+			templatePath = trimTemplate(templatePath);
 
 		if(queryFile != null) {
 			String query = new String(Files.readAllBytes(Paths.get(queryFile)), StandardCharsets.UTF_8);
@@ -232,6 +235,14 @@ public class TemplateLowerer {
 
 	public void setFormat(String format) {
 		this.format = format;
+	}
+
+	public boolean isTrimTemplate() {
+		return trimTemplate;
+	}
+
+	public void setTrimTemplate(boolean trimTemplate) {
+		this.trimTemplate = trimTemplate;
 	}
 
 }
