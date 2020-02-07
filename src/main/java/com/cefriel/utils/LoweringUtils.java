@@ -46,6 +46,14 @@ public class LoweringUtils {
         return s;
     }
 
+    // Get string before occurence of specified substring
+    public String p(String s, String substring) {
+        if (s!=null) {
+            return s.substring(0, s.indexOf(substring));
+        }
+        return s;
+    }
+
     // Escape URL
     public String eu(String url) {
         if (url != null)
