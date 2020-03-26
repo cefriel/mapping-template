@@ -2,6 +2,8 @@
 
 A template-based lowerer for RDF repositories exploiting Apache Velocity and maintained by Cefriel as a building block of the [Chimera](https://github.com/cefriel/chimera) solution for semantic data conversion.
 
+A demo of the tool is available in the folder [demo](https://github.com/cefriel/rdf-lowerer/tree/master/demo).
+
 ### Functionalities
 The main functionalities provided by this component are:
 - Enable _SPARQL queries_ in the template accessing an HTTP Repository or an in-memory repository initialized with triples from a file
