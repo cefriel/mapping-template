@@ -33,7 +33,6 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
-import org.eclipse.rdf4j.common.xml.XMLUtil;
 import org.slf4j.LoggerFactory;
 
 public class TemplateLowerer {
@@ -184,6 +183,8 @@ public class TemplateLowerer {
 					String formatted = baos.toString();
 					baos.close();
 					return formatted;
+				default:
+					return result;
 			}
 		return result;
 	}
