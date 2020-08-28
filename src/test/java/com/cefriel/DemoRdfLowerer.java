@@ -1,5 +1,6 @@
 package com.cefriel;
 
+import com.cefriel.lowerer.TemplateLowerer;
 import com.cefriel.utils.LoweringUtils;
 import com.cefriel.utils.rdf.RDFReader;
 import com.cefriel.utils.rdf.RDFWriter;
@@ -15,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 public class DemoRdfLowerer {
 
     public static void main(String ... argv) throws Exception {
-
         Repository repo;
         repo = new SailRepository(new MemoryStore());
 
@@ -25,24 +25,11 @@ public class DemoRdfLowerer {
 
 
         RDFReader reader = new RDFReader(repo);
-        VelocityEngine velocityEngine = new VelocityEngine();
-        velocityEngine.init();
+
+        TemplateLowerer lowerer = new TemplateLowerer(reader, new LoweringUtils());
 
         File template = new File("demo/template.vm");
         InputStream templateStream = new FileInputStream(template);
-        Reader templateReader = new InputStreamReader(templateStream);
-
-        VelocityContext context = new VelocityContext();
-        context.put("reader", reader);
-        context.put("functions", new LoweringUtils());
-
-        Writer w;
-        w = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream("demo/output.txt"), StandardCharsets.UTF_8));
-
-        velocityEngine.evaluate(context, w, "test", templateReader);
-
-        w.close();
-        templateReader.close();
+        System.out.println(lowerer.lower(templateStream));
     }
 }

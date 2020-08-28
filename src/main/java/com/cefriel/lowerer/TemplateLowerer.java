@@ -33,6 +33,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
+import org.eclipse.rdf4j.common.xml.XMLUtil;
 import org.slf4j.LoggerFactory;
 
 public class TemplateLowerer {
@@ -71,10 +72,31 @@ public class TemplateLowerer {
 		procedure(templatePath, destinationPath, queryFile);
 	}
 
-	private void procedure(String templatePath, String destinationPath, String queryFile) throws Exception {
+    public String lower(InputStream template) throws Exception {
+        return evaluateProcedure(template);
+    }
+
+    private void procedure(String templatePath, String destinationPath, String queryFile) throws Exception {
 		VelocityContext context = initEngine();
 		executeLowering(templatePath, destinationPath, queryFile, context);
 	}
+
+    private String evaluateProcedure(InputStream template) throws Exception {
+        VelocityContext context = initEngine();
+
+        if (trimTemplate)
+            log.warn("InputStream Template: trim option not supported!");
+
+        Reader templateReader = new InputStreamReader(template);
+        Writer writer = new StringWriter();
+        velocityEngine.evaluate(context, writer, "TemplateLowerer", templateReader);
+        templateReader.close();
+
+        String result = writer.toString();
+        writer.close();
+
+        return handleStreamFormat(result);
+    }
 
 	private VelocityContext initEngine() throws IOException {
 		velocityEngine = new VelocityEngine();
@@ -141,11 +163,29 @@ public class TemplateLowerer {
 					Builder builder = new Builder();
 					InputStream ins = new BufferedInputStream(new FileInputStream(pathId));
 					Document doc = builder.build(ins);
-					formatXML(doc, pathId);
+					BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(pathId)));
+					formatXML(doc, bos);
+					bos.close();
 					break;
 				default:
 					return;
 			}
+	}
+
+	private String handleStreamFormat(String result) throws Exception {
+		if (format != null)
+			switch (format) {
+				case "xml":
+					Builder builder = new Builder();
+					InputStream ins = new BufferedInputStream(new ByteArrayInputStream(result.getBytes()));
+					Document doc = builder.build(ins);
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					formatXML(doc, baos);
+					String formatted = baos.toString();
+					baos.close();
+					return formatted;
+			}
+		return result;
 	}
 
 	private String generateId(Map<String, String> row) {
@@ -161,13 +201,11 @@ public class TemplateLowerer {
 			return "";
 	}
 
-	public void formatXML(Document doc, String path) throws IOException {
-		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(path)));
-		Serializer serializer = new Serializer(bos, "utf-8");
-		serializer.setIndent(4);
+	public void formatXML(Document doc, OutputStream os) throws IOException {
+		Serializer serializer = new Serializer(os, "utf-8");
+		serializer.setIndent(2);
 		serializer.setMaxLength(0);
 		serializer.write(doc);
-		bos.close();
 	}
 
 	public String trimTemplate(String templatePath) throws IOException {
