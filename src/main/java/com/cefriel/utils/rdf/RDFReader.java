@@ -48,6 +48,8 @@ public class RDFReader {
     private Repository repository;
     private IRI context;
 
+    private boolean verbose;
+
     public RDFReader(String address, String repositoryId) {
         this.repository = new HTTPRepository(address, repositoryId);
     }
@@ -95,7 +97,8 @@ public class RDFReader {
         }
     }
 
-    public List<Map<String, String>> executeQueryStringValue(String query) {
+
+    public List<Map<String,String>> getQueryResultsStringValue(String query) {
         try (RepositoryConnection con = this.repository.getConnection()) {
             TupleQuery tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL, query);
             List<BindingSet> resultList;
@@ -112,27 +115,27 @@ public class RDFReader {
                 }
                 results.add(result);
             }
-
             return results;
         }
+    }
+
+    public List<Map<String, String>> executeQueryStringValueVerbose(String query) {
+        Instant start = Instant.now();
+        List<Map<String, String>> results = getQueryResultsStringValue(query);
+        Instant end = Instant.now();
+        if (results.size() < 1)
+            log.info("Query: " + query + "\n");
+        log.info("Info query: [duration: " + Duration.between(start, end).toMillis() + ", num_rows: " + results.size() + "]");
+        return results;
+    }
+
+    public List<Map<String, String>> executeQueryStringValue(String query) {
+        return verbose ? executeQueryStringValueVerbose(query) : getQueryResultsStringValue(query);
     }
 
     // Returns the string value escaping XML special chars
     public List<Map<String, String>> executeQueryStringValueXML(String query) {
         List<Map<String, String>> results = executeQueryStringValue(query);
-        log.info("Info query: [num_rows: " + results.size() + "]");
-        for (Map<String, String> result : results)
-            result.replaceAll((k, v) -> StringEscapeUtils.escapeXml(v));
-        return results;
-    }
-
-    public List<Map<String, String>> executeQueryStringValueXMLDebug(String query) {
-        Instant start = Instant.now();
-        List<Map<String, String>> results = executeQueryStringValue(query);
-        Instant end = Instant.now();
-        if(results.size() < 1)
-            log.info("Query: " + query + "\n");
-        log.info("Info query: [duration: " + Duration.between(start, end).toMillis() + ", num_rows: " + results.size() + "]");
         for (Map<String, String> result : results)
             result.replaceAll((k, v) -> StringEscapeUtils.escapeXml(v));
         return results;
@@ -165,5 +168,14 @@ public class RDFReader {
     public Repository getRepository() {
         return repository;
     }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+
 
 }
