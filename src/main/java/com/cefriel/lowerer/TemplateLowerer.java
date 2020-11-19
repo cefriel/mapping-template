@@ -33,6 +33,8 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.slf4j.LoggerFactory;
 
 public class TemplateLowerer {
@@ -47,6 +49,7 @@ public class TemplateLowerer {
 	private String keyValueCsvPath;
 	private String format;
 	private boolean trimTemplate;
+	private boolean resourceTemplate;
 
 	private VelocityEngine velocityEngine;
 	private RDFReader reader;
@@ -98,8 +101,14 @@ public class TemplateLowerer {
     }
 
 	private VelocityContext initEngine() throws IOException {
-		velocityEngine = new VelocityEngine();
-		velocityEngine.init();
+		if(velocityEngine == null) {
+			velocityEngine = new VelocityEngine();
+			if (resourceTemplate) {
+				velocityEngine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+				velocityEngine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+			}
+			velocityEngine.init();
+		}
 
 		VelocityContext context = new VelocityContext();
 		context.put("reader", reader);
@@ -138,7 +147,6 @@ public class TemplateLowerer {
 	}
 
 	private void executeTemplate(String templatePath, String destinationPath, VelocityContext context, Map<String, String> row) throws Exception {
-
     	String id = generateId(row);
 		if (row != null)
 			context.put("x", row);
@@ -282,6 +290,14 @@ public class TemplateLowerer {
 
 	public void setTrimTemplate(boolean trimTemplate) {
 		this.trimTemplate = trimTemplate;
+	}
+
+	public boolean isResourceTemplate() {
+		return resourceTemplate;
+	}
+
+	public void setResourceTemplate(boolean resourceTemplate) {
+		this.resourceTemplate = resourceTemplate;
 	}
 
 }
