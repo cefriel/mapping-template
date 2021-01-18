@@ -4,14 +4,11 @@ import com.cefriel.lowerer.TemplateLowerer;
 import com.cefriel.utils.LoweringUtils;
 import com.cefriel.utils.rdf.RDFReader;
 import com.cefriel.utils.rdf.RDFWriter;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 
 public class DemoRdfLowerer {
 
