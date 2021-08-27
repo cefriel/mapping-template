@@ -32,7 +32,7 @@ The `velocity-lowerer` component offers a set of already bound variables that ca
   - `setPrefix(String prefix)`: set a prefix for the `rp` method.
   - `sp(String s, String substring)`: returns the substring of the parameter string after the first occurrence of the parameter substring.
   - `p(String s, String substring)`: returns the substring of the parameter string before the first occurrence of the parameter substring.
-  - `getMap(List<Map<String, String>> results, String key)`: creates a support data structure to access query results faster. Builds a map associating a single row with its value w.r.t a specified column (key parameter). The assumption is for each row the value for the given column is unique, otherwise, the result will be incompleted.
+  - `getMap(List<Map<String, String>> results, String key)`: creates a support data structure to access query results faster. Builds a map associating a single row with its value w.r.t a specified column (key parameter). The assumption is for each row the value for the given column is unique, otherwise, the result will be incomplete.
   - `getListMap(List<Map<String, String>> results, String key)`: creates a support data structure to access query results faster. Builds a map associating a value with all rows having that as value for a specified column (key parameter).
   - `newline()` return a newline string.
 - `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
@@ -57,9 +57,10 @@ options:
   -b, --basepath <arg>            Base path for files (input, template, output). Default value is './'.
   -c, --contextIRI <arg>          IRI identifies the named graph for context-aware querying of the repository. 
                                   Default behaviour: the entire repository is considered for querying.
-  -f, --format <arg>              Activate procedures for specific output formats. Supported values: 'xml' (XML parsing to check                                           structure, indentation)
+  -f, --format <arg>              Activate procedures for specific output formats. Supported values: 'xml' 
+                                  (XML parsing to check structure, indentation)
   -i, --input <arg>               Path(s) of input file(s) containing triples, if no remote repository is specified an 
-  								  in-memory repository is initialized and triples are made available for querying.
+                                  in-memory repository is initialized and triples are made available for querying.
   -kv, --key-value <arg>          Path for a file containing a key:value pair for each line. These pairs
                                   are made available as a map in the template.
   -kvc, --key-value-csv <arg>     Path for a csv file with one line interpreted as a set of key[column]-value[line] pairs. 
