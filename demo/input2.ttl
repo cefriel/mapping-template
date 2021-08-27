@@ -7,9 +7,9 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<http://sprint-transport.eu/data/agencies/BEST-AGENCY> a gtfs:Agency;
+<http://sprint-transport.eu/data/agencies/WOW-AGENCY> a gtfs:Agency;
   dct:language "en";
   gtfs:timeZone "Europe/Madrid";
-  foaf:name "Best Agency";
-  foaf:page <http://www.bestagency.com> ;
-  gtfs:fareUrl <http://www.bestagency.com/fares> .
+  foaf:name "Wow Agency";
+  foaf:page <http://www.wowagency.com> ;
+  gtfs:fareUrl <http://www.wowagency.com/fares> .

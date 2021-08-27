@@ -6,7 +6,7 @@ A demo of the tool is available in the folder [demo](https://github.com/cefriel/
 
 ### Functionalities
 The main functionalities provided by this component are:
-- Enable _SPARQL queries_ in the template accessing an HTTP Repository or an in-memory repository initialized with triples from a file
+- Enable _SPARQL queries_ in the template accessing an HTTP Repository or an in-memory repository initialized with triples from one or multiple RDF files
 - Possibility to access a portion of the repository contextualizing queries with respect to a specific named graph
 - Access custom _utility functions_ in the template
 - Activate procedures for specific _output formats_ (e.g. XML option to validate and indent XML files)
@@ -43,12 +43,14 @@ We report here the subclasses of LoweringUtils, the functions introduced to exte
   - `getTimestamp()`: returns current timestamp in `yyyy-MM-dd'T'HH:mm:ss` format.
   - `getFormattedDate(int year, int month, int dayOfMonth, int hour, int minute)`: returns date and time specified as `yyyy-MM-dd'T'HH:mm:ss`.
   - `formatGTFSDate(String dateString)`: format GTFS dates in `yyyy-MM-dd'T'HH:mm:ss` format.
-  
 #### Parametric Templates
 Providing a SPARQL query through the `-q` option is it possible to execute _parametric templates_ with respect to the given query, e.g., it is possible to run the same template for each element of a specific class contained in the database. The template is executed for each resulting row of the provided query; in each template execution, the specific row is bound to a given variable (`$x`) that is made accessible as a map (keys as specified for column names) in the template.
 
 #### `rdf-lowerer.jar` ####
 This is the intended usage of the `rdf-lowerer.jar`.
+
+Options `--input` and `--template` are mandatory.
+
 ```
 usage: java -jar rdf-lowerer.jar <options>
 options:
@@ -56,8 +58,8 @@ options:
   -c, --contextIRI <arg>          IRI identifies the named graph for context-aware querying of the repository. 
                                   Default behaviour: the entire repository is considered for querying.
   -f, --format <arg>              Activate procedures for specific output formats. Supported values: 'xml' (XML parsing to check                                           structure, indentation)
-  -i, --input <arg>               Path of input file containing triples, if no remote repository is specified an in-memory repository
-                                  is initialized and triples in this file are made available for querying. Default: input.ttl
+  -i, --input <arg>               Path(s) of input file(s) containing triples, if no remote repository is specified an 
+  								  in-memory repository is initialized and triples are made available for querying.
   -kv, --key-value <arg>          Path for a file containing a key:value pair for each line. These pairs
                                   are made available as a map in the template.
   -kvc, --key-value-csv <arg>     Path for a csv file with one line interpreted as a set of key[column]-value[line] pairs. 

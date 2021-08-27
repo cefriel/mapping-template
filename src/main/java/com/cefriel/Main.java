@@ -35,32 +35,43 @@ import java.util.*;
 
 public class Main {
 
+	@Parameter(names={"--template","-t"},
+			required = true)
+	private String templatePath = "template.vm";
+	@Parameter(names={"--input","-i"},
+			variableArity = true,
+			required = true)
+	private List<String> triplesPaths;
+
+	@Parameter(names={"--baseiri","-iri"})
+	private String baseIri = "http://www.cefriel.com/data/";
 	@Parameter(names={"--basepath","-b"})
 	private String basePath = "./";
-	@Parameter(names={"--template","-t"})
-	private String templatePath = "template.vm";
-	@Parameter(names={"--input","-i"})
-	private String triplesPath = "input.ttl";
 	@Parameter(names={"--output","-o"})
 	private String destinationPath = "output.xml";
+
+	@Parameter(names={"--utils","-u"})
+	private String utils;
+
 	@Parameter(names={"--key-value","-kv"})
 	private String keyValuePairsPath;
 	@Parameter(names={"--key-value-csv","-kvc"})
 	private String keyValueCsvPath;
+
 	@Parameter(names={"--format","-f"})
 	private String format;
-	@Parameter(names={"--utils","-u"})
-	private String utils;
+	@Parameter(names={"--trim","-tr"})
+	private boolean trimTemplate;
+
 	@Parameter(names={"--ts-address","-ts"})
 	private String DB_ADDRESS;
 	@Parameter(names={"--repository","-r"})
 	private String REPOSITORY_ID;
 	@Parameter(names={"--contextIRI","-c"})
 	private String context;
+
 	@Parameter(names={"--query","-q"})
 	private String queryFile;
-	@Parameter(names={"--trim","-tr"})
-	private boolean trimTemplate;
 
     private org.slf4j.Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -87,7 +98,8 @@ public class Main {
 
 	public void updateBasePath(){
 		templatePath = basePath + templatePath;
-		triplesPath = basePath + triplesPath;
+		for (int i = 0; i < triplesPaths.size(); i++)
+			triplesPaths.set(i, basePath + triplesPaths.get(i));
 		destinationPath = basePath + destinationPath;
 	}
 
@@ -109,11 +121,12 @@ public class Main {
 		else
 			repo = new SailRepository(new MemoryStore());
 
-		if ((new File(triplesPath)).exists()) {
-			RDFWriter.baseIRI = "http://www.cefriel.com/data/";
-			RDFWriter writer = new RDFWriter(repo, context);
-			writer.addFile(triplesPath);
-		}
+		for (String triplesPath : triplesPaths)
+			if ((new File(triplesPath)).exists()) {
+				RDFWriter.baseIRI = baseIri;
+				RDFWriter writer = new RDFWriter(repo, context);
+				writer.addFile(triplesPath);
+			}
 
 		RDFReader reader = new RDFReader(repo, context);
 		TemplateLowerer tl = new TemplateLowerer(reader, lu);
