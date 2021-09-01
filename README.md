@@ -35,6 +35,12 @@ The `velocity-lowerer` component offers a set of already bound variables that ca
   - `getMap(List<Map<String, String>> results, String key)`: creates a support data structure to access query results faster. Builds a map associating a single row with its value w.r.t a specified column (key parameter). The assumption is for each row the value for the given column is unique, otherwise, the result will be incomplete.
   - `getListMap(List<Map<String, String>> results, String key)`: creates a support data structure to access query results faster. Builds a map associating a value with all rows having that as value for a specified column (key parameter).
   - `newline()` return a newline string.
+  - `checkString(String s)`: returns `true` if the string is not null and not an empty string.
+  - `checkList(List<T> l)`: returns `true` if the list is not null and not empty.
+  - `checkList(List<T> l, T o)`: returns `true` if the list is not null, not empty and contains `o`.
+  - `checkMap(Map<K,V> m)`: returns `true` if the map is not null and not empty.
+  - `checkMap(Map<K, V> m, K key)`: returns `true` if the map is not null, not empty and contains the key `key`.
+  - `getListMapValue(Map<K, List<V>> listMap, K key)`: if `checkMap(listMap, key)` is `true` returns the value for `key` in `listMap`, otherwise returns an empty list. 
 - `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
 
 #### LoweringUtils subclasses

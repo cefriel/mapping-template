@@ -87,4 +87,31 @@ public class LoweringUtils {
         return results_map;
     }
 
+    public boolean checkString(String s){
+        return s != null && !s.trim().isEmpty();
+    }
+
+    public <T> boolean checkList(List<T> l){
+        return l != null && !l.isEmpty();
+    }
+
+    public <T> boolean checkList(List<T> l, T o){
+        return checkList(l) && l.contains(o);
+    }
+
+    public <K,V> boolean checkMap(Map<K,V> m){
+        return m != null && !m.isEmpty();
+    }
+
+    public <K,V> boolean checkMap(Map<K, V> m, K key){
+        return checkMap(m) && m.containsKey(key);
+    }
+
+    public <K,V> List<V> getListMapValue(Map<K, List<V>> listMap, K key){
+        if (checkMap(listMap, key))
+            return listMap.get(key);
+        else
+            return new ArrayList<>();
+    }
+
 }
