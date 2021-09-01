@@ -15,12 +15,17 @@
  */
 package com.cefriel.utils.rdf;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.cefriel.lowerer.TemplateLowerer;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -33,6 +38,7 @@ import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.QueryResults;
 import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.resultio.text.tsv.SPARQLResultsTSVWriter;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 
@@ -47,6 +53,8 @@ public class RDFReader {
 
     private Repository repository;
     private IRI context;
+
+    private String prefixes;
 
     private boolean verbose;
 
@@ -78,7 +86,15 @@ public class RDFReader {
         setContext(contextIRI);
     }
 
+    private String addPrefixes(String query) {
+        if (prefixes != null && !prefixes.trim().isEmpty())
+            return prefixes + query;
+        return query;
+    }
+
     public List<Map<String,Value>> executeQuery(String query) {
+        query = addPrefixes(query);
+
         try (RepositoryConnection con = this.repository.getConnection()) {
             TupleQuery tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL, query);
             List<BindingSet> resultList;
@@ -97,34 +113,23 @@ public class RDFReader {
         }
     }
 
-
     public List<Map<String,String>> getQueryResultsStringValue(String query) {
-        try (RepositoryConnection con = this.repository.getConnection()) {
-            TupleQuery tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL, query);
-            List<BindingSet> resultList;
-            List<Map<String,String>> results = new ArrayList<>();
-            try (TupleQueryResult result = tupleQuery.evaluate()) {
-                resultList = QueryResults.asList(result);
-            }
-            for (BindingSet bindingSet : resultList) {
-                Map<String,String> result = new HashMap<>();
-                for (String bindingName : bindingSet.getBindingNames()) {
-                    Value v = bindingSet.getValue(bindingName);
-                    String value = (v != null) ? v.stringValue() : null ;
-                    result.put(bindingName, value);
-                }
-                results.add(result);
-            }
-            return results;
-        }
+        List<Map<String,Value>> valueResults = executeQuery(query);
+        List<Map<String,String>> results = new ArrayList<>();
+        for(Map<String,Value> row : valueResults)
+            results.add(row.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            e -> e.getKey(),
+                            e -> (e.getValue() != null) ? e.getValue().stringValue() : null )
+                    ));
+        return results;
     }
 
     public List<Map<String, String>> executeQueryStringValueVerbose(String query) {
+        log.info("Query: " + query + "\n");
         Instant start = Instant.now();
         List<Map<String, String>> results = getQueryResultsStringValue(query);
         Instant end = Instant.now();
-        if (results.size() < 1)
-            log.info("Query: " + query + "\n");
         log.info("Info query: [duration: " + Duration.between(start, end).toMillis() + ", num_rows: " + results.size() + "]");
         return results;
     }
@@ -139,6 +144,16 @@ public class RDFReader {
         for (Map<String, String> result : results)
             result.replaceAll((k, v) -> StringEscapeUtils.escapeXml(v));
         return results;
+    }
+
+    public void debugQuery(String query, String destinationPath) throws IOException {
+        if(query != null) {
+            String q = Files.readString(Paths.get(query));
+            SPARQLResultsTSVWriter writer = new SPARQLResultsTSVWriter(new FileOutputStream(destinationPath));
+            try (RepositoryConnection con = this.repository.getConnection()) {
+                con.prepareTupleQuery(q).evaluate(writer);
+            }
+        }
     }
 
     public void shutDown() {
@@ -177,5 +192,12 @@ public class RDFReader {
         this.verbose = verbose;
     }
 
+    public String getPrefixes() {
+        return prefixes;
+    }
+
+    public void setPrefixes(String prefixes) {
+        this.prefixes = prefixes;
+    }
 
 }

@@ -131,7 +131,7 @@ public class TemplateLowerer {
 			templatePath = trimTemplate(templatePath);
 
 		if(queryFile != null) {
-			String query = new String(Files.readAllBytes(Paths.get(queryFile)), StandardCharsets.UTF_8);
+			String query = Files.readString(Paths.get(queryFile));
 			log.info("Parametric Template executed with query: " + templatePath);
 			List<Map<String, String>> rows = reader.executeQueryStringValueXML(query);
 

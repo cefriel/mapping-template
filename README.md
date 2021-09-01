@@ -55,8 +55,6 @@ Providing a SPARQL query through the `-q` option is it possible to execute _para
 #### `rdf-lowerer.jar` ####
 This is the intended usage of the `rdf-lowerer.jar`.
 
-Options `--input` and `--template` are mandatory.
-
 ```
 usage: java -jar rdf-lowerer.jar <options>
 options:

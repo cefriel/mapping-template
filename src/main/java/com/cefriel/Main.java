@@ -35,12 +35,10 @@ import java.util.*;
 
 public class Main {
 
-	@Parameter(names={"--template","-t"},
-			required = true)
+	@Parameter(names={"--template","-t"})
 	private String templatePath = "template.vm";
 	@Parameter(names={"--input","-i"},
-			variableArity = true,
-			required = true)
+			variableArity = true)
 	private List<String> triplesPaths;
 
 	@Parameter(names={"--baseiri","-iri"})
@@ -48,7 +46,7 @@ public class Main {
 	@Parameter(names={"--basepath","-b"})
 	private String basePath = "./";
 	@Parameter(names={"--output","-o"})
-	private String destinationPath = "output.xml";
+	private String destinationPath = "output.txt";
 
 	@Parameter(names={"--utils","-u"})
 	private String utils;
@@ -71,7 +69,12 @@ public class Main {
 	private String context;
 
 	@Parameter(names={"--query","-q"})
-	private String queryFile;
+	private String query;
+	@Parameter(names={"--debug-query","-dq"})
+	private boolean debugQuery;
+
+	@Parameter(names={"--verbose","-v"})
+	private boolean verbose;
 
     private org.slf4j.Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -129,18 +132,30 @@ public class Main {
 			}
 
 		RDFReader reader = new RDFReader(repo, context);
-		TemplateLowerer tl = new TemplateLowerer(reader, lu);
+		if (verbose)
+			reader.setVerbose(true);
 
-		if (keyValueCsvPath != null)
-			tl.setKeyValueCsvPath(keyValueCsvPath);
-		if (keyValuePairsPath != null)
-			tl.setKeyValuePairsPath(keyValuePairsPath);
-		if (format != null)
-			tl.setFormat(format);
-		if (trimTemplate)
-			tl.setTrimTemplate(true);
+		if(debugQuery) {
+			if (query == null)
+				log.error("Provide a query using the --query option");
+			else
+				reader.debugQuery(query, destinationPath);
+		}
+		else {
+			TemplateLowerer tl = new TemplateLowerer(reader, lu);
 
-		tl.lower(templatePath, destinationPath, queryFile);
+			if (keyValueCsvPath != null)
+				tl.setKeyValueCsvPath(keyValueCsvPath);
+			if (keyValuePairsPath != null)
+				tl.setKeyValuePairsPath(keyValuePairsPath);
+			if (format != null)
+				tl.setFormat(format);
+			if (trimTemplate)
+				tl.setTrimTemplate(true);
+
+			tl.lower(templatePath, destinationPath, query);
+		}
+
 		reader.shutDown();
 
 	}
