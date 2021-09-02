@@ -126,7 +126,7 @@ public class RDFReader {
     }
 
     public List<Map<String, String>> executeQueryStringValueVerbose(String query) {
-        log.info("Query: " + query + "\n");
+        log.info("Query: " + addPrefixes(query) + "\n");
         Instant start = Instant.now();
         List<Map<String, String>> results = getQueryResultsStringValue(query);
         Instant end = Instant.now();

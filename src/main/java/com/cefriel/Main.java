@@ -69,7 +69,7 @@ public class Main {
 	private String context;
 
 	@Parameter(names={"--query","-q"})
-	private String query;
+	private String queryPath;
 	@Parameter(names={"--debug-query","-dq"})
 	private boolean debugQuery;
 
@@ -100,10 +100,13 @@ public class Main {
 	}
 
 	public void updateBasePath(){
+		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
 		templatePath = basePath + templatePath;
 		for (int i = 0; i < triplesPaths.size(); i++)
 			triplesPaths.set(i, basePath + triplesPaths.get(i));
 		destinationPath = basePath + destinationPath;
+		if (queryPath != null)
+			queryPath = basePath + queryPath;
 	}
 
 
@@ -136,10 +139,10 @@ public class Main {
 			reader.setVerbose(true);
 
 		if(debugQuery) {
-			if (query == null)
+			if (queryPath == null)
 				log.error("Provide a query using the --query option");
 			else
-				reader.debugQuery(query, destinationPath);
+				reader.debugQuery(queryPath, destinationPath);
 		}
 		else {
 			TemplateLowerer tl = new TemplateLowerer(reader, lu);
@@ -153,7 +156,7 @@ public class Main {
 			if (trimTemplate)
 				tl.setTrimTemplate(true);
 
-			tl.lower(templatePath, destinationPath, query);
+			tl.lower(templatePath, destinationPath, queryPath);
 		}
 
 		reader.shutDown();
