@@ -54,6 +54,12 @@ public class LoweringUtils {
         return s;
     }
 
+    public String replace(String s, String regex, String replacement) {
+        if (s != null)
+            return s.replaceAll(regex, replacement);
+        return null;
+    }
+
     // Escape URL
     public String eu(String url) {
         if (url != null)

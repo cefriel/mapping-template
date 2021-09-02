@@ -32,6 +32,7 @@ The `velocity-lowerer` component offers a set of already bound variables that ca
   - `setPrefix(String prefix)`: set a prefix for the `rp` method.
   - `sp(String s, String substring)`: returns the substring of the parameter string after the first occurrence of the parameter substring.
   - `p(String s, String substring)`: returns the substring of the parameter string before the first occurrence of the parameter substring.
+  - `replace(String s, String regex, String replacement)`: returns a string replacing all the occurrences of the regex with the replacement provided.
   - `getMap(List<Map<String, String>> results, String key)`: creates a support data structure to access query results faster. Builds a map associating a single row with its value w.r.t a specified column (key parameter). The assumption is for each row the value for the given column is unique, otherwise, the result will be incomplete.
   - `getListMap(List<Map<String, String>> results, String key)`: creates a support data structure to access query results faster. Builds a map associating a value with all rows having that as value for a specified column (key parameter).
   - `newline()` return a newline string.
