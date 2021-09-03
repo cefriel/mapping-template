@@ -113,6 +113,13 @@ public class LoweringUtils {
         return checkMap(m) && m.containsKey(key);
     }
 
+    public <K,V> V getMapValue(Map<K, V> map, K key){
+        if (checkMap(map, key))
+            return map.get(key);
+        else
+            return null;
+    }
+
     public <K,V> List<V> getListMapValue(Map<K, List<V>> listMap, K key){
         if (checkMap(listMap, key))
             return listMap.get(key);

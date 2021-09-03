@@ -42,6 +42,7 @@ The `velocity-lowerer` component offers a set of already bound variables that ca
   - `checkList(List<T> l, T o)`: returns `true` if the list is not null, not empty and contains `o`.
   - `checkMap(Map<K,V> m)`: returns `true` if the map is not null and not empty.
   - `checkMap(Map<K, V> m, K key)`: returns `true` if the map is not null, not empty and contains the key `key`.
+  - `getMapValue(Map<K, V> map, K key)`: if `checkMap(listMap, key)` is `true` returns the value for `key` in `map`, otherwise returns an empty list. 
   - `getListMapValue(Map<K, List<V>> listMap, K key)`: if `checkMap(listMap, key)` is `true` returns the value for `key` in `listMap`, otherwise returns an empty list. 
 - `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
 
