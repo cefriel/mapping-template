@@ -26,18 +26,20 @@ The `velocity-lowerer` component offers a set of already bound variables that ca
 - `$reader` offers methods to execute SPARQL queries:
   - `setPrefixes(String prefixes)`: set the RDF prefixes that should be concatened to the provided queries.
   - `executeQuery(String query)`: Executes a SPARQL query returning a list of rows as `List<Map<String,Value>>`.
-  - `executeQueryStringValue(String query)`: As `executeQuery` but it returns a `List<Map<String,String>>` extracting the string value of each `Value` returned.
-  - `executeQueryStringValueXML(String query)` As `executeQuery` but it returns a `List<Map<String,String>>` extracting the string value of each `Value` returned and escaping XML special chars.
+  - `executeQueryStringValue(String query)`: As `executeQuery` but it returns a `List<Map<String,String>>` extracting the string value of each `Value` returned. The query, the duration and the number of rows returned are logged if the `verbose` option is enabled.
+  - `executeQueryStringValueXML(String query)`: As `executeQuery` but it returns a `List<Map<String,String>>` extracting the string value of each `Value` returned and escaping XML special chars. The query, the duration and the number of rows returned are logged if the `verbose` option is enabled.
+  - `setContext(String context)`: Set the IRI of the context (named graph) for read/write operations on the repository.
 - `$functions` offers a set of utility methods that can be extended defining sub-classes (see the section below). Default functions are:
   - `rp(String s)`: if a prefix is set, removes it from the parameter string. If a prefix is not set, or the prefix is not contained in the given string it returns the string as it is.
   - `setPrefix(String prefix)`: set a prefix for the `rp` method.
   - `sp(String s, String substring)`: returns the substring of the parameter string after the first occurrence of the parameter substring.
   - `p(String s, String substring)`: returns the substring of the parameter string before the first occurrence of the parameter substring.
   - `replace(String s, String regex, String replacement)`: returns a string replacing all the occurrences of the regex with the replacement provided.
+  - `newline()`: returns a newline string.
+  - `hash(String s)`: returns a string representing the hash of the parameter.
+  - `checkString(String s)`: returns `true` if the string is not null and not an empty string.
   - `getMap(List<Map<String, String>> results, String key)`: creates a support data structure to access query results faster. Builds a map associating a single row with its value w.r.t a specified column (key parameter). The assumption is for each row the value for the given column is unique, otherwise, the result will be incomplete.
   - `getListMap(List<Map<String, String>> results, String key)`: creates a support data structure to access query results faster. Builds a map associating a value with all rows having that as value for a specified column (key parameter).
-  - `newline()` return a newline string.
-  - `checkString(String s)`: returns `true` if the string is not null and not an empty string.
   - `checkList(List<T> l)`: returns `true` if the list is not null and not empty.
   - `checkList(List<T> l, T o)`: returns `true` if the list is not null, not empty and contains `o`.
   - `checkMap(Map<K,V> m)`: returns `true` if the map is not null and not empty.
