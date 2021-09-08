@@ -86,12 +86,22 @@ public class RDFReader {
         setContext(contextIRI);
     }
 
+    /**
+     * Concatenate the prefixes (if set) with the {@code query} parameter.
+     * @param query SPARQL query string
+     * @return SPARQL query with prefixes
+     */
     private String addPrefixes(String query) {
         if (prefixes != null && !prefixes.trim().isEmpty())
             return prefixes + query;
         return query;
     }
 
+    /**
+     * Executes a SPARQL query returning a list of rows as {@code List<Map<String,Value>>}.
+     * @param query SPARQL query to be executed
+     * @return Result of the SPARQL query
+     */
     public List<Map<String,Value>> executeQuery(String query) {
         query = addPrefixes(query);
 
@@ -113,7 +123,12 @@ public class RDFReader {
         }
     }
 
-    public List<Map<String,String>> getQueryResultsStringValue(String query) {
+    /**
+     * Executes a SPARQL query returning a list of rows as {@code List<Map<String,String>>}.
+     * @param query SPARQL query to be executed
+     * @return Result of the SPARQL query with {@code String} values
+     */
+    private List<Map<String,String>> getQueryResultsStringValue(String query) {
         List<Map<String,Value>> valueResults = executeQuery(query);
         List<Map<String,String>> results = new ArrayList<>();
         for(Map<String,Value> row : valueResults)
@@ -125,6 +140,12 @@ public class RDFReader {
         return results;
     }
 
+    /**
+     * Executes a SPARQL query returning a list of rows as {@code List<Map<String,String>>}
+     * and logging ({@code INFO} level) the query, the duration and the number of rows returned.
+     * @param query SPARQL query to be executed
+     * @return Result of the SPARQL query with {@code String} values
+     */
     public List<Map<String, String>> executeQueryStringValueVerbose(String query) {
         log.info("Query: " + addPrefixes(query) + "\n");
         Instant start = Instant.now();
@@ -134,11 +155,24 @@ public class RDFReader {
         return results;
     }
 
+    /**
+     * Executes a SPARQL query returning a list of rows as {@code List<Map<String,String>>}
+     * and logging ({@code INFO} level) the query, the duration and the number of rows returned.
+     * if the {@code verbose} option is enabled.
+     * @param query SPARQL query to be executed
+     * @return Result of the SPARQL query with {@code String} values
+     */
     public List<Map<String, String>> executeQueryStringValue(String query) {
         return verbose ? executeQueryStringValueVerbose(query) : getQueryResultsStringValue(query);
     }
 
-    // Returns the string value escaping XML special chars
+    /**
+     * Executes a SPARQL query returning a list of rows as {@code List<Map<String,String>>}
+     * escaping XML special chars. It logs ({@code INFO} level) the query, the duration and
+     * the number of rows returned. if the {@code verbose} option is enabled.
+     * @param query SPARQL query to be executed
+     * @return Result of the SPARQL query with {@code String} values
+     */
     public List<Map<String, String>> executeQueryStringValueXML(String query) {
         List<Map<String, String>> results = executeQueryStringValue(query);
         for (Map<String, String> result : results)
@@ -146,6 +180,13 @@ public class RDFReader {
         return results;
     }
 
+    /**
+     * Executes the SPARQL query in the {@code query} file writing the results in the TSV
+     * format in {@code destinationPath}.
+     * @param query Path of the file containing the SPARQL query to be executed
+     * @param destinationPath File to save the results of the SPARQL query
+     * @throws IOException If an error occurs in handling the files
+     */
     public void debugQuery(String query, String destinationPath) throws IOException {
         if(query != null) {
             String q = Files.readString(Paths.get(query));
@@ -160,10 +201,18 @@ public class RDFReader {
         repository.shutDown();
     }
 
+    /**
+     * Get the IRI of the context (named graph) used for read/write operations on the repository.
+     * @return IRI of the context (named graph)
+     */
     public IRI getContext() {
         return context;
     }
 
+    /**
+     * Set the IRI of the context (named graph) for read/write operations on the repository.
+     * @param context IRI of the context (named graph)
+     */
     public void setContext(IRI context) {
         this.context = context;
         if (repository != null) {
@@ -173,6 +222,10 @@ public class RDFReader {
         }
     }
 
+    /**
+     * Set the IRI of the context (named graph) for read/write operations on the repository.
+     * @param context String representing the IRI of the context (named graph)
+     */
     public void setContext(String context) {
         if (context != null && !context.equals("")) {
             ValueFactory vf = SimpleValueFactory.getInstance();
@@ -188,14 +241,26 @@ public class RDFReader {
         return verbose;
     }
 
+    /**
+     * Set verbose option to enable logging on query executions.
+     * @param verbose boolean option
+     */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
 
+    /**
+     * Get string containing prefixes for SPARQL queries.
+     * @return String containing prefixes for SPARQL queries.
+     */
     public String getPrefixes() {
         return prefixes;
     }
 
+    /**
+     * Set string containing prefixes for SPARQL queries.
+     * @param prefixes String containing prefixes for SPARQL queries.
+     */
     public void setPrefixes(String prefixes) {
         this.prefixes = prefixes;
     }
