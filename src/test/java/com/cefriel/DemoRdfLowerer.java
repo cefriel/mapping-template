@@ -18,8 +18,8 @@ package com.cefriel;
 
 import com.cefriel.lowerer.TemplateLowerer;
 import com.cefriel.utils.LoweringUtils;
-import com.cefriel.utils.rdf.RDFReader;
-import com.cefriel.utils.rdf.RDFWriter;
+import com.cefriel.io.rdf.RDFReader;
+import com.cefriel.io.rdf.RDFWriter;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;

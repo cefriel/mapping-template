@@ -21,11 +21,17 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.cefriel.io.Reader;
+import com.cefriel.io.rdf.RDFReader;
+import com.cefriel.io.rdf.RDFUtils;
+import com.cefriel.io.rdf.RDFWriter;
 import com.cefriel.utils.LoweringUtils;
-import com.cefriel.utils.rdf.RDFReader;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Serializer;
@@ -35,6 +41,19 @@ import org.apache.velocity.app.VelocityEngine;
 
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.eclipse.rdf4j.common.iteration.Iterations;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.QueryResults;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.LoggerFactory;
 
 public class TemplateLowerer {
@@ -52,16 +71,16 @@ public class TemplateLowerer {
 	private boolean resourceTemplate;
 
 	private VelocityEngine velocityEngine;
-	private RDFReader reader;
+	private Reader reader;
 
 	private int count = 0;
 
-	public TemplateLowerer(RDFReader reader) throws Exception {
+	public TemplateLowerer(Reader reader) throws Exception {
 		this.reader = reader;
 		this.lu = new LoweringUtils();
 	}
 
-	public TemplateLowerer(RDFReader reader, LoweringUtils lu) throws Exception {
+	public TemplateLowerer(Reader reader, LoweringUtils lu) throws Exception {
 		this.reader = reader;
 		this.lu = lu;
 	}
@@ -89,7 +108,7 @@ public class TemplateLowerer {
         if (trimTemplate)
             log.warn("InputStream Template: trim option not supported!");
 
-        Reader templateReader = new InputStreamReader(template);
+        java.io.Reader templateReader = new InputStreamReader(template);
         Writer writer = new StringWriter();
         velocityEngine.evaluate(context, writer, "TemplateLowerer", templateReader);
         templateReader.close();
@@ -133,7 +152,7 @@ public class TemplateLowerer {
 		if(queryFile != null) {
 			String query = Files.readString(Paths.get(queryFile));
 			log.info("Parametric Template executed with query: " + queryFile);
-			List<Map<String, String>> rows = reader.executeQueryStringValueXML(query);
+			List<Map<String, String>> rows = reader.executeQueryStringValue(query);
 
 			for (Map<String, String> row : rows)
 				executeTemplate(templatePath, destinationPath, context, row);
@@ -174,8 +193,15 @@ public class TemplateLowerer {
 					formatXML(doc, bos);
 					bos.close();
 					break;
-				default:
-					return;
+				case "turtle":
+					RDFUtils.serializeFile(pathId, RDFFormat.TURTLE);
+					break;
+				case "rdfxml":
+					RDFUtils.serializeFile(pathId, RDFFormat.RDFXML);
+					break;
+				case "nt":
+					RDFUtils.serializeFile(pathId, RDFFormat.NQUADS);
+					break;
 			}
 	}
 
@@ -191,8 +217,13 @@ public class TemplateLowerer {
 					String formatted = baos.toString();
 					baos.close();
 					return formatted;
-				default:
-					return result;
+				// TODO Make input RDFFormat configurable
+				case "turtle":
+					return RDFUtils.serialize(result, RDFFormat.TURTLE, RDFFormat.TURTLE);
+				case "rdfxml":
+					return RDFUtils.serialize(result, RDFFormat.TURTLE, RDFFormat.RDFXML);
+				case "nt":
+					return RDFUtils.serialize(result, RDFFormat.TURTLE, RDFFormat.NQUADS);
 			}
 		return result;
 	}

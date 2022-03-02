@@ -19,11 +19,13 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.cefriel.io.Reader;
+import com.cefriel.io.xml.XMLReader;
 import com.cefriel.utils.LoweringUtils;
 import com.cefriel.lowerer.TemplateLowerer;
 import com.cefriel.utils.TransmodelLoweringUtils;
-import com.cefriel.utils.rdf.RDFReader;
-import com.cefriel.utils.rdf.RDFWriter;
+import com.cefriel.io.rdf.RDFReader;
+import com.cefriel.io.rdf.RDFWriter;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -37,9 +39,12 @@ public class Main {
 
 	@Parameter(names={"--template","-t"})
 	private String templatePath = "template.vm";
-	@Parameter(names={"--input","-i"},
+	@Parameter(names={"--rdf","-rdf"},
 			variableArity = true)
 	private List<String> triplesPaths;
+
+	@Parameter(names={"--xml","-xml"})
+	private String xmlPath;
 
 	@Parameter(names={"--baseiri","-iri"})
 	private String baseIri = "http://www.cefriel.com/data/";
@@ -102,11 +107,19 @@ public class Main {
 	public void updateBasePath(){
 		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
 		templatePath = basePath + templatePath;
-		for (int i = 0; i < triplesPaths.size(); i++)
-			triplesPaths.set(i, basePath + triplesPaths.get(i));
+		if (triplesPaths != null)
+			for (int i = 0; i < triplesPaths.size(); i++)
+				if(triplesPaths.get(i) != null)
+					triplesPaths.set(i, basePath + triplesPaths.get(i));
+		if (xmlPath != null)
+			xmlPath = basePath + xmlPath;
 		destinationPath = basePath + destinationPath;
 		if (queryPath != null)
 			queryPath = basePath + queryPath;
+		if (keyValueCsvPath != null)
+			keyValueCsvPath = basePath + keyValueCsvPath;
+		if (keyValuePairsPath != null)
+			keyValuePairsPath = basePath + keyValuePairsPath;
 	}
 
 
@@ -120,46 +133,52 @@ public class Main {
 					break;
 			}
 
-		Repository repo;
-		boolean triplesStore = (DB_ADDRESS != null) && (REPOSITORY_ID != null);
-		if (triplesStore)
-			repo = new HTTPRepository(DB_ADDRESS, REPOSITORY_ID);
-		else
-			repo = new SailRepository(new MemoryStore());
+		Reader reader = null;
+		if (triplesPaths != null) {
+			Repository repo;
+			boolean triplesStore = (DB_ADDRESS != null) && (REPOSITORY_ID != null);
+			if (triplesStore)
+				repo = new HTTPRepository(DB_ADDRESS, REPOSITORY_ID);
+			else
+				repo = new SailRepository(new MemoryStore());
 
-		for (String triplesPath : triplesPaths)
-			if ((new File(triplesPath)).exists()) {
-				RDFWriter.baseIRI = baseIri;
-				RDFWriter writer = new RDFWriter(repo, context);
-				writer.addFile(triplesPath);
+			for (String triplesPath : triplesPaths)
+				if ((new File(triplesPath)).exists()) {
+					RDFWriter.baseIRI = baseIri;
+					RDFWriter writer = new RDFWriter(repo, context);
+					writer.addFile(triplesPath);
+				}
+			reader = new RDFReader(repo, context);
+		} else if (xmlPath != null) {
+			reader = new XMLReader(new File(xmlPath));
+		}
+
+		if (reader != null) {
+			if (verbose)
+				reader.setVerbose(true);
+
+			if (debugQuery) {
+				if (queryPath == null)
+					log.error("Provide a query using the --query option");
+				else
+					reader.debugQuery(queryPath, destinationPath);
+			} else {
+				TemplateLowerer tl = new TemplateLowerer(reader, lu);
+
+				if (keyValueCsvPath != null)
+					tl.setKeyValueCsvPath(keyValueCsvPath);
+				if (keyValuePairsPath != null)
+					tl.setKeyValuePairsPath(keyValuePairsPath);
+				if (format != null)
+					tl.setFormat(format);
+				if (trimTemplate)
+					tl.setTrimTemplate(true);
+
+				tl.lower(templatePath, destinationPath, queryPath);
 			}
 
-		RDFReader reader = new RDFReader(repo, context);
-		if (verbose)
-			reader.setVerbose(true);
-
-		if(debugQuery) {
-			if (queryPath == null)
-				log.error("Provide a query using the --query option");
-			else
-				reader.debugQuery(queryPath, destinationPath);
+			reader.shutDown();
 		}
-		else {
-			TemplateLowerer tl = new TemplateLowerer(reader, lu);
-
-			if (keyValueCsvPath != null)
-				tl.setKeyValueCsvPath(keyValueCsvPath);
-			if (keyValuePairsPath != null)
-				tl.setKeyValuePairsPath(keyValuePairsPath);
-			if (format != null)
-				tl.setFormat(format);
-			if (trimTemplate)
-				tl.setTrimTemplate(true);
-
-			tl.lower(templatePath, destinationPath, queryPath);
-		}
-
-		reader.shutDown();
 
 	}
 

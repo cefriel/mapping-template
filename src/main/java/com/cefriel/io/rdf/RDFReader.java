@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cefriel.utils.rdf;
+package com.cefriel.io.rdf;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.cefriel.io.Reader;
 import com.cefriel.lowerer.TemplateLowerer;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.rdf4j.model.IRI;
@@ -47,9 +48,9 @@ import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RDFReader {
+public class RDFReader implements Reader {
 
-    private Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
+    private final Logger log = LoggerFactory.getLogger(RDFReader.class);
 
     private Repository repository;
     private IRI context;
@@ -134,7 +135,7 @@ public class RDFReader {
         for(Map<String,Value> row : valueResults)
             results.add(row.entrySet().stream()
                     .collect(Collectors.toMap(
-                            e -> e.getKey(),
+                            Map.Entry::getKey,
                             e -> (e.getValue() != null) ? e.getValue().stringValue() : null )
                     ));
         return results;

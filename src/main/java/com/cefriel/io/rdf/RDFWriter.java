@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package com.cefriel.utils.rdf;
+package com.cefriel.io.rdf;
 
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.ValueFactory;
+import com.cefriel.io.Writer;
+import org.eclipse.rdf4j.common.iteration.Iterations;
+import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.QueryResults;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.contextaware.ContextAwareRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 
 import java.io.File;
+import java.io.StringReader;
 
-public class RDFWriter {
+public class RDFWriter implements Writer {
 
     public static String baseIRI;
 
@@ -48,6 +52,28 @@ public class RDFWriter {
         RDFFormat rdfFormat = Rio.getParserFormatForFileName(triplesPath).orElse(RDFFormat.TURTLE);
         try (RepositoryConnection con = repository.getConnection()) {
             con.add(file, baseIRI, rdfFormat);
+        }
+    }
+
+    public void addString(String triples, RDFFormat rdfFormat) throws Exception {
+        try (RepositoryConnection con = repository.getConnection()) {
+            con.add(new StringReader(triples), baseIRI, rdfFormat);
+        }
+    }
+
+    public Model getDump() {
+        try (RepositoryConnection con = repository.getConnection()) {
+            RepositoryResult<Statement> dump;
+            if (context != null)
+                dump = con.getStatements(null, null, null, context);
+            else
+                dump = con.getStatements(null, null, null);
+            Model dumpModel = QueryResults.asModel(dump);
+
+            RepositoryResult<Namespace> namespaces = con.getNamespaces();
+            for (Namespace n : Iterations.asList(namespaces))
+                dumpModel.setNamespace(n);
+            return dumpModel;
         }
     }
 
@@ -74,4 +100,5 @@ public class RDFWriter {
     public Repository getRepository() {
         return repository;
     }
+
 }
