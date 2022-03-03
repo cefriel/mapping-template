@@ -15,8 +15,10 @@
  */
 package com.cefriel.io.rdf;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -28,11 +30,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.cefriel.io.Reader;
-import com.cefriel.lowerer.TemplateLowerer;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.common.iteration.Iterations;
+import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryLanguage;
@@ -43,8 +43,11 @@ import org.eclipse.rdf4j.query.resultio.text.tsv.SPARQLResultsTSVWriter;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 
+import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.contextaware.ContextAwareRepository;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +57,8 @@ public class RDFReader implements Reader {
 
     private Repository repository;
     private IRI context;
+
+    private String baseIRI;
 
     private String prefixes;
 
@@ -198,6 +203,60 @@ public class RDFReader implements Reader {
         }
     }
 
+    /**
+     * Add triples from a file in the repository.
+     * @param triplesPath Path of the file to be added.
+     * @throws Exception
+     */
+    public void addFile(String triplesPath, RDFFormat rdfFormat) throws Exception {
+        File file = new File(triplesPath);
+        try (RepositoryConnection con = repository.getConnection()) {
+            con.add(file, baseIRI, rdfFormat);
+        }
+    }
+
+    /**
+     * Add triples from a file in the repository. RDF format is inferred using the file extension.
+     * @param triplesPath Path of the file to be added.
+     * @throws Exception
+     */
+    public void addFile(String triplesPath) throws Exception {
+        File file = new File(triplesPath);
+        RDFFormat rdfFormat = Rio.getParserFormatForFileName(triplesPath).orElse(RDFFormat.TURTLE);
+        try (RepositoryConnection con = repository.getConnection()) {
+            con.add(file, baseIRI, rdfFormat);
+        }
+    }
+
+    /**
+     * Add triples from a String in the repository.
+     * @param triples String containing triples to be added.
+     * @param rdfFormat RDFFormat to parse the String.
+     * @throws Exception
+     */
+    public void addString(String triples, RDFFormat rdfFormat) throws Exception {
+        try (RepositoryConnection con = repository.getConnection()) {
+            con.add(new StringReader(triples), baseIRI, rdfFormat);
+        }
+    }
+
+    /**
+     * Get a {@link org.eclipse.rdf4j.model.Model} dump from the Repository targeted by the RDFReader.
+     * @return {@link org.eclipse.rdf4j.model.Model} dump
+     */
+    public Model getDump() {
+        try (RepositoryConnection con = repository.getConnection()) {
+            RepositoryResult<Statement> dump;
+            dump = con.getStatements(null, null, null);
+            Model dumpModel = QueryResults.asModel(dump);
+
+            RepositoryResult<Namespace> namespaces = con.getNamespaces();
+            for (Namespace n : Iterations.asList(namespaces))
+                dumpModel.setNamespace(n);
+            return dumpModel;
+        }
+    }
+
     public void shutDown() {
         repository.shutDown();
     }
@@ -232,6 +291,22 @@ public class RDFReader implements Reader {
             ValueFactory vf = SimpleValueFactory.getInstance();
             setContext(vf.createIRI(context));
         }
+    }
+
+    /**
+     * Get the base IRI set for the RDFReader.
+     * @return base IRI set for the RDFReader
+     */
+    public String getBaseIRI() {
+        return baseIRI;
+    }
+
+    /**
+     * Set a base IRI for the RDFReader.
+     * @param baseIRI String to be set as base IRI for the RDFReader
+     */
+    public void setBaseIRI(String baseIRI) {
+        this.baseIRI = baseIRI;
     }
 
     public Repository getRepository() {

@@ -19,16 +19,21 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.cefriel.io.Formatter;
 import com.cefriel.io.Reader;
+import com.cefriel.io.rdf.RDFFormatter;
+import com.cefriel.io.xml.XMLFormatter;
 import com.cefriel.io.xml.XMLReader;
+import com.cefriel.lowerer.MapConfigurator;
 import com.cefriel.utils.LoweringUtils;
 import com.cefriel.lowerer.TemplateLowerer;
 import com.cefriel.utils.TransmodelLoweringUtils;
 import com.cefriel.io.rdf.RDFReader;
-import com.cefriel.io.rdf.RDFWriter;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.LoggerFactory;
 
@@ -122,7 +127,6 @@ public class Main {
 			keyValuePairsPath = basePath + keyValuePairsPath;
 	}
 
-
 	public void exec() throws Exception {
 
 		LoweringUtils lu = new LoweringUtils();
@@ -141,14 +145,15 @@ public class Main {
 				repo = new HTTPRepository(DB_ADDRESS, REPOSITORY_ID);
 			else
 				repo = new SailRepository(new MemoryStore());
-
+			RDFReader rdfReader = new RDFReader(repo, context);
+			rdfReader.setBaseIRI(baseIri);
+			RDFFormat format;
 			for (String triplesPath : triplesPaths)
 				if ((new File(triplesPath)).exists()) {
-					RDFWriter.baseIRI = baseIri;
-					RDFWriter writer = new RDFWriter(repo, context);
-					writer.addFile(triplesPath);
+					format = Rio.getParserFormatForFileName(triplesPath).orElse(RDFFormat.TURTLE);
+					rdfReader.addFile(triplesPath, format);
 				}
-			reader = new RDFReader(repo, context);
+			reader = rdfReader;
 		} else if (xmlPath != null) {
 			reader = new XMLReader(new File(xmlPath));
 		}
@@ -165,12 +170,31 @@ public class Main {
 			} else {
 				TemplateLowerer tl = new TemplateLowerer(reader, lu);
 
+				MapConfigurator mc = new MapConfigurator();
 				if (keyValueCsvPath != null)
-					tl.setKeyValueCsvPath(keyValueCsvPath);
+					mc.setKeyValueCsvPath(keyValueCsvPath);
 				if (keyValuePairsPath != null)
-					tl.setKeyValuePairsPath(keyValuePairsPath);
-				if (format != null)
-					tl.setFormat(format);
+					mc.setKeyValuePairsPath(keyValuePairsPath);
+				tl.setMap(mc.getMap());
+
+				Formatter f = null;
+				if (format != null) {
+					switch (format) {
+						case "xml":
+							f = new XMLFormatter();
+							break;
+						case "turtle":
+							f = new RDFFormatter(RDFFormat.TURTLE);
+							break;
+						case "rdfxml":
+							f = new RDFFormatter(RDFFormat.RDFXML);
+							break;
+						case "nt":
+							f = new RDFFormatter(RDFFormat.NTRIPLES);
+							break;
+					}
+					tl.setFormatter(f);
+				}
 				if (trimTemplate)
 					tl.setTrimTemplate(true);
 
