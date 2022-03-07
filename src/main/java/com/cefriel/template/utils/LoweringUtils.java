@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cefriel.utils;
+package com.cefriel.template.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TemplateUtils {
+public class LoweringUtils {
 
     private String prefix;
 

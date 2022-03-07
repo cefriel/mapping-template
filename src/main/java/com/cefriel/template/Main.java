@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cefriel;
+package com.cefriel.template;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.cefriel.io.Formatter;
-import com.cefriel.io.Reader;
-import com.cefriel.io.rdf.RDFFormatter;
-import com.cefriel.io.xml.XMLFormatter;
-import com.cefriel.io.xml.XMLReader;
-import com.cefriel.lowerer.MapConfigurator;
-import com.cefriel.utils.TemplateUtils;
-import com.cefriel.lowerer.TemplateLowerer;
-import com.cefriel.utils.TransmodelTemplateUtils;
-import com.cefriel.io.rdf.RDFReader;
+import com.cefriel.template.io.Formatter;
+import com.cefriel.template.io.Reader;
+import com.cefriel.template.io.rdf.RDFFormatter;
+import com.cefriel.template.io.xml.XMLFormatter;
+import com.cefriel.template.io.xml.XMLReader;
+import com.cefriel.template.io.rdf.RDFReader;
+import com.cefriel.template.utils.TemplateUtils;
+import com.cefriel.template.utils.TransmodelTemplateUtils;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -172,7 +170,7 @@ public class Main {
 					reader.debugQuery(debugQueryFromFile, destinationPath);
 				}
 			} else {
-				TemplateLowerer tl = new TemplateLowerer(reader, lu);
+				TemplateExecutor tl = new TemplateExecutor(reader, lu);
 
 				MapConfigurator mc = new MapConfigurator();
 				if (keyValueCsvPath != null)

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cefriel.lowerer;
+package com.cefriel.template;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -24,9 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.cefriel.io.Formatter;
-import com.cefriel.io.Reader;
-import com.cefriel.utils.TemplateUtils;
+import com.cefriel.template.io.Formatter;
+import com.cefriel.template.io.Reader;
+import com.cefriel.template.utils.TemplateUtils;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -35,9 +35,9 @@ import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.slf4j.LoggerFactory;
 
-public class TemplateLowerer {
+public class TemplateExecutor {
 
-	private final org.slf4j.Logger log = LoggerFactory.getLogger(TemplateLowerer.class);
+	private final org.slf4j.Logger log = LoggerFactory.getLogger(TemplateExecutor.class);
 	private static final String DEFAULT_KEY = "default";
 
 	// Constructor parameters
@@ -55,12 +55,12 @@ public class TemplateLowerer {
 
 	private int count = 0;
 
-	public TemplateLowerer(Reader reader) throws Exception {
+	public TemplateExecutor(Reader reader) throws Exception {
 		this.reader = reader;
 		this.lu = new TemplateUtils();
 	}
 
-	public TemplateLowerer(Reader reader, TemplateUtils lu) throws Exception {
+	public TemplateExecutor(Reader reader, TemplateUtils lu) throws Exception {
 		this.reader = reader;
 		this.lu = lu;
 	}
@@ -185,7 +185,7 @@ public class TemplateLowerer {
 
 		java.io.Reader templateReader = new InputStreamReader(template);
 		Writer writer = new StringWriter();
-		velocityEngine.evaluate(context, writer, "TemplateLowerer", templateReader);
+		velocityEngine.evaluate(context, writer, "TemplateExecutor", templateReader);
 		templateReader.close();
 
 		String result = writer.toString();

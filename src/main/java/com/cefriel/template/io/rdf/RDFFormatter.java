@@ -1,6 +1,6 @@
-package com.cefriel.io.rdf;
+package com.cefriel.template.io.rdf;
 
-import com.cefriel.io.Formatter;
+import com.cefriel.template.io.Formatter;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;

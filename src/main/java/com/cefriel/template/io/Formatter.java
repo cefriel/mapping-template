@@ -1,4 +1,4 @@
-package com.cefriel.io;
+package com.cefriel.template.io;
 
 public interface Formatter {
 

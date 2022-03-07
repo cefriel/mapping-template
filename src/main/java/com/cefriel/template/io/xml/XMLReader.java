@@ -1,6 +1,6 @@
-package com.cefriel.io.xml;
+package com.cefriel.template.io.xml;
 
-import com.cefriel.io.Reader;
+import com.cefriel.template.io.Reader;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.ma.map.KeyValuePair;
 import net.sf.saxon.ma.map.MapItem;
@@ -17,8 +17,6 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;

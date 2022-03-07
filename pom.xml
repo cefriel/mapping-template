@@ -77,7 +77,7 @@
           <finalName>rdf-template</finalName>
           <archive>
             <manifest>
-              <mainClass>com.cefriel.Main</mainClass>
+              <mainClass>com.cefriel.template.Main</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>

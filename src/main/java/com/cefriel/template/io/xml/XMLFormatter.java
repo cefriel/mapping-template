@@ -1,6 +1,6 @@
-package com.cefriel.io.xml;
+package com.cefriel.template.io.xml;
 
-import com.cefriel.io.Formatter;
+import com.cefriel.template.io.Formatter;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Serializer;

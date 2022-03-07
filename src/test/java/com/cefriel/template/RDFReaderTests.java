@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.cefriel;
+package com.cefriel.template;
 
-import com.cefriel.lowerer.TemplateLowerer;
-import com.cefriel.utils.TemplateUtils;
-import com.cefriel.io.rdf.RDFReader;
+import com.cefriel.template.io.rdf.RDFReader;
+import com.cefriel.template.utils.TemplateUtils;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
@@ -51,7 +50,7 @@ public class RDFReaderTests {
     public void agencyTest() throws Exception {
         String folder = "agency";
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
-        TemplateLowerer lowerer = new TemplateLowerer(reader, new TemplateUtils());
+        TemplateExecutor lowerer = new TemplateExecutor(reader, new TemplateUtils());
         File template = new File(resolvePath(folder, "template.vm"));
         InputStream templateStream = new FileInputStream(template);
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")), StandardCharsets.UTF_8);
@@ -63,7 +62,7 @@ public class RDFReaderTests {
         String folder = "agency-multiple-input";
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
         reader.addFile(resolvePath(folder, "input2.ttl"), RDFFormat.TURTLE);
-        TemplateLowerer lowerer = new TemplateLowerer(reader, new TemplateUtils());
+        TemplateExecutor lowerer = new TemplateExecutor(reader, new TemplateUtils());
         File template = new File(resolvePath(folder, "template.vm"));
         InputStream templateStream = new FileInputStream(template);
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")), StandardCharsets.UTF_8);
@@ -75,7 +74,7 @@ public class RDFReaderTests {
         String folder = "agency-parametric";
 
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
-        TemplateLowerer lowerer = new TemplateLowerer(reader, new TemplateUtils());
+        TemplateExecutor lowerer = new TemplateExecutor(reader, new TemplateUtils());
         File template = new File(resolvePath(folder, "template.vm"));
         InputStream templateStream = new FileInputStream(template);
 

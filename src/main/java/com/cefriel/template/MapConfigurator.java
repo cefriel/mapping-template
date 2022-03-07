@@ -1,4 +1,4 @@
-package com.cefriel.lowerer;
+package com.cefriel.template;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;

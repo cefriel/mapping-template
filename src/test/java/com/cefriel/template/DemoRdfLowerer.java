@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.cefriel;
+package com.cefriel.template;
 
-import com.cefriel.lowerer.TemplateLowerer;
-import com.cefriel.utils.LoweringUtils;
-import com.cefriel.io.rdf.RDFReader;
+import com.cefriel.template.io.rdf.RDFReader;
+import com.cefriel.template.utils.LoweringUtils;
 import com.cefriel.io.rdf.RDFWriter;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -39,7 +38,7 @@ public class DemoRdfLowerer {
 
         RDFReader reader = new RDFReader(repo);
 
-        TemplateLowerer lowerer = new TemplateLowerer(reader, new LoweringUtils());
+        TemplateExecutor lowerer = new TemplateExecutor(reader, new LoweringUtils());
 
         File template = new File("demo/template.vm");
         InputStream templateStream = new FileInputStream(template);
