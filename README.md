@@ -13,7 +13,6 @@ Query RDF triples to generate a custom output.
 
 - Enable _SPARQL queries_ in the template accessing an HTTP Repository or an in-memory repository initialized with triples from one or multiple RDF files
 - Possibility to access a portion of the repository contextualizing queries with respect to a specific named graph
-- Run _parametric templates_ executed once for each resulting row of the provided SPARQL query 
 
 #### XML lifting
 
@@ -26,6 +25,8 @@ Access XML files to generate custom RDF triples. It enables _XQuery queries_ in 
   - XML option to validate and indent XML files
   - RDF options to validate and serialise RDF in different formats
 - Possibility to provide _generic key-value pairs_ at runtime then made accessible through a map data structure in the template
+- Run _parametric templates_ executed once for each resulting row of the provided SPARQL query 
+  - Providing a query through the `-q` option is it possible to execute _parametric templates_ with respect to the given query, e.g., it is possible to run the same template for each element of a specific class contained in the input data. The template is executed for each resulting row of the provided query; in each template execution, the specific row is bound to a given variable (`$x`) that is made accessible as a map (keys as specified for column names) in the template.
 
 #### Performance improvement
 - _Trim Template_: `--trim` option to remove newlines in the template before executing it (high reduction in memory usage)
@@ -34,13 +35,13 @@ Access XML files to generate custom RDF triples. It enables _XQuery queries_ in 
 
 #### Usage as a Library
 
-The  `rdf-template`  can be used via command line but also as a library through the `TemplateLowerer` class. It allows to execute templates through the filesystem or through `InputStream`s. Configuration examples can be found in the `Main` class and in the `test` folder.
+The  `rdf-template`  can be used via command line but also as a library through the `TemplateExecutor` class. It allows to execute templates through the filesystem or through `InputStream`s. Configuration examples can be found in the `Main` class and in the `test` folder.
 
 ### Documentation
 This section contains the documentation to use the tool and to produce compliant Apache Velocity templates.
 
 #### Template Default Variables
-The `velocity-lowerer` component offers a set of already bound variables that can be used in the template.
+The `rdf-template` component offers a set of already bound variables that can be used in the template.
 
 ##### `$reader` 
 
@@ -83,15 +84,12 @@ The `$functions` variable offers a set of utility methods that can be extended d
 
 - `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
 
-#### LoweringUtils subclasses
-We report here the subclasses of LoweringUtils, the functions introduced to extend the default set and the option to activate them.
-- TransmodelLoweringUtils (`-u transmodel`):
+#### TemplateUtils subclasses
+We report here the subclasses of `TemplateUtils`, the functions introduced to extend the default set and the option to activate them.
+- TransmodelTemplateUtils (`-u transmodel`):
   - `getTimestamp()`: returns current timestamp in `yyyy-MM-dd'T'HH:mm:ss` format.
   - `getFormattedDate(int year, int month, int dayOfMonth, int hour, int minute)`: returns date and time specified as `yyyy-MM-dd'T'HH:mm:ss`.
   - `formatGTFSDate(String dateString)`: format GTFS dates in `yyyy-MM-dd'T'HH:mm:ss` format.
-
-#### Parametric Templates
-Providing a SPARQL query through the `-q` option is it possible to execute _parametric templates_ with respect to the given query, e.g., it is possible to run the same template for each element of a specific class contained in the database. The template is executed for each resulting row of the provided query; in each template execution, the specific row is bound to a given variable (`$x`) that is made accessible as a map (keys as specified for column names) in the template.
 
 #### `rdf-template.jar` ####
 This is the intended usage of the `rdf-template.jar`.
@@ -119,7 +117,7 @@ options:
   -tr, --trim                     Trim newlines from the template before executing it to reduce memory usage.
   -ts, --ts-address <arg>         Triples store address.
   -u, --utils <arg>               Set a specific class of utils to be bound as $functions variable in the template.
-                                  Default is generic functions (LoweringUtils). Supported values: 'transmodel'.
+                                  Default is generic functions (TemplateUtils). Supported values: 'transmodel'.
   -v, --verbose                   Debug information are logged.
 ```
 Only one between `-xml` and `-rdf` option can be used at once, the `$reader` is initialised accordingly.
@@ -129,4 +127,4 @@ If `-ts` and `-r` options are set a remote repository is used for queries and th
 #### Tips ####
 - If it is feasible for the specific case, splitting templates into multiple files and then combining them improves performances. 
 - It is better to avoid nested cycles in the template.
-- The component can be used as an external library to launch multiple lowering procedures in parallel.
+- The component can be used as an external library to launch multiple template executions in parallel.
