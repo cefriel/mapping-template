@@ -15,25 +15,25 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.transform.stream.StreamSource;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class XMLReader implements Reader {
 
     private final Logger log = LoggerFactory.getLogger(XMLReader.class);
 
+    public static final String DEFAULT_KEY = "value";
+
     private Processor saxon;
     private Configuration config;
     private DynamicQueryContext dynamicContext;
 
-
-    private String namespaces;
+    private String queryHeader;
 
     private boolean verbose;
 
@@ -51,14 +51,14 @@ public class XMLReader implements Reader {
         dynamicContext.setContextItem(config.buildDocumentTree(new StreamSource(new StringReader(xml))).getRootNode());
       }
 
-    private String addNamespaces(String query) {
-        if (namespaces != null && !namespaces.trim().isEmpty())
-            return namespaces + query;
+    private String addQueryHeader(String query) {
+        if (queryHeader != null && !queryHeader.trim().isEmpty())
+            return queryHeader + query;
         return query;
     }
 
     public List<Map<String, String>> executeQueryStringValueVerbose(String query) throws Exception {
-        log.info("Query: " + query + "\n");
+        log.info("Query: " + addQueryHeader(query) + "\n");
         Instant start = Instant.now();
         List<Map<String, String>> results = getQueryResultsStringValue(query);
         Instant end = Instant.now();
@@ -67,8 +67,7 @@ public class XMLReader implements Reader {
     }
 
     public List<Map<String, String>> getQueryResultsStringValue(String query) throws Exception {
-        if (namespaces != null)
-            query = namespaces + query;
+        query = addQueryHeader(query);
         StaticQueryContext sqc = config.newStaticQueryContext();
         XQueryExpression exp = sqc.compileQuery(query);
         SequenceIterator iter = exp.iterator(dynamicContext);
@@ -83,10 +82,15 @@ public class XMLReader implements Reader {
             if (item instanceof MapItem) {
                 MapItem mitem = (MapItem) item;
                 Iterable<KeyValuePair> keyValuePairs = mitem.keyValuePairs();
-                for (KeyValuePair pair : keyValuePairs)
-                    map.put(pair.key.getStringValue(), pair.value.getStringValue());
+                for (KeyValuePair pair : keyValuePairs) {
+                    String value = pair.value.getStringValue();
+                    if (value != null && !value.isEmpty())
+                        map.put(pair.key.getStringValue(), value);
+                }
             } else {
-                map.put("value", item.getStringValue());
+                String value = item.getStringValue();
+                if (value != null && !value.isEmpty())
+                    map.put(DEFAULT_KEY, value);
             }
 
             results.add(map);
@@ -102,10 +106,27 @@ public class XMLReader implements Reader {
 
     @Override
     public void debugQuery(String query, String destinationPath) throws Exception {
-        XQueryCompiler compiler = saxon.newXQueryCompiler();
-        XQueryExecutable exec = compiler.compile(query);
-        XQueryEvaluator queryEval = exec.load();
-        queryEval.run(saxon.newSerializer(new FileOutputStream(destinationPath)));
+        List<Map<String, String>> result = executeQueryStringValue(query);
+        StringBuilder sb = new StringBuilder();
+
+        if (result != null && !result.isEmpty()){
+            List<String> keys = new ArrayList<>(result.get(0).keySet());
+            sb.append(String.join("\t", keys));
+            sb.append("\n");
+
+            for(Map<String, String> row : result) {
+                for (String key : keys) {
+                    sb.append(row.get(key));
+                    sb.append("\t");
+                }
+                sb.setCharAt(sb.length() - 1, '\n');
+            }
+            sb.setLength(sb.length() - 1);
+
+            try (PrintWriter out = new PrintWriter(destinationPath)) {
+                out.println(sb);
+            }
+        }
     }
 
     @Override
@@ -123,17 +144,19 @@ public class XMLReader implements Reader {
      * Set verbose option to enable logging on query executions.
      * @param verbose boolean option
      */
+    @Override
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
 
 
-    public String getNamespaces() {
-        return namespaces;
+    public String getQueryHeader() {
+        return queryHeader;
     }
 
-    public void setNamespaces(String namespaces) {
-        this.namespaces = namespaces;
+    @Override
+    public void setQueryHeader(String header) {
+        this.queryHeader = header;
     }
 
 }

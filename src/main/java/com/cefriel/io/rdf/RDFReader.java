@@ -60,7 +60,7 @@ public class RDFReader implements Reader {
 
     private String baseIRI;
 
-    private String prefixes;
+    private String queryHeader;
 
     private boolean verbose;
 
@@ -93,13 +93,13 @@ public class RDFReader implements Reader {
     }
 
     /**
-     * Concatenate the prefixes (if set) with the {@code query} parameter.
+     * Prepend the prefixes (if set as queryHeader) with the {@code query} parameter.
      * @param query SPARQL query string
      * @return SPARQL query with prefixes
      */
-    private String addPrefixes(String query) {
-        if (prefixes != null && !prefixes.trim().isEmpty())
-            return prefixes + query;
+    private String addQueryHeader(String query) {
+        if (queryHeader != null && !queryHeader.trim().isEmpty())
+            return queryHeader + query;
         return query;
     }
 
@@ -109,7 +109,7 @@ public class RDFReader implements Reader {
      * @return Result of the SPARQL query
      */
     public List<Map<String,Value>> executeQuery(String query) {
-        query = addPrefixes(query);
+        query = addQueryHeader(query);
 
         try (RepositoryConnection con = this.repository.getConnection()) {
             TupleQuery tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL, query);
@@ -153,7 +153,7 @@ public class RDFReader implements Reader {
      * @return Result of the SPARQL query with {@code String} values
      */
     public List<Map<String, String>> executeQueryStringValueVerbose(String query) {
-        log.info("Query: " + addPrefixes(query) + "\n");
+        log.info("Query: " + addQueryHeader(query) + "\n");
         Instant start = Instant.now();
         List<Map<String, String>> results = getQueryResultsStringValue(query);
         Instant end = Instant.now();
@@ -189,17 +189,14 @@ public class RDFReader implements Reader {
     /**
      * Executes the SPARQL query in the {@code query} file writing the results in the TSV
      * format in {@code destinationPath}.
-     * @param query Path of the file containing the SPARQL query to be executed
+     * @param query SPARQL query to be executed
      * @param destinationPath File to save the results of the SPARQL query
      * @throws IOException If an error occurs in handling the files
      */
     public void debugQuery(String query, String destinationPath) throws IOException {
-        if(query != null) {
-            String q = Files.readString(Paths.get(query));
-            SPARQLResultsTSVWriter writer = new SPARQLResultsTSVWriter(new FileOutputStream(destinationPath));
-            try (RepositoryConnection con = this.repository.getConnection()) {
-                con.prepareTupleQuery(q).evaluate(writer);
-            }
+        SPARQLResultsTSVWriter writer = new SPARQLResultsTSVWriter(new FileOutputStream(destinationPath));
+        try (RepositoryConnection con = this.repository.getConnection()) {
+            con.prepareTupleQuery(query).evaluate(writer);
         }
     }
 
@@ -326,19 +323,30 @@ public class RDFReader implements Reader {
     }
 
     /**
-     * Get string containing prefixes for SPARQL queries.
+     * Get string containing header section (i.e., prefixes) for SPARQL queries.
      * @return String containing prefixes for SPARQL queries.
      */
-    public String getPrefixes() {
-        return prefixes;
+    public String getQueryHeader() {
+        return queryHeader;
     }
 
     /**
-     * Set string containing prefixes for SPARQL queries.
-     * @param prefixes String containing prefixes for SPARQL queries.
+     * Set string containing header section (i.e., prefixes) for SPARQL queries.
+     * @param queryHeader String containing prefixes for SPARQL queries.
      */
-    public void setPrefixes(String prefixes) {
-        this.prefixes = prefixes;
+    @Override
+    public void setQueryHeader(String queryHeader) {
+        this.queryHeader = queryHeader;
+    }
+
+    /**
+     * Set string containing header section (i.e., prefixes) for SPARQL queries.
+     * Legacy function signature (Deprecated, use {@link #setQueryHeader(String)}).
+     * @param queryHeader String containing prefixes for SPARQL queries.
+     */
+    @Deprecated
+    public void setPrefixes(String queryHeader) {
+        this.queryHeader = queryHeader;
     }
 
 }

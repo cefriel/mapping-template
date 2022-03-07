@@ -26,7 +26,7 @@ import java.util.Map;
 
 import com.cefriel.io.Formatter;
 import com.cefriel.io.Reader;
-import com.cefriel.utils.LoweringUtils;
+import com.cefriel.utils.TemplateUtils;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -41,7 +41,7 @@ public class TemplateLowerer {
 	private static final String DEFAULT_KEY = "default";
 
 	// Constructor parameters
-	private final LoweringUtils lu;
+	private final TemplateUtils lu;
 
 	// Configurable parameters
 	private Formatter formatter;
@@ -57,10 +57,10 @@ public class TemplateLowerer {
 
 	public TemplateLowerer(Reader reader) throws Exception {
 		this.reader = reader;
-		this.lu = new LoweringUtils();
+		this.lu = new TemplateUtils();
 	}
 
-	public TemplateLowerer(Reader reader, LoweringUtils lu) throws Exception {
+	public TemplateLowerer(Reader reader, TemplateUtils lu) throws Exception {
 		this.reader = reader;
 		this.lu = lu;
 	}

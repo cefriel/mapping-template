@@ -25,9 +25,9 @@ import com.cefriel.io.rdf.RDFFormatter;
 import com.cefriel.io.xml.XMLFormatter;
 import com.cefriel.io.xml.XMLReader;
 import com.cefriel.lowerer.MapConfigurator;
-import com.cefriel.utils.LoweringUtils;
+import com.cefriel.utils.TemplateUtils;
 import com.cefriel.lowerer.TemplateLowerer;
-import com.cefriel.utils.TransmodelLoweringUtils;
+import com.cefriel.utils.TransmodelTemplateUtils;
 import com.cefriel.io.rdf.RDFReader;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
@@ -38,6 +38,8 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Main {
@@ -129,11 +131,11 @@ public class Main {
 
 	public void exec() throws Exception {
 
-		LoweringUtils lu = new LoweringUtils();
+		TemplateUtils lu = new TemplateUtils();
 		if (utils != null)
 			switch (utils) {
 				case "transmodel":
-					lu = new TransmodelLoweringUtils();
+					lu = new TransmodelTemplateUtils();
 					break;
 			}
 
@@ -165,8 +167,10 @@ public class Main {
 			if (debugQuery) {
 				if (queryPath == null)
 					log.error("Provide a query using the --query option");
-				else
-					reader.debugQuery(queryPath, destinationPath);
+				else {
+					String debugQueryFromFile = Files.readString(Paths.get(queryPath));
+					reader.debugQuery(debugQueryFromFile, destinationPath);
+				}
 			} else {
 				TemplateLowerer tl = new TemplateLowerer(reader, lu);
 
