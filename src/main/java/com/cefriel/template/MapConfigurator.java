@@ -23,7 +23,7 @@ public class MapConfigurator {
     public Map<String,String> parseMap(String filePath) throws IOException {
         Path path = FileSystems.getDefault().getPath(filePath);
         Map<String, String> mapFromFile = Files.lines(path)
-                .filter(s -> s.matches("^\\w+:.+"))
+                .filter(s -> s.matches("^(.+?):.+"))
                 .collect(Collectors.toMap(k -> k.split(":")[0], v -> v.substring(v.indexOf(":") + 1)));
         return mapFromFile;
     }
