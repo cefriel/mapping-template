@@ -1,11 +1,13 @@
 package com.cefriel.template.io.rdf;
 
 import com.cefriel.template.io.Formatter;
-import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.helpers.BasicWriterSettings;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import java.io.FileOutputStream;
@@ -36,13 +38,12 @@ public class RDFFormatter implements Formatter {
             format = Rio.getParserFormatForFileName(filepath).orElse(RDFFormat.TURTLE);
 
         reader.addFile(filepath, format);
-        Model model = reader.getDump();
-
         if (rdfFormatOutput != null)
             format = rdfFormatOutput;
 
         try (FileOutputStream out = new FileOutputStream(filepath)) {
-            Rio.write(model, out, format);
+            RDFWriter writer = Rio.createWriter(format, out);
+            dump(writer, repo);
         }
     }
 
@@ -56,13 +57,21 @@ public class RDFFormatter implements Formatter {
             format = rdfFormatInput;
         reader.addString(s, rdfFormatInput);
 
-        Model model = reader.getDump();
-        StringWriter sw = new StringWriter();
-
         if (rdfFormatOutput != null)
             format = rdfFormatOutput;
-        Rio.write(model, sw, format);
+
+        StringWriter sw = new StringWriter();
+        RDFWriter writer = Rio.createWriter(format, sw);
+        dump(writer, repo);
         return sw.toString();
+    }
+
+    public void dump(RDFWriter writer, Repository repo) {
+        try (RepositoryConnection conn = repo.getConnection()) {
+            // inline blank nodes where possible
+            writer.getWriterConfig().set(BasicWriterSettings.INLINE_BLANK_NODES, true);
+            conn.export(writer);
+        }
     }
 
     public RDFFormat getRdfFormatInput() {
