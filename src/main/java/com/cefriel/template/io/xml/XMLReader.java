@@ -108,13 +108,18 @@ public class XMLReader implements Reader {
         StringBuilder sb = new StringBuilder();
 
         if (result != null && !result.isEmpty()){
-            List<String> keys = new ArrayList<>(result.get(0).keySet());
+            Set<String> keys = new LinkedHashSet<>();
+            for (Map<String, String> row : result)
+                keys.addAll(row.keySet());
+
             sb.append(String.join("\t", keys));
             sb.append("\n");
 
             for(Map<String, String> row : result) {
                 for (String key : keys) {
-                    sb.append(row.get(key));
+                    String value = row.get(key);
+                    if(value != null)
+                        sb.append(value);
                     sb.append("\t");
                 }
                 sb.setCharAt(sb.length() - 1, '\n');
