@@ -80,9 +80,12 @@ The `$functions` variable offers a set of utility methods that can be extended d
 - `checkMap(Map<K,V> m)`: returns `true` if the map is not null and not empty.
 - `checkMap(Map<K, V> m, K key)`: returns `true` if the map is not null, not empty and contains the key `key`.
 - `getMapValue(Map<K, V> map, K key)`: if `checkMap(map, key)` is `true` returns the value for `key` in `map`, otherwise returns `null`. 
-- `getListMapValue(Map<K, List<V>> listMap, K key)`: if `checkMap(listMap, key)` is `true` returns the value for `key` in `listMap`, otherwise returns an empty list. 
+- `getListMapValue(Map<K, List<V>> listMap, K key)`: if `checkMap(listMap, key)` is `true` returns the value for `key` in `listMap`, otherwise returns an empty list.
+- `getRDFReaderFromFile(String filename)` and `getRDFReaderFromString(String s)`: returns dynamically a RDFReader from a RDF file or string
+- `getXMLReaderFromFile(String filename)` and `getXMLReaderFromString(String s)`: returns dynamically a XMLReader from a RDF file or string
 
-- `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
+##### `$map`
+The `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
 
 #### TemplateUtils subclasses
 We report here the subclasses of `TemplateUtils`, the functions introduced to extend the default set and the option to activate them.
