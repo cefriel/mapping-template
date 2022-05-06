@@ -173,10 +173,15 @@ public class Main {
 				TemplateExecutor tl = new TemplateExecutor(reader, lu);
 
 				MapConfigurator mc = new MapConfigurator();
-				if (keyValueCsvPath != null)
+				if (keyValueCsvPath != null) {
 					mc.setKeyValueCsvPath(keyValueCsvPath);
-				if (keyValuePairsPath != null)
+					log.info(mc.getKeyValueCsvPath() + " parsed");
+				}
+				if (keyValuePairsPath != null) {
 					mc.setKeyValuePairsPath(keyValuePairsPath);
+					log.info(mc.getKeyValuePairsPath() + " parsed");
+				}
+				log.info("Parsed " + mc.getMap().size() + " key-value pairs");
 				tl.setMap(mc.getMap());
 
 				Formatter f = null;
