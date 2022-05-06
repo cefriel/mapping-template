@@ -15,6 +15,22 @@
  */
 package com.cefriel.template.utils;
 
+import com.cefriel.template.io.Reader;
+import com.cefriel.template.io.rdf.RDFFormatter;
+import com.cefriel.template.io.rdf.RDFReader;
+import com.cefriel.template.io.xml.XMLFormatter;
+import com.cefriel.template.io.xml.XMLReader;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.http.HTTPRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -222,5 +238,77 @@ public class TemplateUtils {
         else
             return new ArrayList<>();
     }
+
+    /**
+     * Reads given file as a string.
+     * @param fileName path to the file
+     * @return the file's contents
+     * @throws IOException if read fails for any reason
+     */
+    public String getFileAsString(String fileName) throws IOException {
+        String content = Files.readString(Paths.get(fileName));
+        return content;
+    }
+
+    /**
+     * Get a RDFReader to query the RDF content of the provided file.
+     * The RDF format is inferred from the extension of the file (default: Turtle).
+     * @param fileName The file path for the RDF file.
+     * @return An RDFReader
+     * @throws Exception
+     */
+    public RDFReader getRDFReaderFromFile(String fileName) throws Exception {
+        RDFReader rdfReader = new RDFReader();
+        if (fileName != null)
+            if ((new File(fileName)).exists()) {
+                RDFFormat format = Rio.getParserFormatForFileName(fileName).orElse(RDFFormat.TURTLE);
+                rdfReader.addFile(fileName, format);
+            }
+        return rdfReader;
+    }
+
+    /**
+     * Get a RDFReader to query the RDF content of the provided string.
+     * The RDF format can be provided specifying the MIME type (default: text/turtle).
+     * @param s The RDF string.
+     * @param MIMEType The MIME type for the RDF format.
+     * @return An RDFReader
+     * @throws Exception
+     */
+    public RDFReader getRDFReaderFromString(String s, String MIMEType) throws Exception {
+        Repository repo = new SailRepository(new MemoryStore());
+        RDFReader rdfReader = new RDFReader(repo);
+        RDFFormat rdfFormat = Rio.getParserFormatForMIMEType(MIMEType).orElse(RDFFormat.TURTLE);
+        rdfReader.addString(s, rdfFormat);
+        return rdfReader;
+    }
+
+    /**
+     * Get a XMLReader to query the XML content of the provided file.
+     * @param fileName The file path for the XML file.
+     * @return An XMLReader
+     * @throws Exception
+     */
+    public XMLReader getXMLReaderFromFile(String fileName) throws Exception {
+        if (fileName != null) {
+            File xmlDocument = new File(fileName);
+            return new XMLReader(xmlDocument);
+        }
+        return new XMLReader("");
+    }
+
+    /**
+     * Get a XMLReader to query the XML content of the provided string.
+     * @param s The XML string.
+     * @return An XMLReader
+     * @throws Exception
+     */
+    public XMLReader getXMLReaderFromString(String s) throws Exception {
+        if (s != null) {
+            return new XMLReader(s);
+        }
+        return new XMLReader("");
+    }
+
 
 }
