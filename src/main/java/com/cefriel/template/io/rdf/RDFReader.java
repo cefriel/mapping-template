@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.QueryResults;
@@ -44,8 +45,11 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.contextaware.ContextAwareRepository;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.sail.inferencer.fc.SchemaCachingRDFSInferencer;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +65,19 @@ public class RDFReader implements Reader {
     private String queryHeader;
 
     private boolean verbose;
+
+    public RDFReader() {
+        new RDFReader(false);
+    }
+
+    public RDFReader(boolean rdfsInference) {
+       if (rdfsInference)
+           repository = new SailRepository(
+                new SchemaCachingRDFSInferencer(
+                        new MemoryStore()));
+       else
+           repository = new SailRepository(new MemoryStore());
+    }
 
     public RDFReader(String address, String repositoryId) {
         this.repository = new HTTPRepository(address, repositoryId);
@@ -249,6 +266,19 @@ public class RDFReader implements Reader {
             for (Namespace n : Iterations.asList(namespaces))
                 dumpModel.setNamespace(n);
             return dumpModel;
+        }
+    }
+
+    /**
+     * Merge the content of a RDFReader into the reader.
+     * @param sourceReader RDFReader to be merged.
+     */
+    public void mergeRdfReader(RDFReader sourceReader) {
+        Repository sourceRepo = sourceReader.getRepository();
+        try (RepositoryConnection conn = repository.getConnection()) {
+            try (RepositoryConnection source = sourceRepo.getConnection()) {
+                conn.add(source.getStatements(null, null, null, true));
+            }
         }
     }
 
