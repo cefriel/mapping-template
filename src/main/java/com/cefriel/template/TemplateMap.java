@@ -25,7 +25,7 @@ public class TemplateMap extends HashMap<String, String> {
             putAll(parseMap(lines));
     }
 
-    private void parseMap(InputStream is, boolean isCsv) throws IOException {
+    public void parseMap(InputStream is, boolean isCsv) throws IOException {
         Stream<String> lines = new BufferedReader(new InputStreamReader(is,
                 StandardCharsets.UTF_8)).lines();
         if (isCsv)
@@ -39,7 +39,7 @@ public class TemplateMap extends HashMap<String, String> {
                 .collect(Collectors.toMap(k -> k.split(":")[0], v -> v.substring(v.indexOf(":") + 1)));
     }
 
-    public Map<String,String> parseCsvMap(Stream<String> lines) {
+    private Map<String,String> parseCsvMap(Stream<String> lines) {
         List<String[]> fromCSV = lines
                 .map(s -> s.split(","))
                 .collect(Collectors.toList());
