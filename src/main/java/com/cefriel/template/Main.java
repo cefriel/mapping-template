@@ -172,17 +172,17 @@ public class Main {
 			} else {
 				TemplateExecutor tl = new TemplateExecutor(reader, lu);
 
-				MapConfigurator mc = new MapConfigurator();
+				TemplateMap mc = new TemplateMap();
 				if (keyValueCsvPath != null) {
-					mc.setKeyValueCsvPath(keyValueCsvPath);
-					log.info(mc.getKeyValueCsvPath() + " parsed");
+					mc.parseMap(keyValueCsvPath, true);
+					log.info(keyValueCsvPath + " parsed");
 				}
 				if (keyValuePairsPath != null) {
-					mc.setKeyValuePairsPath(keyValuePairsPath);
-					log.info(mc.getKeyValuePairsPath() + " parsed");
+					mc.parseMap(keyValuePairsPath, false);
+					log.info(keyValuePairsPath + " parsed");
 				}
-				log.info("Parsed " + mc.getMap().size() + " key-value pairs");
-				tl.setMap(mc.getMap());
+				log.info("Parsed " + mc.size() + " key-value pairs");
+				tl.setMap(mc);
 
 				Formatter f = null;
 				if (format != null) {

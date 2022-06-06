@@ -89,7 +89,7 @@ public class RDFReaderTests {
     }
 
     // TODO Add tests without stream
-    // TODO Add tests for MapConfigurator
+    // TODO Add tests for TemplateMap
     // TODO Add tests for XMLReader
     // TODO Add tests for LoweringUtils
 }
