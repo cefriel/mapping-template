@@ -49,7 +49,7 @@ The `$reader` variable offers methods to execute queries accordingly to the prov
 
 If RDF input files are provided it is bound to `RDFReader`:
 
-- `setPrefixes(String prefixes)`: set the RDF prefixes that should be concatened with the provided queries.
+- `setQueryHeader(String prefixes)`: set the RDF prefixes that should be concatened with the provided queries.
 - `executeQuery(String query)`: Executes a SPARQL query returning a list of rows as `List<Map<String,Value>>`.
 - `executeQueryStringValue(String query)`: As `executeQuery` but it returns a `List<Map<String,String>>` extracting the string value of each `Value` returned. The query, the duration and the number of rows returned are logged if the `verbose` option is enabled.
 - `executeQueryStringValueXML(String query)`: As `executeQuery` but it returns a `List<Map<String,String>>` extracting the string value of each `Value` returned and escaping XML special chars. The query, the duration and the number of rows returned are logged if the `verbose` option is enabled.
@@ -58,7 +58,7 @@ If RDF input files are provided it is bound to `RDFReader`:
 
 If XML input files are provided it is bound to `XMLReader`:
 
-- `setNamespaces(String namespaces)`: set the XQuery preamble (e.g. namespaces definition) that should be concatened with the provided queries.
+- `setQueryHeader(String namespaces)`: set the XQuery preamble (e.g. namespaces definition) that should be concatened with the provided queries.
 - `executeQueryStringValue(String query)`: Executes a XQuery query returning a list of rows as `List<Map<String,Value>>` if a `map` is provided, otherwise the result can be accessed using the `value` key.
 
 ##### `$functions`
@@ -83,6 +83,7 @@ The `$functions` variable offers a set of utility methods that can be extended d
 - `getListMapValue(Map<K, List<V>> listMap, K key)`: if `checkMap(listMap, key)` is `true` returns the value for `key` in `listMap`, otherwise returns an empty list.
 - `getRDFReaderFromFile(String filename)` and `getRDFReaderFromString(String s)`: returns dynamically a RDFReader from a RDF file or string
 - `getXMLReaderFromFile(String filename)` and `getXMLReaderFromString(String s)`: returns dynamically a XMLReader from a RDF file or string
+- `mergeResults(List<Map<String,String>> results, List<Map<String,String>> otherResults)`: merge two lists of results obtained from queries
 
 ##### `$map`
 The `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.

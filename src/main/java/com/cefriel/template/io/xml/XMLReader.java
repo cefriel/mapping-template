@@ -182,15 +182,10 @@ public class XMLReader implements Reader {
         return verbose;
     }
 
-    /**
-     * Set verbose option to enable logging on query executions.
-     * @param verbose boolean option
-     */
     @Override
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
-
 
     public String getQueryHeader() {
         return queryHeader;

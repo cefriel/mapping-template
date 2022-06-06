@@ -312,7 +312,7 @@ public class TemplateUtils {
     }
 
     /**
-     * Merge two list of results from queries on a {@link Reader}.
+     * Merge two lists of results from queries on a {@link Reader}.
      * @param results Results of a query
      * @param otherResults Results to be merged
      * @return Merged results
