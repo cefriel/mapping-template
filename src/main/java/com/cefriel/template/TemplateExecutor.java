@@ -265,7 +265,6 @@ public class TemplateExecutor {
 		this.resourceTemplate = resourceTemplate;
 	}
 
-
 	public Map<String, String> getMap() {
 		return map;
 	}

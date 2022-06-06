@@ -4,12 +4,15 @@ import com.cefriel.template.io.Reader;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.ma.map.KeyValuePair;
 import net.sf.saxon.ma.map.MapItem;
+import net.sf.saxon.om.GroundedValue;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.query.DynamicQueryContext;
 import net.sf.saxon.query.StaticQueryContext;
 import net.sf.saxon.query.XQueryExpression;
 import net.sf.saxon.s9api.*;
+import net.sf.saxon.tree.tiny.TinyElementImpl;
+import net.sf.saxon.value.SequenceExtent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,14 +29,18 @@ public class XMLReader implements Reader {
     private final Logger log = LoggerFactory.getLogger(XMLReader.class);
 
     public static final String DEFAULT_KEY = "value";
+    public static final String SERIALIZE_ELEMENTS_NO_NAMESPACE = "serialize-elements-no-namespace";
+    public static final String SERIALIZE_ELEMENTS = "serialize-elements";
 
     private Processor saxon;
     private Configuration config;
     private DynamicQueryContext dynamicContext;
 
-    private String queryHeader;
+    private String queryHeader = "xquery version \"3.1\";\n" +
+            "declare namespace map = \"http://www.w3.org/2005/xpath-functions/map\";";
 
     private boolean verbose;
+    private String serializationConfig = "";
 
     public XMLReader(File file) throws Exception {
         this.saxon = new Processor(false);
@@ -82,6 +89,24 @@ public class XMLReader implements Reader {
                 Iterable<KeyValuePair> keyValuePairs = mitem.keyValuePairs();
                 for (KeyValuePair pair : keyValuePairs) {
                     String value = pair.value.getStringValue();
+                    if (serializationConfig.contains(SERIALIZE_ELEMENTS)) {
+                        if (pair.value instanceof SequenceExtent.Of<?>) {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("<XMLLiteral>");
+                            for (GroundedValue tei : ((SequenceExtent.Of<?>) pair.value))
+                                if (!(tei instanceof TinyElementImpl)) {
+                                    sb.append(tei.getStringValue());
+                                    sb.append("\t");
+                                }
+                                else
+                                    sb.append(serializeElement(tei));
+                            sb.append("</XMLLiteral>");
+                            value = sb.toString();
+                        }
+                        else
+                            value = serializeElement(pair.value);
+                    }
+
                     if (value != null && !value.isEmpty())
                         map.put(pair.key.getStringValue(), value);
                 }
@@ -95,6 +120,20 @@ public class XMLReader implements Reader {
         }
 
         return results;
+    }
+
+    private String serializeElement(GroundedValue o) throws Exception {
+        if (o instanceof TinyElementImpl) {
+            Serializer ser = saxon.newSerializer();
+            ser.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
+            XdmNode node = new XdmNode(((TinyElementImpl) o));
+            String value = ser.serializeNodeToString(node);
+            // Remove namespaces definition
+            if (serializationConfig.equals(SERIALIZE_ELEMENTS_NO_NAMESPACE))
+                value = value.replaceAll("\\sxmlns.*?(\"|').*?(\"|')", "");
+            return value;
+        } else
+            return o.getStringValue();
     }
 
     @Override
@@ -160,6 +199,19 @@ public class XMLReader implements Reader {
     @Override
     public void setQueryHeader(String header) {
         this.queryHeader = header;
+    }
+
+    @Override
+    public void appendQueryHeader(String s) {
+        this.queryHeader += s;
+    }
+
+    public String getSerializationConfig() {
+        return serializationConfig;
+    }
+
+    public void setSerializationConfig(String serializationConfig) {
+        this.serializationConfig = serializationConfig;
     }
 
 }

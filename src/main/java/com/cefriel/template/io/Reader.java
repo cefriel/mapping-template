@@ -12,6 +12,12 @@ public interface Reader {
     void setQueryHeader(String header);
 
     /**
+     * Append a string to the header to be prepended to each query executed through the Reader.
+     * @param s The string to be appended to the current header.
+     */
+    void appendQueryHeader(String s);
+
+    /**
      * Execute the query returning a {@link java.util.List} of {@link java.util.Map}{@code <String,String>}.
      * Each map in the list represents a row of the results returned executing the query. Each key
      * in the map is bound to the value returned for the considered row.

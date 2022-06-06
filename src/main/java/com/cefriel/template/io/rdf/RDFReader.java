@@ -358,10 +358,11 @@ public class RDFReader implements Reader {
         return queryHeader;
     }
 
-    /**
-     * Set string containing header section (i.e., prefixes) for SPARQL queries.
-     * @param queryHeader String containing prefixes for SPARQL queries.
-     */
+    @Override
+    public void appendQueryHeader(String s) {
+        this.queryHeader += s;
+    }
+
     @Override
     public void setQueryHeader(String queryHeader) {
         this.queryHeader = queryHeader;
