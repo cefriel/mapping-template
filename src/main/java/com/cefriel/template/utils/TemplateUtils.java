@@ -16,12 +16,9 @@
 package com.cefriel.template.utils;
 
 import com.cefriel.template.io.Reader;
-import com.cefriel.template.io.rdf.RDFFormatter;
 import com.cefriel.template.io.rdf.RDFReader;
-import com.cefriel.template.io.xml.XMLFormatter;
 import com.cefriel.template.io.xml.XMLReader;
 import org.eclipse.rdf4j.repository.Repository;
-import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
@@ -142,8 +139,10 @@ public class TemplateUtils {
      */
     public Map<String, Map<String, String>> getMap(List<Map<String, String>> results, String key) {
         Map<String, Map<String, String>> results_map = new HashMap<>();
-        for (Map<String,String> result : results)
-            results_map.put(result.get(key), result);
+        if (results != null) {
+            for (Map<String, String> result : results)
+                results_map.put(result.get(key), result);
+        }
         return results_map;
     }
 
@@ -156,10 +155,12 @@ public class TemplateUtils {
      */
     public Map<String, List<Map<String, String>>> getListMap(List<Map<String, String>> results, String key) {
         Map<String, List<Map<String, String>>> results_map = new HashMap<>();
-        for (Map<String,String> result : results)
-            results_map.put(result.get(key), new ArrayList<>());
-        for (Map<String,String> result : results)
-            results_map.get(result.get(key)).add(result);
+        if (results != null) {
+            for (Map<String, String> result : results)
+                results_map.put(result.get(key), new ArrayList<>());
+            for (Map<String, String> result : results)
+                results_map.get(result.get(key)).add(result);
+        }
         return results_map;
     }
 
@@ -308,6 +309,22 @@ public class TemplateUtils {
             return new XMLReader(s);
         }
         return new XMLReader("");
+    }
+
+    /**
+     * Merge two list of results from queries on a {@link Reader}.
+     * @param results Results of a query
+     * @param otherResults Results to be merged
+     * @return Merged results
+     */
+    public List<Map<String,String>> mergeResults(List<Map<String,String>> results, List<Map<String,String>> otherResults) {
+        if (checkList(results)) {
+            if (checkList(otherResults))
+                results.addAll(otherResults);
+            return results;
+        } else if(checkList(otherResults))
+            return otherResults;
+        else return new ArrayList<>();
     }
 
 
