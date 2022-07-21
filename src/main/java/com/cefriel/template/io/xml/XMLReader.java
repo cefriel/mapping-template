@@ -29,8 +29,6 @@ public class XMLReader implements Reader {
     private final Logger log = LoggerFactory.getLogger(XMLReader.class);
 
     public static final String DEFAULT_KEY = "value";
-    public static final String SERIALIZE_ELEMENTS_NO_NAMESPACE = "serialize-elements-no-namespace";
-    public static final String SERIALIZE_ELEMENTS = "serialize-elements";
 
     private Processor saxon;
     private Configuration config;
@@ -40,7 +38,7 @@ public class XMLReader implements Reader {
             "declare namespace map = \"http://www.w3.org/2005/xpath-functions/map\";";
 
     private boolean verbose;
-    private String serializationConfig = "";
+    private boolean serializeElements;
 
     public XMLReader(File file) throws Exception {
         this.saxon = new Processor(false);
@@ -89,7 +87,7 @@ public class XMLReader implements Reader {
                 Iterable<KeyValuePair> keyValuePairs = mitem.keyValuePairs();
                 for (KeyValuePair pair : keyValuePairs) {
                     String value = pair.value.getStringValue();
-                    if (serializationConfig.contains(SERIALIZE_ELEMENTS)) {
+                    if (isSerializeElements()) {
                         if (pair.value instanceof SequenceExtent.Of<?>) {
                             StringBuilder sb = new StringBuilder();
                             sb.append("<XMLLiteral>");
@@ -128,9 +126,6 @@ public class XMLReader implements Reader {
             ser.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
             XdmNode node = new XdmNode(((TinyElementImpl) o));
             String value = ser.serializeNodeToString(node);
-            // Remove namespaces definition
-            if (serializationConfig.equals(SERIALIZE_ELEMENTS_NO_NAMESPACE))
-                value = value.replaceAll("\\sxmlns.*?(\"|').*?(\"|')", "");
             return value;
         } else
             return o.getStringValue();
@@ -201,12 +196,12 @@ public class XMLReader implements Reader {
         this.queryHeader += s;
     }
 
-    public String getSerializationConfig() {
-        return serializationConfig;
+    public boolean isSerializeElements() {
+        return serializeElements;
     }
 
-    public void setSerializationConfig(String serializationConfig) {
-        this.serializationConfig = serializationConfig;
+    public void setSerializeElements(boolean serializeElements) {
+        this.serializeElements = serializeElements;
     }
 
 }
