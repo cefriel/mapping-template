@@ -9,14 +9,14 @@ The lowerer use the file `input.ttl` to load the triples in an in-memory reposit
 You can run it following these steps:
 
   1. Compile the source code _or_ download the jar from the [releases](https://github.com/cefriel/rdf-lowerer/releases) section on Github
-  2. Put the jar in the `demo` folder (if needed, rename the jar as `rdf-lowerer.jar`)
+  2. Put the jar in the `demo` folder (if needed, rename the jar as `rdf-template.jar`)
   3. Run the following command
   ```
-  java -jar rdf-lowerer.jar -b "./agency/" -i input.ttl -o agency.csv -t template.vm
+  java -jar rdf-template.jar -b "./agency/" -i input.ttl -o agency.csv -t template.vm
   ```
   4. Try with multiple input files
   ```
-  java -jar rdf-lowerer.jar -b "./agency-multiple-input/" -i input.ttl input2.ttl -o agency.csv -t template.vm
+  java -jar rdf-template.jar -b "./agency-multiple-input/" -i input.ttl input2.ttl -o agency.csv -t template.vm
   ```
   5. The expected output is provided in the file `agency.csv`
 
@@ -25,7 +25,7 @@ You can run it following these steps:
 A demo of a parametric execution of the template can be run using the following command:
 
 ```
-java -jar rdf-lowerer.jar -b "./agency-parametric/" -i input.ttl -o agency.csv -t template.vm -q query.txt
+java -jar rdf-template.jar -b "./agency-parametric/" -i input.ttl -o agency.csv -t template.vm -q query.txt
 ```
 
 If the parametric query defines an `?id` variable, its value is used as suffix for the output files of each parametric execution. Otherwise, an incremental identifier is automatically assigned.
@@ -37,7 +37,7 @@ In the demo, the parametric variable `$x` is used in the SPARQL query in the tem
 A demo debugging a SPARQL query on the input file(s) can be run using the following command:
 
 ```
-java -jar rdf-lowerer.jar -b "./agency-debug/" -i input.ttl -q query.txt -dq
+java -jar rdf-template.jar -b "./agency-debug/" -i input.ttl -q query.txt -dq
 ```
 
 The result is saved in the file `output.txt` (filename can be modified using the `-o` option).
