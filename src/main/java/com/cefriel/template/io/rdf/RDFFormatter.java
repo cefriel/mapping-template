@@ -8,10 +8,12 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.BasicWriterSettings;
+import org.eclipse.rdf4j.rio.helpers.TurtleWriterSettings;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import java.io.FileOutputStream;
 import java.io.StringWriter;
+import java.util.Objects;
 
 public class RDFFormatter implements Formatter {
 
@@ -23,9 +25,9 @@ public class RDFFormatter implements Formatter {
         this.rdfFormatOutput = null;
     }
 
-    public RDFFormatter(RDFFormat rdfFormat) {
-        this.rdfFormatInput = rdfFormat;
-        this.rdfFormatOutput = rdfFormat;
+    public RDFFormatter(RDFFormat rdfFormatInput) {
+        this.rdfFormatInput = rdfFormatInput;
+        this.rdfFormatOutput = null;
     }
 
     @Override
@@ -38,8 +40,10 @@ public class RDFFormatter implements Formatter {
             format = Rio.getParserFormatForFileName(filepath).orElse(RDFFormat.TURTLE);
 
         reader.addFile(filepath, format);
-        if (rdfFormatOutput != null)
-            format = rdfFormatOutput;
+
+        format = Objects.requireNonNullElseGet(rdfFormatOutput,
+                () -> Rio.getParserFormatForFileName(filepath)
+                        .orElse(RDFFormat.TURTLE));
 
         try (FileOutputStream out = new FileOutputStream(filepath)) {
             RDFWriter writer = Rio.createWriter(format, out);
@@ -69,7 +73,10 @@ public class RDFFormatter implements Formatter {
     public void dump(RDFWriter writer, Repository repo) {
         try (RepositoryConnection conn = repo.getConnection()) {
             // inline blank nodes where possible
-            writer.getWriterConfig().set(BasicWriterSettings.INLINE_BLANK_NODES, true);
+            writer.getWriterConfig()
+                    .set(BasicWriterSettings.INLINE_BLANK_NODES, true);
+            writer.getWriterConfig()
+                    .set(TurtleWriterSettings.ABBREVIATE_NUMBERS, false);
             conn.export(writer);
         }
     }

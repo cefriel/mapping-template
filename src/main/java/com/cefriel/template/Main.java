@@ -21,12 +21,12 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
+import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.io.rdf.RDFFormatter;
 import com.cefriel.template.io.xml.XMLFormatter;
 import com.cefriel.template.io.xml.XMLReader;
 import com.cefriel.template.io.rdf.RDFReader;
-import com.cefriel.template.utils.TemplateUtils;
-import com.cefriel.template.utils.TransmodelTemplateUtils;
+import com.cefriel.template.utils.*;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -36,8 +36,10 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.*;
 
 public class Main {
@@ -50,6 +52,9 @@ public class Main {
 
 	@Parameter(names={"--xml","-xml"})
 	private String xmlPath;
+
+	@Parameter(names={"--json","-json"})
+	private String jsonPath;
 
 	@Parameter(names={"--baseiri","-iri"})
 	private String baseIri = "http://www.cefriel.com/data/";
@@ -85,18 +90,15 @@ public class Main {
 
 	@Parameter(names={"--verbose","-v"})
 	private boolean verbose;
+	@Parameter(names={"--time","-tm"})
+	private String timePath;
 
-    private org.slf4j.Logger log = LoggerFactory.getLogger(Main.class);
+    private final org.slf4j.Logger log = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String ... argv) throws Exception {
 
-		Set<String> loggers = new HashSet<>(Arrays.asList("org.apache.http"));
-
-		for(String log:loggers) {
-			Logger logger = (Logger)LoggerFactory.getLogger(log);
-			logger.setLevel(Level.INFO);
-			logger.setAdditive(false);
-		}
+		Logger root = (Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+		root.setLevel(Level.INFO);
 
 		Main main = new Main();
 
@@ -118,6 +120,8 @@ public class Main {
 					triplesPaths.set(i, basePath + triplesPaths.get(i));
 		if (xmlPath != null)
 			xmlPath = basePath + xmlPath;
+		if (jsonPath != null)
+			jsonPath = basePath + jsonPath;
 		destinationPath = basePath + destinationPath;
 		if (queryPath != null)
 			queryPath = basePath + queryPath;
@@ -125,6 +129,8 @@ public class Main {
 			keyValueCsvPath = basePath + keyValueCsvPath;
 		if (keyValuePairsPath != null)
 			keyValuePairsPath = basePath + keyValuePairsPath;
+		if (timePath != null)
+			timePath = basePath + timePath;
 	}
 
 	public void exec() throws Exception {
@@ -156,6 +162,8 @@ public class Main {
 			reader = rdfReader;
 		} else if (xmlPath != null) {
 			reader = new XMLReader(new File(xmlPath));
+		} else if (jsonPath != null) {
+			reader = new JSONReader(new File(jsonPath));
 		}
 
 		if (reader != null) {
@@ -169,47 +177,62 @@ public class Main {
 					String debugQueryFromFile = Files.readString(Paths.get(queryPath));
 					reader.debugQuery(debugQueryFromFile, destinationPath);
 				}
-			} else {
-				TemplateExecutor tl = new TemplateExecutor(reader, lu);
-
-				TemplateMap mc = new TemplateMap();
-				if (keyValueCsvPath != null) {
-					mc.parseMap(keyValueCsvPath, true);
-					log.info(keyValueCsvPath + " parsed");
-				}
-				if (keyValuePairsPath != null) {
-					mc.parseMap(keyValuePairsPath, false);
-					log.info(keyValuePairsPath + " parsed");
-				}
-				log.info("Parsed " + mc.size() + " key-value pairs");
-				tl.setMap(mc);
-
-				Formatter f = null;
-				if (format != null) {
-					switch (format) {
-						case "xml":
-							f = new XMLFormatter();
-							break;
-						case "turtle":
-							f = new RDFFormatter(RDFFormat.TURTLE);
-							break;
-						case "rdfxml":
-							f = new RDFFormatter(RDFFormat.RDFXML);
-							break;
-						case "nt":
-							f = new RDFFormatter(RDFFormat.NTRIPLES);
-							break;
-					}
-					tl.setFormatter(f);
-				}
-				if (trimTemplate)
-					tl.setTrimTemplate(true);
-
-				tl.lower(templatePath, destinationPath, queryPath);
+				return;
 			}
-
-			reader.shutDown();
 		}
+
+		TemplateExecutor tl = new TemplateExecutor(reader, lu);
+
+		TemplateMap mc = new TemplateMap();
+		if (keyValueCsvPath != null) {
+			mc.parseMap(keyValueCsvPath, true);
+			log.info(keyValueCsvPath + " parsed");
+		}
+		if (keyValuePairsPath != null) {
+			mc.parseMap(keyValuePairsPath, false);
+			log.info(keyValuePairsPath + " parsed");
+		}
+		if(mc.size() > 0)
+			log.info("Parsed " + mc.size() + " key-value pairs");
+		tl.setMap(mc);
+
+		Formatter f = null;
+		if (format != null) {
+			switch (format) {
+				case "xml":
+					f = new XMLFormatter();
+					break;
+				case "turtle":
+					f = new RDFFormatter(RDFFormat.TURTLE);
+					break;
+				case "rdfxml":
+					f = new RDFFormatter(RDFFormat.RDFXML);
+					break;
+				case "nt":
+					f = new RDFFormatter(RDFFormat.NTRIPLES);
+					break;
+				case "jsonld":
+					f = new RDFFormatter(RDFFormat.JSONLD);
+					break;
+			}
+			tl.setFormatter(f);
+		}
+
+		if (trimTemplate)
+			tl.setTrimTemplate(true);
+
+		if(timePath != null)
+			try (FileWriter pw = new FileWriter(timePath, true)) {
+				long start = Instant.now().toEpochMilli();
+				tl.lower(templatePath, destinationPath, queryPath);
+				long duration = Instant.now().toEpochMilli() - start;
+				pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
+			}
+		else
+			tl.lower(templatePath, destinationPath, queryPath);
+
+		if(reader != null)
+			reader.shutDown();
 
 	}
 
