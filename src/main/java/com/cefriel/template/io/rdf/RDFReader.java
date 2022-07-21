@@ -28,11 +28,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.cefriel.template.io.Reader;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.QueryResults;
@@ -197,7 +196,7 @@ public class RDFReader implements Reader {
     public List<Map<String, String>> executeQueryStringValueXML(String query) {
         List<Map<String, String>> results = executeQueryStringValue(query);
         for (Map<String, String> result : results)
-            result.replaceAll((k, v) -> StringEscapeUtils.escapeXml(v));
+            result.replaceAll((k, v) -> StringEscapeUtils.escapeXml11(v));
         return results;
     }
 
