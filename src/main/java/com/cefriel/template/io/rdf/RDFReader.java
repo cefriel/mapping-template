@@ -66,7 +66,7 @@ public class RDFReader implements Reader {
     private boolean verbose;
 
     public RDFReader() {
-        new RDFReader(false);
+        this(false);
     }
 
     public RDFReader(boolean rdfsInference) {
