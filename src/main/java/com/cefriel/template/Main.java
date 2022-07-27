@@ -63,9 +63,6 @@ public class Main {
 	@Parameter(names={"--output","-o"})
 	private String destinationPath = "output.txt";
 
-	@Parameter(names={"--utils","-u"})
-	private String utils;
-
 	@Parameter(names={"--key-value","-kv"})
 	private String keyValuePairsPath;
 	@Parameter(names={"--key-value-csv","-kvc"})
@@ -136,12 +133,6 @@ public class Main {
 	public void exec() throws Exception {
 
 		TemplateUtils lu = new TemplateUtils();
-		if (utils != null)
-			switch (utils) {
-				case "transmodel":
-					lu = new TransmodelTemplateUtils();
-					break;
-			}
 
 		Reader reader = null;
 		if (triplesPaths != null) {

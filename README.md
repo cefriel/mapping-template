@@ -87,11 +87,7 @@ The `$functions` variable offers a set of utility methods that can be extended d
 The `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
 
 #### TemplateUtils subclasses
-We report here the subclasses of `TemplateUtils`, the functions introduced to extend the default set and the option to activate them.
-- TransmodelTemplateUtils (`-u transmodel`):
-  - `getTimestamp()`: returns current timestamp in `yyyy-MM-dd'T'HH:mm:ss` format.
-  - `getFormattedDate(int year, int month, int dayOfMonth, int hour, int minute)`: returns date and time specified as `yyyy-MM-dd'T'HH:mm:ss`.
-  - `formatGTFSDate(String dateString)`: format GTFS dates in `yyyy-MM-dd'T'HH:mm:ss` format.
+Subclasses of `TemplateUtils` may be defined and set to modify the utility functions available in processing the template.
 
 #### `rdf-template.jar` ####
 This is the intended usage of the `rdf-template.jar`.
@@ -119,8 +115,6 @@ options:
   -tm, --time <arg>               Path of file reporting template execution time. Default: timing not saved. 
   -tr, --trim                     Trim newlines from the template before executing it to reduce memory usage.
   -ts, --ts-address <arg>         Triples store address.
-  -u, --utils <arg>               Set a specific class of utils to be bound as $functions variable in the template.
-                                  Default is generic functions (TemplateUtils). Supported values: 'transmodel'.
   -v, --verbose                   Debug information are logged.
 ```
 Only one between `-xml` and `-rdf` option can be used at once, the `$reader` is initialised accordingly.
