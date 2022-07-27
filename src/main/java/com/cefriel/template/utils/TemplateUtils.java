@@ -16,6 +16,7 @@
 package com.cefriel.template.utils;
 
 import com.cefriel.template.io.Reader;
+import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.io.rdf.RDFReader;
 import com.cefriel.template.io.xml.XMLReader;
 import org.eclipse.rdf4j.repository.Repository;
@@ -309,6 +310,33 @@ public class TemplateUtils {
             return new XMLReader(s);
         }
         return new XMLReader("");
+    }
+
+    /**
+     * Get a JSONReader to query the JSON content of the provided file.
+     * @param fileName The file path for the JSON file.
+     * @return A JSONReader
+     * @throws Exception
+     */
+    public JSONReader getJSONReaderFromFile(String fileName) throws Exception {
+        if (fileName != null) {
+            File jsonDocument = new File(fileName);
+            return new JSONReader(jsonDocument);
+        }
+        return new JSONReader("");
+    }
+
+    /**
+     * Get a JSONReader to query the JSON content of the provided string.
+     * @param s The JSON string.
+     * @return An JSONReader
+     * @throws Exception
+     */
+    public JSONReader getJSONReaderFromString(String s) throws Exception {
+        if (s != null) {
+            return new JSONReader(s);
+        }
+        return new JSONReader("");
     }
 
     /**
