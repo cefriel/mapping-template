@@ -2,31 +2,28 @@
 
 A template-based component exploiting [Apache Velocity](https://velocity.apache.org/) to read/write RDF. The `rdf-template` is maintained by Cefriel as a building block of the [Chimera](https://github.com/cefriel/chimera) solution for semantic data conversion.
 
-A demo of the tool is available in the folder [demo](https://github.com/cefriel/rdf-lowerer/tree/master/demo).
+A demo of the tool is available in the folder [demo](demo).
 
 ### Functionalities
 The main functionalities provided by this component are:
-
-#### RDF lowering
-
-Query RDF triples to generate a custom output.
-
-- Enable _SPARQL queries_ in the template accessing an HTTP Repository or an in-memory repository initialized with triples from one or multiple RDF files
-- Possibility to access a portion of the repository contextualizing queries with respect to a specific named graph
-
-#### XML lifting
-
-Access XML files to generate custom RDF triples. It enables _XQuery queries_ in the template to access an XML file.
+- **RDF lowering**: Query RDF triples to generate a custom output
+  - Enable _SPARQL queries_ in the template accessing an HTTP Repository or an in-memory repository initialized with triples from one or multiple RDF files
+  - Possibility to access a portion of the repository contextualizing queries with respect to a specific named graph
+  - Run _parametric templates_ executed once for each resulting row of the provided SPARQL query 
+    - Providing a query through the `-q` option is it possible to execute _parametric templates_ with respect to the given query, e.g., it is possible to run the same template for each element of a specific class contained in the input data. The template is executed for each resulting row of the provided query; in each template execution, the specific row is bound to a given variable (`$x`) that is made accessible as a map (keys as specified for column names) in the template.
+- **XML lifting**: access XML files to generate custom RDF triples, it enables _XQuery queries_ in the template to access an XML file
+- **JSON lifting**: access JSON files to generate custom RDF triples, it enables _JSONPath-based queries_ in the template to access a JSON file
+- **[TODO] CSV lifting**: access CSV files to generate custom RDF triples
+- **Custom lifting**: access files in custom/proprietary formats defining a specific function and process the result to generate custom RDF triples
 
 #### General functionalities
 
 - Access custom _utility functions_ in the template
-- Procedures for specific _output formats_ 
-  - XML option to validate and indent XML files
+- Procedures for specific _output formats_
   - RDF options to validate and serialise RDF in different formats
+  - XML option to validate and indent XML files
+  - [TODO] JSON option to validate and indent JSON files
 - Possibility to provide _generic key-value pairs_ at runtime then made accessible through a map data structure in the template
-- Run _parametric templates_ executed once for each resulting row of the provided SPARQL query 
-  - Providing a query through the `-q` option is it possible to execute _parametric templates_ with respect to the given query, e.g., it is possible to run the same template for each element of a specific class contained in the input data. The template is executed for each resulting row of the provided query; in each template execution, the specific row is bound to a given variable (`$x`) that is made accessible as a map (keys as specified for column names) in the template.
 
 #### Performance improvement
 - _Trim Template_: `--trim` option to remove newlines in the template before executing it (high reduction in memory usage)
@@ -83,6 +80,7 @@ The `$functions` variable offers a set of utility methods that can be extended d
 - `getListMapValue(Map<K, List<V>> listMap, K key)`: if `checkMap(listMap, key)` is `true` returns the value for `key` in `listMap`, otherwise returns an empty list.
 - `getRDFReaderFromFile(String filename)` and `getRDFReaderFromString(String s)`: returns dynamically a RDFReader from a RDF file or string
 - `getXMLReaderFromFile(String filename)` and `getXMLReaderFromString(String s)`: returns dynamically a XMLReader from a RDF file or string
+- `getJSONReaderFromFile(String filename)` and `getJSONReaderFromString(String s)`: returns dynamically a JSONReader from a RDF file or string
 - `mergeResults(List<Map<String,String>> results, List<Map<String,String>> otherResults)`: merge two lists of results obtained from queries
 
 ##### `$map`
@@ -118,6 +116,7 @@ options:
   -q, --query <arg>               Set a query for parametric templates execution, or for debugging if -dq option is enabled.
   -r, --repository <arg>          Repository Id related to the triples store.
   -t, --template <arg>            Path of template file. Default: template.vm
+  -tm, --time <arg>               Path of file reporting template execution time. Default: timing not saved. 
   -tr, --trim                     Trim newlines from the template before executing it to reduce memory usage.
   -ts, --ts-address <arg>         Triples store address.
   -u, --utils <arg>               Set a specific class of utils to be bound as $functions variable in the template.
