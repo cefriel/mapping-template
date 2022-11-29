@@ -21,6 +21,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
+import com.cefriel.template.io.csv.CSVReader;
 import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.io.rdf.RDFFormatter;
 import com.cefriel.template.io.xml.XMLFormatter;
@@ -56,6 +57,8 @@ public class Main {
 	@Parameter(names={"--json","-json"})
 	private String jsonPath;
 
+	@Parameter(names={"--csv","-csv"})
+	private String csvPath;
 	@Parameter(names={"--baseiri","-iri"})
 	private String baseIri = "http://www.cefriel.com/data/";
 	@Parameter(names={"--basepath","-b"})
@@ -119,6 +122,8 @@ public class Main {
 			xmlPath = basePath + xmlPath;
 		if (jsonPath != null)
 			jsonPath = basePath + jsonPath;
+		if (csvPath != null)
+			csvPath = basePath + csvPath;
 		destinationPath = basePath + destinationPath;
 		if (queryPath != null)
 			queryPath = basePath + queryPath;
@@ -155,6 +160,8 @@ public class Main {
 			reader = new XMLReader(new File(xmlPath));
 		} else if (jsonPath != null) {
 			reader = new JSONReader(new File(jsonPath));
+		} else if (csvPath != null) {
+			reader = new CSVReader(csvPath);
 		}
 
 		if (reader != null) {
