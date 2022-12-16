@@ -506,8 +506,8 @@ by the "splitColumn(df, column, separatorRegex)" function.  The
 content of the column is split into *n* values for *n* new columns
 according to the number *n* of separatorRegex regex matches on the
 source column value. The new columns follow the "original column
-name""match number" naming conention.  In the example the "title"
-column which contains two values is split into the "title1" and
+name""match number" naming convention.  In the example the "title"
+column which contains two values, is split into the "title1" and
 "title2" columns.
 
 From the command line, using the following command
