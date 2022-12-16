@@ -1,0 +1,13 @@
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix ex: <http://example.org/stuff/1.0/> .
+
+
+ex:book\/001 a ex:Book;
+dc:title "Il Gattopardo"@it.
+
+ex:book\/002 a ex:Book;
+dc:title "Dune"@en.
+
+ex:book\/003 a ex:Book;
+dc:title "La Sirena"@it.
+

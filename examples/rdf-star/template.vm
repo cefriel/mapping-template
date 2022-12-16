@@ -1,0 +1,6 @@
+@prefix ex: <http://example.org/>
+#set ($data = $reader.getDataframe())
+
+#foreach($row in $data)
+<< << ex:$row.entity a ex:$row.type >> ex:confidence $row.confidence >> ex:predictedBy ex:$row.predictor .
+#end

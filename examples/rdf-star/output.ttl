@@ -1,0 +1,6 @@
+@prefix ex: <http://example.org/>
+
+<< << ex:Alice a ex:Person >> ex:confidence 0.8 >> ex:predictedBy ex:alpha .
+<< << ex:Alice a ex:Giraffe >> ex:confidence 1.0 >> ex:predictedBy ex:alpha .
+<< << ex:Bobby a ex:Dog >> ex:confidence 0.6 >> ex:predictedBy ex:alpha .
+<< << ex:Bobby a ex:Giraffe >> ex:confidence 1.0 >> ex:predictedBy ex:beta .

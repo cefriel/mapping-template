@@ -1,0 +1,5 @@
+entity,type,confidence,predictor
+Alice,Person,0.8,alpha
+Alice,Giraffe,1.0,alpha
+Bobby,Dog,0.6,alpha
+Bobby,Giraffe,1.0,beta

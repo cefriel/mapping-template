@@ -1,0 +1,11 @@
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix ex: <http://example.org/stuff/1.0/> .
+
+#set ($bookDF = $reader.getDataframe())
+#set ($bookDF = $functions.splitColumn($bookDF, "title", "-"))
+
+#foreach($row in $bookDF)
+ex:book\/$row.book_id a ex:Book;
+dc:title "${row.title1}"@${row.title2}.
+
+#end
