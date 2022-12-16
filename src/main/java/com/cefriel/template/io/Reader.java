@@ -41,7 +41,8 @@ public interface Reader {
      * @return The result of the query
      * @throws Exception
      */
-    List<Map<String, String>> executeQueryStringValue(String query) throws Exception;
+    List<Map<String, String>> getDataframe(String query) throws Exception;
+    List<Map<String, String>> getDataframe() throws Exception;
 
     /**
      * Execute the query saving a TSV representation of the result as a file

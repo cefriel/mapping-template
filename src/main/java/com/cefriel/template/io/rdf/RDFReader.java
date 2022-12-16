@@ -182,8 +182,13 @@ public class RDFReader implements Reader {
      * @param query SPARQL query to be executed
      * @return Result of the SPARQL query with {@code String} values
      */
-    public List<Map<String, String>> executeQueryStringValue(String query) {
+    public List<Map<String, String>> getDataframe(String query) {
         return verbose ? executeQueryStringValueVerbose(query) : getQueryResultsStringValue(query);
+    }
+
+    @Override
+    public List<Map<String, String>> getDataframe() throws Exception {
+        return null;
     }
 
     /**
@@ -194,7 +199,7 @@ public class RDFReader implements Reader {
      * @return Result of the SPARQL query with {@code String} values
      */
     public List<Map<String, String>> executeQueryStringValueXML(String query) {
-        List<Map<String, String>> results = executeQueryStringValue(query);
+        List<Map<String, String>> results = getDataframe(query);
         for (Map<String, String> result : results)
             result.replaceAll((k, v) -> StringEscapeUtils.escapeXml11(v));
         return results;

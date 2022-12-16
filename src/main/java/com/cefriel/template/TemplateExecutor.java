@@ -97,7 +97,10 @@ public class TemplateExecutor {
 		}
 
 		VelocityContext context = new VelocityContext();
-		context.put("reader", reader);
+		if(this.reader != null) {
+			context.put("reader", reader);
+		}
+
 		context.put("functions", lu);
 
 		if (map != null)
@@ -116,7 +119,7 @@ public class TemplateExecutor {
 		if(queryFile != null) {
 			String query = Files.readString(Paths.get(queryFile));
 			log.info("Parametric Template executed with query: " + queryFile);
-			List<Map<String, String>> rows = reader.executeQueryStringValue(query);
+			List<Map<String, String>> rows = reader.getDataframe(query);
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			template.transferTo(baos);
@@ -138,7 +141,7 @@ public class TemplateExecutor {
 		if(queryFile != null) {
 			String query = Files.readString(Paths.get(queryFile));
 			log.info("Parametric Template executed with query: " + queryFile);
-			List<Map<String, String>> rows = reader.executeQueryStringValue(query);
+			List<Map<String, String>> rows = reader.getDataframe(query);
 			for (Map<String, String> row : rows)
 				executeTemplate(templatePath, destinationPath, context, row);
 		} else {

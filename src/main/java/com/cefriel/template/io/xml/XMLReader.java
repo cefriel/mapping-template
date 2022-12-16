@@ -148,13 +148,18 @@ public class XMLReader implements Reader {
     }
 
     @Override
-    public List<Map<String, String>> executeQueryStringValue(String query) throws Exception {
+    public List<Map<String, String>> getDataframe(String query) throws Exception {
         return verbose ? executeQueryStringValueVerbose(query) : getQueryResultsStringValue(query);
     }
 
     @Override
+    public List<Map<String, String>> getDataframe() throws Exception {
+        return null;
+    }
+
+    @Override
     public void debugQuery(String query, String destinationPath) throws Exception {
-        List<Map<String, String>> result = executeQueryStringValue(query);
+        List<Map<String, String>> result = getDataframe(query);
         StringBuilder sb = new StringBuilder();
 
         if (result != null && !result.isEmpty()){

@@ -30,7 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class JSONReader  implements Reader {
+public class JSONReader implements Reader {
 
     private final Logger log = LoggerFactory.getLogger(JSONReader.class);
     Object document;
@@ -56,7 +56,7 @@ public class JSONReader  implements Reader {
     public void appendQueryHeader(String s) {}
 
     @Override
-    public List<Map<String, String>> executeQueryStringValue(String query) throws Exception {
+    public List<Map<String, String>> getDataframe(String query) throws Exception {
         Object queryDoc = Configuration.defaultConfiguration().jsonProvider().parse(query);
         String iterator = JsonPath.read(queryDoc, "$.iterator");
         Set<String> keys = JsonPath.read(queryDoc, "$.paths.keys()");
@@ -81,6 +81,11 @@ public class JSONReader  implements Reader {
             output.add(map);
         }
         return output;
+    }
+
+    @Override
+    public List<Map<String, String>> getDataframe() throws Exception {
+        return null;
     }
 
     @Override

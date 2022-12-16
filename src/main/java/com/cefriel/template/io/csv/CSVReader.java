@@ -34,8 +34,11 @@ public class CSVReader implements Reader {
 
     }
 
+    public List<Map<String, String>> getDataframe() {
+        return getDataframe("");
+    }
     @Override
-    public List<Map<String, String>> executeQueryStringValue(String query) throws Exception {
+    public List<Map<String, String>> getDataframe(String query) {
         Set<String> headers = this.document.getHeader();
         List<Map<String, String>> output = new ArrayList<>();
         for (NamedCsvRow row : this.document) {

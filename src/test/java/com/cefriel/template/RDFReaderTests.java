@@ -43,7 +43,7 @@ public class RDFReaderTests {
     }
 
     private String resolvePath(String folder, String file) {
-        return "demo/" + folder + "/" + file;
+        return "src/test/resources/" + folder + "/" + file;
     }
 
     @Test
