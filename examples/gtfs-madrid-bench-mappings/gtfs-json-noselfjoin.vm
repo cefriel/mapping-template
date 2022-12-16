@@ -1,0 +1,359 @@
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix rev: <http://purl.org/stuff/rev#> .
+@prefix gtfs: <http://vocab.gtfs.org/terms#> .
+@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix schema: <http://schema.org/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rml: <http://semweb.mmlab.be/ns/rml#> .
+@prefix ql: <http://semweb.mmlab.be/ns/ql#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex: <http://transport.linkeddata.es/madrid/> .
+
+#set ($agencyFile = "./data/json/AGENCY.json")
+#set ($agencyReader = $functions.getJSONReaderFromFile($agencyFile))
+#set ($agencyData = $agencyReader.executeQueryStringValue('{
+"iterator": "$.[*]",
+"paths": {
+"agency_id": "agency_id",
+"agency_name": "agency_name",
+"agency_url": "agency_url",
+"agency_timezone": "agency_timezone",
+"agency_lang": "agency_lang",
+"agency_phone": "agency_phone",
+"agency_fare_url": "agency_fare_url"
+}}'))
+
+#set ($mAgency = $functions.getMap($agencyData, "agency_id"))
+
+#set ($calendarDatesFile = "./data/json/CALENDAR_DATES.json")
+#set ($calendarDatesReader = $functions.getJSONReaderFromFile($calendarDatesFile))
+#set ($calendarDatesData = $calendarDatesReader.executeQueryStringValue('{
+"iterator": "$.[*]",
+"paths": {
+"service_id": "service_id",
+"date": "date",
+"exception_type": "exception_type"
+}}'))
+#set ($mCalendarDates = $functions.getMap($calendarDatesData, "service_id"))
+
+#set ($calendarFile = "./data/json/CALENDAR.json")
+#set ($calendarReader = $functions.getJSONReaderFromFile($calendarFile))
+#set ($calendarData = $calendarReader.executeQueryStringValue('{
+"iterator": "$.[*]",
+"paths": {
+"service_id": "service_id",
+"monday": "monday",
+"tuesday": "tuesday",
+"wednesday": "wednesday",
+"thursday": "thursday",
+"friday": "friday",
+"saturday": "saturday",
+"sunday": "sunday",
+"start_date": "start_date",
+"end_date": "end_date"
+}}'))
+#set ($mCalendar = $functions.getMap($calendarData, "service_id"))
+
+#set ($feedFile = "./data/json/FEED_INFO.json")
+#set ($feedReader = $functions.getJSONReaderFromFile($feedFile))
+#set ($feedData = $feedReader.executeQueryStringValue('{
+"iterator": "$.[*]",
+"paths": {
+"feed_publisher_name": "feed_publisher_name",
+"feed_publisher_url": "feed_publisher_url",
+"feed_lang": "feed_lang",
+"feed_start_date": "feed_start_date",
+"feed_end_date": "feed_end_date",
+"feed_version": "feed_version"
+}}'))
+
+#set ($shapeFile = "./data/json/SHAPES.json")
+#set ($shapeReader = $functions.getJSONReaderFromFile($shapeFile))
+#set ($shapeData = $shapeReader.executeQueryStringValue('{
+"iterator": "$.[*]",
+"paths": {
+"shape_id": "shape_id",
+"shape_pt_lat": "shape_pt_lat",
+"shape_pt_lon": "shape_pt_lon",
+"shape_pt_sequence": "shape_pt_sequence",
+"shape_dist_traveled": "shape_dist_traveled"
+}}'))
+#set ($mShapes = $functions.getMap($shapeData, "shape_id"))
+
+#set ($stopsFile = "./data/json/STOPS.json")
+#set ($stopsReader = $functions.getJSONReaderFromFile($stopsFile))
+#set ($stopsData = $stopsReader.executeQueryStringValue('{
+"iterator": "$.[*]",
+"paths": {
+"stop_id": "stop_id",
+"stop_code": "stop_code",
+"stop_name": "stop_name",
+"stop_desc": "stop_desc",
+"stop_lat": "stop_lat",
+"stop_lon": "stop_lon",
+"stop_url": "stop_url",
+"location_type": "location_type",
+"stop_timezone": "stop_timezone",
+"zone_id": "zone_id",
+"wheelchair_boarding": "wheelchair_boarding"
+}}'))
+#set ($mStops = $functions.getMap($stopsData, "stop_id"))
+
+#set ($routeFile = "./data/json/ROUTES.json")
+#set ($routesReader = $functions.getJSONReaderFromFile($routeFile))
+#set ($routesData = $routesReader.executeQueryStringValue('{
+"iterator": "$.[*]",
+"paths": {
+"route_id": "route_id",
+"agency_id": "agency_id",
+"route_short_name": "route_short_name",
+"route_long_name": "route_long_name",
+"route_desc": "route_desc",
+"route_type": "route_type",
+"route_url": "route_url",
+"route_color": "route_color",
+"route_text_color": "route_text_color"
+}}'))
+#set ($mRoutes = $functions.getMap($routesData, "route_id"))
+
+#set ($tripsFile = "./data/json/TRIPS.json")
+#set ($tripsReader = $functions.getJSONReaderFromFile($tripsFile))
+#set ($tripsData = $tripsReader.executeQueryStringValue('{
+"iterator": "$.[*]",
+"paths": {
+"route_id": "route_id",
+"service_id": "service_id",
+"trip_id": "trip_id",
+"trip_headsign": "trip_headsign",
+"trip_short_name": "trip_short_name",
+"direction_id": "direction_id",
+"block_id": "block_id",
+"shape_id": "shape_id",
+"wheelchair_accessible": "wheelchair_accessible"
+}}'))
+#set ($mTrips=$functions.getMap($tripsData, "trip_id"))
+
+#set ($stopTimesFile = "./data/json/STOP_TIMES.json")
+#set ($stopTimesReader = $functions.getJSONReaderFromFile($stopTimesFile))
+#set ($stopTimesData = $stopTimesReader.executeQueryStringValue('{
+"iterator": "$.[*]",
+"paths": {
+"trip_id": "trip_id",
+"arrival_time": "arrival_time",
+"departure_time": "departure_time",
+"stop_id": "stop_id",
+"stop_headsign": "stop_headsign",
+"pickup_type": "pickup_type",
+"drop_off_type": "drop_off_type",
+"shape_dist_traveled": "shape_dist_traveled"
+}}'))
+
+#set ($frequenciesFile = "./data/json/FREQUENCIES.json")
+#set ($frequenciesReader = $functions.getJSONReaderFromFile($frequenciesFile))
+#set ($frequenciesData = $frequenciesReader.executeQueryStringValue('{
+"iterator": "$.[*]",
+"paths": {
+"trip_id": "trip_id",
+"start_time": "start_time",
+"end_time": "end_time",
+"headway_secs": "headway_secs",
+"exact_times": "exact_times"
+}}'))
+
+## AGENCY
+#foreach($row in $agencyData)
+ ex:agency\/$row.agency_id a gtfs:Agency ;
+ foaf:page <${row.agency_url}> ;
+ foaf:name "$row.agency_name" ;
+ gtfs:timeZone "$row.agency_timezone" ;
+ dct:language "$row.agency_lang" ;
+ foaf:phone "$row.agency_phone" ;
+ gtfs:fareUrl <${row.agency_fare_url}> .
+#end
+## AGENCY END
+
+## CALENDAR DATES
+#foreach($service_id in $mCalendarDates.keySet())
+ ex:metro\/services\/${service_id} a gtfs:Service .
+#end
+
+#foreach($row in $calendarDatesData)
+ ex:metro\/services\/${row.service_id} gtfs:serviceRule ex:metro\/calendar_date_rule\/${row.service_id}-${row.date} .
+
+ ex:metro\/calendar_date_rule\/${row.service_id}-${row.date} a gtfs:CalendarDateRule ;
+ dct:date "$row.date"^^xsd:date ;
+ gtfs:dateAddition "$row.exception_type"^^xsd:boolean .
+#end
+## CALENDAR DATES END
+
+## CALENDAR
+#foreach($service_id in $mCalendar.keySet())
+ ex:metro\/services\/${service_id} a gtfs:Service .
+#end
+
+#foreach($row in $calendarData)
+ ex:metro\/services\/${row.service_id} gtfs:serviceRule ex:metro\/calendar_rules\/${row.service_id} .
+
+ ex:metro\/calendar_rules\/${row.service_id} a gtfs:CalendarRule ;
+ gtfs:monday "$row.monday"^^xsd:boolean ;
+ gtfs:tuesday "$row.tuesday"^^xsd:boolean  ;
+ gtfs:wednesday "$row.wednesday"^^xsd:boolean  ;
+ gtfs:thursday "$row.thursday"^^xsd:boolean  ;
+ gtfs:friday "$row.friday"^^xsd:boolean  ;
+ gtfs:saturday "$row.saturday"^^xsd:boolean  ;
+ gtfs:sunday "$row.sunday"^^xsd:boolean  ;
+ schema:startDate "$row.start_date"^^xsd:date  ;
+ schema:endDate "$row.end_date"^^xsd:date .
+#end
+## CALENDAR END
+
+## FEED
+#foreach($row in $feedData)
+ ex:metro\/feed\/${row.feed_publisher_name} a gtfs:Feed ;
+ dct:publisher "$row.feed_publisher_name" ;
+ foaf:page <$row.feed_publisher_url> ;
+ dct:language "$row.feed_lang" ;
+ schema:startDate "$row.feed_start_date"^^xsd:date ;
+ schema:endDate "$row.feed_end_date"^^xsd:date ;
+ schema:version "$row.feed_version" .
+#end
+## FEED END
+
+## SHAPE
+#foreach($shape_id in $mShapes.keySet())
+ ex:metro\/shape\/${shape_id} a gtfs:Shape .
+#end
+## SHAPE END
+
+## SHAPE POINTS
+#foreach($row in $shapeData)
+ ex:metro\/shape\/${row.shape_id} gtfs:shapePoint ex:metro\/shape_point\/${row.shape_id}-${row.shape_pt_sequence} .
+
+ ex:metro\/shape_point\/${row.shape_id}-${row.shape_pt_sequence} a gtfs:ShapePoint ;
+ geo:lat "$row.shape_pt_lat"^^xsd:double ;
+ geo:long "$row.shape_pt_lon"^^xsd:double ;
+ gtfs:pointSequence "$row.shape_pt_sequence" ;
+ gtfs:distanceTraveled "$row.shape_dist_traveled" .
+#end
+## SHAPE POINTS END
+
+## STOPS
+#foreach($row in $stopsData)
+ ex:metro\/stops\/$row.stop_id a gtfs:Stop ;
+ gtfs:code "$row.stop_code" ;
+ dct:identifier "$row.stop_id" ;
+ foaf:name "$row.stop_name" ;
+ dct:description "$row.stop_desc" ;
+ geo:lat "$row.stop_lat"^^xsd:double ;
+ geo:long "$row.stop_lon"^^xsd:double ;
+ foaf:page <${row.stop_url}> ;
+ gtfs:locationType <http://transport.linkeddata.es/resource/LocationType/${row.location_type}> ;
+ #if($row.zone_id)gtfs:zone "$row.zone_id" ;#end
+ #if($row.stop_timezone)gtfs:timeZone "$row.stop_timezone" ;#end
+ 
+ 
+ ## do by list
+ #if($functions.checkString($row.parent_station))
+  #set($pStop = $functions.getMapValue($mStops, $row.parent_station))
+  gtfs:parentStation ex:metro\/stops\/$pStop.stop_id ;
+ #end
+
+ gtfs:wheelchairAccessible <http://transport.linkeddata.es/resource/WheelchairBoardingStatus/${row.wheelchair_boarding}> .
+
+#end
+## STOPS END
+
+## ROUTES
+#foreach($row in $routesData)
+ ex:metro\/routes\/$row.route_id a gtfs:Route ;
+ gtfs:shortName "$row.route_short_name" ;
+ gtfs:longName "$row.route_long_name" ;
+ dct:description "$row.route_desc" ;
+ gtfs:routeType <http://transport.linkeddata.es/resource/RouteType/${row.route_type}> ;
+ gtfs:routeUrl <${row.route_url}> ;
+ gtfs:color "$row.route_color" ;
+
+ ## do by list
+ #if($functions.checkString($row.agency_id))
+  #set($tAgency = $functions.getMapValue($mAgency, $row.agency_id))
+  gtfs:agency ex:agency\/$tAgency.agency_id ;
+ #end
+
+ gtfs:textColor "$row.route_text_color" .
+#end
+## ROUTES END
+
+## TRIPS
+#foreach($row in $tripsData)
+ ex:metro\/trips\/$row.trip_id a gtfs:Trip ;
+ gtfs:headsign "$row.trip_headsign" ;
+ gtfs:shortName "$row.trip_short_name" ;
+ gtfs:direction "$row.direction_id" ;
+ gtfs:block "$row.block_id" ;
+
+ ## do by list
+ #if($functions.checkString($row.service_id))
+  #set($s = $functions.getMapValue($mCalendar, $row.service_id))
+  gtfs:service ex:metro\/services\/$s.service_id ;
+  #end
+  #set($s2 = $functions.getMapValue($mCalendarDates, $row.service_id))
+  gtfs:service ex:metro\/services\/$s2.service_id ;
+
+ #if($functions.checkString($row.route_id))
+  #set($tRoute = $functions.getMapValue($mRoutes, $row.route_id))
+  gtfs:route ex:metro\/routes\/$tRoute.route_id ;
+ #end
+
+ #if($functions.checkString($row.shape_id))
+  #set($tShape = $functions.getMapValue($mShapes, $row.shape_id))
+  gtfs:shape ex:metro\/shape\/$tShape.shape_id ;
+ #end
+
+ gtfs:wheelchairAccessible <http://transport.linkeddata.es/resource/WheelchairBoardingStatus/${row.wheelchair_accessible}> .
+#end
+## TRIPS END
+
+## STOP TIMES
+
+#foreach($row in $stopTimesData)
+ ex:metro\/stoptimes\/${row.trip_id}-${row.stop_id}-${row.arrival_time} rdf:type gtfs:StopTime ;
+ gtfs:arrivalTime "$row.arrival_time"^^xsd:duration ;
+ gtfs:departureTime "$row.departure_time"^^xsd:duration ;
+ #if($row.stop_sequence)gtfs:stopSequence "$row.stop_sequence"^^xsd:integer ;#end
+ gtfs:headsign "$row.stop_headsign" ;
+ gtfs:pickupType <http://transport.linkeddata.es/resource/PickupType/${row.pickup_type}> ;
+ gtfs:dropOffType <http://transport.linkeddata.es/resource/DropOffType/${row.drop_off_type}> ;
+
+ #if($functions.checkString($row.trip_id))
+  #set($tTrip= $functions.getMapValue($mTrips, $row.trip_id))
+  gtfs:trip ex:metro\/trips\/$tTrip.trip_id ;
+ #end
+ #if($functions.checkString($row.stop_id))
+  #set($tStop= $functions.getMapValue($mStops, $row.stop_id))
+  gtfs:stop ex:metro\/stops\/$tStop.stop_id ;
+ #end
+ 
+ gtfs:distanceTraveled "${row.shape_dist_traveled}" .
+#end
+## STOP TIMES END
+
+## FREQUENCIES
+#foreach($row in $frequenciesData)
+ ex:metro\/frequency\/${row.trip_id}-${row.start_time} a gtfs:Frequency ;
+ gtfs:startTime "$row.start_time" ;
+ gtfs:endTime "$row.end_time" ;
+ gtfs:headwaySeconds "$row.headway_secs"^^xsd:integer ;
+ 
+ ## do by list
+ #if($functions.checkString($row.trip_id))
+  #set($tTrip = $functions.getMapValue($mTrips, $row.trip_id))
+  gtfs:trip ex:metro\/trips\/$tTrip.trip_id ;
+ #end
+
+ gtfs:exactTimes "$row.exact_times"^^xsd:boolean .
+#end
+## FREQUENCIES END
