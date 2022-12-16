@@ -7,7 +7,7 @@ agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone,agency
   	PREFIX dct: <http://purl.org/dc/terms/>
   	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ") )
-#set ( $agencies = $reader.executeQueryStringValue("SELECT *
+#set ( $agencies = $reader.getDataframe("SELECT *
 		WHERE {
 			?s a gtfs:Agency .          
 			?s foaf:name ?agency_name .
