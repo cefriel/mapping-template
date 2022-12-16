@@ -16,6 +16,7 @@
 package com.cefriel.template.utils;
 
 import com.cefriel.template.io.Reader;
+import com.cefriel.template.io.csv.CSVReader;
 import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.io.rdf.RDFReader;
 import com.cefriel.template.io.xml.XMLReader;
@@ -165,6 +166,19 @@ public class TemplateUtils {
         return results_map;
     }
 
+    public List<Map<String,String>> splitColumn(List<Map<String, String>> df, String columnName, String regex) {
+        for (Map<String, String> row: df) {
+            String[] values = row.get(columnName).split(regex);
+            Map<String, String> x = new HashMap<>();
+            for(int i=0; i < values.length; i++){
+                String key = columnName + (i + 1);
+                row.put(key, values[i]);
+            }
+            row.remove(columnName);
+        }
+        return df;
+    }
+
     /**
      * Returns {@code true} if {@code l} is not null and not an empty string.
      * @param l List to be checked
@@ -299,6 +313,13 @@ public class TemplateUtils {
         return new XMLReader("");
     }
 
+    //todo get CSV Reader from string
+    public CSVReader getCSVReaderFromFile(String fileName) throws IOException {
+        if (fileName != null) {
+            return new CSVReader(fileName);
+        }
+        return new CSVReader("");
+    }
     /**
      * Get a XMLReader to query the XML content of the provided string.
      * @param s The XML string.
@@ -354,5 +375,4 @@ public class TemplateUtils {
             return otherResults;
         else return new ArrayList<>();
     }
-
 }
