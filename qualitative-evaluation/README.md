@@ -267,24 +267,23 @@ can be converted to RDF with the following template:
 #set ($charDF = $charReader.getDataframe())
 #set ($episodeDF = $episodeReader.getDataframe())
 #set ($mEpisodeAppearences = $functions.getMap($episodeDF, "number"))
-##
+
 #foreach($ep in $episodeDF)
-ex:episode_$ep.number a schema:Episode .
-ex:episode_$ep.number schema:title "$ep.title" .
-
+ex:episode_$ep.number a schema:Episode ;
+    schema:title "$ep.title" .
 #end
-##
-#foreach($char in $charDF)
 
-ex:$char.id a schema:Person ex:Characters .
-ex:$char.id schema:givenName "$char.firstname" ex:Characters .
-ex:$char.id schema:lastName "$char.lastname" ex:Characters .
-ex:$char.id e:debutEpisode "$char.debutEpisode"^^xsd:integer ex:Characters .
-ex:$char.id dbo:hairColor "$char.hairColor.toUpperCase()"@en ex:Characters .
+#foreach($char in $charDF)
+ex:$char.id a schema:Person ex:Characters ;
+    schema:givenName "$char.firstname" ex:Characters ;
+    schema:lastName "$char.lastname" ex:Characters .
+    e:debutEpisode "$char.debutEpisode"^^xsd:integer ex:Characters ;
+    dbo:hairColor "$char.hairColor.toUpperCase()"@en ex:Characters .
+
 #set($tEpisode = $functions.getMapValue($mEpisodeAppearences, $char.debutEpisode))
 #if($tEpisode.number) 
 ex:$char.id e:appearsIn ex:episode_$tEpisode.number ex:Characters .
-ex:$char.id e:appearsIn ex:episode_$tEpisode.number ex:Episodes .
+    e:appearsIn ex:episode_$tEpisode.number ex:Episodes .
 #end
 ex:$char.id e:debutEpisode "$char.debutEpisode"^^xsd:integer ex:Episodes .
 #end
@@ -305,7 +304,7 @@ ex:0 schema:givenName "Natsu" ex:Characters .
 ```
 
 Datatypes and language tags are similarly directly expressed in the template.
-Note that to convert the hairColor string property to uppercase the Java function "toUpperCase()" can be used thanks to the [Apache Velocity template language (VTL)](https://velocity.apache.org/engine/2.3/user-guide.html).
+Note that to convert the hairColor string property to uppercase the Java function `toUpperCase()` can be used thanks to the [Apache Velocity template language (VTL)](https://velocity.apache.org/engine/2.3/user-guide.html).
 
 ``` {.vtl}
 ex:$char.id dbo:hairColor "$char.hairColor.toUpperCase()"@en ex:Characters .
@@ -342,14 +341,14 @@ java -jar mapping-template.jar -t template.vm -f n3 -o output.ttl
 
 which specifies the following parameters:
 
-\"-t\"
+`-t`
 :   The template to use in the mapping process.
 
-\"-f\"
+`-f`
 :   The format against which the output of the mapping process will be
     validated against.
 
-\"-o\"
+`-o`
 :   The output file.
 
 The following RDF output file is produced:
@@ -449,17 +448,17 @@ java -jar mapping-template.jar --csv example.csv -t template.vm -f n3 -o output.
 
 which specifies the following parameters:
 
-\"--csv\"
+`--csv`
 :   The source CSV file.
 
-\"-t\"
+`-t`
 :   The template to use in the mapping process.
 
-\"-f\"
+`-f`
 :   The format against which the output of the mapping process will be
     validated against.
 
-\"-o\"
+`-o`
 :   The output file.
 
 The following RDF output file is produced:
@@ -502,7 +501,7 @@ dc:title "${row.title1}"@${row.title2}.
 ```
 
 A column containing multiple values can be split into multiple columns
-by the "splitColumn(df, column, separatorRegex)" function.  The
+by the `splitColumn(df, column, separatorRegex)` function.  The
 content of the column is split into *n* values for *n* new columns
 according to the number *n* of separatorRegex regex matches on the
 source column value. The new columns follow the "original column
@@ -518,17 +517,17 @@ java -jar mapping-template.jar --csv example.csv -t template.vm -f n3 -o output.
 
 which specifies the following parameters:
 
-\"--csv\"
+`--csv`
 :   The source CSV file.
 
-\"-t\"
+`-t\`
 :   The template to use in the mapping process.
 
-\"-f\"
+`-f`
 :   The format against which the output of the mapping process will be
     validated against.
 
-\"-o\"
+`-o`
 :   The output file.
 
 The following RDF output file is produced:
