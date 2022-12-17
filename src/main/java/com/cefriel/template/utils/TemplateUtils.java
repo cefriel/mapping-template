@@ -313,13 +313,6 @@ public class TemplateUtils {
         return new XMLReader("");
     }
 
-    //todo get CSV Reader from string
-    public CSVReader getCSVReaderFromFile(String fileName) throws IOException {
-        if (fileName != null) {
-            return new CSVReader(fileName);
-        }
-        return new CSVReader("");
-    }
     /**
      * Get a XMLReader to query the XML content of the provided string.
      * @param s The XML string.
@@ -358,6 +351,21 @@ public class TemplateUtils {
             return new JSONReader(s);
         }
         return new JSONReader("");
+    }
+
+    // TODO Align CSVReader constructors
+    public CSVReader getCSVReaderFromFile(String fileName) throws IOException {
+        if (fileName != null) {
+            return new CSVReader(fileName);
+        }
+        return new CSVReader("");
+    }
+
+    public CSVReader getCSVReaderFromString(String s) throws Exception {
+        if (s != null) {
+            return new CSVReader(s);
+        }
+        return new CSVReader("");
     }
 
     /**

@@ -17,6 +17,7 @@ public class CSVReader implements Reader {
     // todo have to pass a file and a list of headers in the correct order
     // the headers will be used to access the data and create the map kv representation
 
+    // TODO Define constructors as done for JSON and XML
     private CSVReader(Path filePath) throws IOException {
         this.document = NamedCsvReader.builder().build(filePath);
     }
