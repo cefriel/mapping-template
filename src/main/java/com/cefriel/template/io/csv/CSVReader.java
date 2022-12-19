@@ -6,6 +6,7 @@ import de.siegmar.fastcsv.reader.CsvRow;
 import de.siegmar.fastcsv.reader.NamedCsvReader;
 import de.siegmar.fastcsv.reader.NamedCsvRow;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -13,17 +14,13 @@ import java.util.*;
 public class CSVReader implements Reader {
 
     public NamedCsvReader document;
-    private boolean skipHeaderLine = false;
-    // todo have to pass a file and a list of headers in the correct order
-    // the headers will be used to access the data and create the map kv representation
 
-    // TODO Define constructors as done for JSON and XML
-    private CSVReader(Path filePath) throws IOException {
-        this.document = NamedCsvReader.builder().build(filePath);
+    public CSVReader(File file) throws IOException {
+        this.document = NamedCsvReader.builder().build(file.toPath());
     }
 
-    public CSVReader(String filePath) throws IOException {
-        this(Path.of(filePath));
+    public CSVReader(String csv) throws IOException {
+        this.document = NamedCsvReader.builder().build(csv);
     }
     @Override
     public void setQueryHeader(String header) {

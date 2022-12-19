@@ -353,7 +353,6 @@ public class TemplateUtils {
         return new JSONReader("");
     }
 
-    // TODO Align CSVReader constructors
     public CSVReader getCSVReaderFromFile(String fileName) throws IOException {
         if (fileName != null) {
             return new CSVReader(fileName);
