@@ -1,7 +1,7 @@
 Conversion examples
 ===================
 
-CSV to RDF
+RML CSV example
 ----------
 
 The CSV example from the [RML specification](https://rml.io/specs/rml/#example-CSV):
@@ -41,17 +41,17 @@ java -jar mapping-template.jar --csv example.csv -t template.vm -f turtle -o out
 
 which specifies the following parameters:
 
-\"--csv\"
+--csv
 :   The source CSV file.
 
-\"-t\"
-:   The template to use in the mapping process.
+-t
+: The template to use in the mapping process.
 
-\"-f\"
+-f
 :   The format against which the output of the mapping process will be
     validated against.
 
-\"-o\"
+-o
 :   The output file.
 
 The following RDF (Turtle) output file is produced:
@@ -69,7 +69,7 @@ ex:6523 a transit:Stop;
   wgs84_pos:long "4.484444" .
 ```
 
-XML to RDF
+RML XML example
 ----------
 
 The XML example from the [RML
@@ -120,17 +120,17 @@ java -jar mapping-template.jar --xml example.xml -t template.vm -f turtle -o out
 
 which specifies the following parameters:
 
-\"--xml\"
+--xml
 :   The source XML file.
 
-\"-t\"
+-t
 :   The template to use in the mapping process.
 
-\"-f\"
+-f
 :   The format against which the output of the mapping process will be
     validated against.
 
-\"-o\"
+-o
 :   The output file.
 
 The following RDF (Turtle) output file is produced:
@@ -147,7 +147,7 @@ ex:25 a transit:stop;
   rdfs:label "International Airport", "Conference center" .
 ```
 
-JSON to RDF
+RML JSON example
 -----------
 
 The JSON example from the [RML
@@ -202,17 +202,17 @@ java -jar mapping-template.jar --json example.json -t template.vm -f turtle -o o
 
 which specifies the following parameters:
 
-\"--json\"
+--json
 :   The source JSON file.
 
-\"-t\"
+-t
 :   The template to use in the mapping process.
 
-\"-f\"
+-f
 :   The format against which the output of the mapping process will be
     validated against.
 
-\"-o\"
+-o
 :   The output file.
 
 The following RDF (Turtle) output file is produced:
@@ -230,7 +230,7 @@ ex:Brussels a schema:city ;
   gn:countryCode "BE" .
 ```
 
-A more complex mapping
+Yarrrml example
 -----------
 
 The example from the [Yarrrml tutorial](https://rml.io/yarrrml/tutorial/getting-started/):
@@ -416,7 +416,7 @@ ex:4 e:appearsIn ex:episode_4 ex:Episodes .
 ex:4 e:debutEpisode "4"^^xsd:integer ex:Episodes .
 ```
 
-CSV to RDF-Star
+RDF-Star
 ----------
 
 The CSV example from the [RML Star specification](https://kg-construct.github.io/rml-star-spec/#nested):
@@ -517,17 +517,17 @@ java -jar mapping-template.jar --csv example.csv -t template.vm -f n3 -o output.
 
 which specifies the following parameters:
 
-`--csv`
+--csv
 :   The source CSV file.
 
-`-t\`
+-t
 :   The template to use in the mapping process.
 
-`-f`
+-f
 :   The format against which the output of the mapping process will be
     validated against.
 
-`-o`
+-o
 :   The output file.
 
 The following RDF output file is produced:
