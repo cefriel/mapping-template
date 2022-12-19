@@ -545,3 +545,74 @@ dc:title "Dune"@en.
 ex:book\/003 a ex:Book;
 dc:title "La Sirena"@it.
 ```
+
+CSV to JSON example
+----------
+The output format for the mapping process is not limited to RDF. On the contrary the templated based approach allows for potentially any output format.
+In this example we will look at converting data from the csv format to the json format.
+
+The following csv file
+
+``` {.csv}
+book_id,title
+001,Il Gattopardo
+002,Dune
+003,La Sirena
+```
+
+Can be converted to JSON with the following template
+
+``` {.vtl}
+#set ($bookDF = $reader.getDataframe())
+
+{
+    "books":[
+#foreach($row in $bookDF)
+      {
+          "id": "$row.book_id",
+          "title": "$row.title"
+      } #if(!$foreach.last),#end
+#end
+    ]
+}
+```
+
+Note the usage of functions offered by [Apache Velocity](https://velocity.apache.org/engine/2.3/vtl-reference.html#foreach-loops-through-a-list-of-objects) to correctly handle the json array.
+
+From the command line, using the following command
+
+``` {.bash org-language="sh"}
+java -jar mapping-template.jar --csv example.csv -t template.vm -o output.json
+```
+
+which specifies the following parameters:
+
+--csv
+:   The source CSV file.
+
+-t
+:   The template to use in the mapping process.
+
+-o
+:   The output file.
+
+The following JSON output file is produced:
+
+``` {.json}
+{
+    "books":[
+      {
+          "id": "001",
+          "title": "Il Gattopardo"
+      } ,
+      {
+          "id": "002",
+          "title": "Dune"
+      } ,
+      {
+          "id": "003",
+          "title": "La Sirena"
+      } 
+    ]
+}
+```

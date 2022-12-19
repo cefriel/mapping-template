@@ -1,0 +1,12 @@
+#set ($bookDF = $reader.getDataframe())
+
+{
+    "books":[
+#foreach($row in $bookDF)
+      {
+          "id": "$row.book_id",
+          "title": "$row.title"
+      } #if(!$foreach.last),#end
+#end
+    ]
+}

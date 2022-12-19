@@ -5,6 +5,7 @@ target
 .vscode
 .attach_*
 *.json
+!qualitative-evaluation/csv-json-example/output.json
 *.jar
 src/test/resources/mapping
 *.iml

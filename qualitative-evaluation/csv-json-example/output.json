@@ -1,0 +1,17 @@
+
+{
+    "books":[
+      {
+          "id": "001",
+          "title": "Il Gattopardo"
+      } ,
+      {
+          "id": "002",
+          "title": "Dune"
+      } ,
+      {
+          "id": "003",
+          "title": "La Sirena"
+      } 
+    ]
+}
