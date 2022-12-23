@@ -50,6 +50,12 @@ public class Main {
 			variableArity = true)
 	private List<String> triplesPaths;
 
+	@Parameter(names={"--input","-i"})
+	private String inputFile;
+
+	@Parameter(names={"--input-format","-if"})
+	private String inputFormat;
+
 	@Parameter(names={"--xml","-xml"})
 	private String xmlPath;
 
