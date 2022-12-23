@@ -15,8 +15,6 @@
  */
 package com.cefriel.template;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cefriel.template.io.Formatter;
@@ -34,6 +32,7 @@ import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -93,12 +92,9 @@ public class Main {
 	@Parameter(names={"--time","-tm"})
 	private String timePath;
 
-    private final org.slf4j.Logger log = LoggerFactory.getLogger(Main.class);
+    private final Logger log = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String ... argv) throws Exception {
-
-		Logger root = (Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-		root.setLevel(Level.INFO);
 
 		Main main = new Main();
 
