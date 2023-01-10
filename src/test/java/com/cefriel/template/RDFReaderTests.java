@@ -47,26 +47,32 @@ public class RDFReaderTests {
     }
 
     @Test
-    public void agencyTest() throws Exception {
+    public void agencyTestFile() throws Exception {
         String folder = "agency";
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
-        TemplateExecutor lowerer = new TemplateExecutor(reader, new TemplateUtils());
+        TemplateExecutor executor = new TemplateExecutor();
         File template = new File(resolvePath(folder, "template.vm"));
-        InputStream templateStream = new FileInputStream(template);
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")), StandardCharsets.UTF_8);
-        assert(expectedOutput.equals(lowerer.lower(templateStream)));
+        String outputFile = resolvePath(folder, "agencyTestFile.csv");
+        executor.executeMapping(reader, null, template.getPath(), false, null, null, outputFile);
+        String obtainedOutput = Files.readString(Paths.get(outputFile), StandardCharsets.UTF_8);
+        assert(expectedOutput.equals(obtainedOutput));
     }
 
+
     @Test
-    public void agencyMultipleInput() throws Exception {
+    public void agencyMultipleInputFile() throws Exception {
         String folder = "agency-multiple-input";
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
         reader.addFile(resolvePath(folder, "input2.ttl"), RDFFormat.TURTLE);
-        TemplateExecutor lowerer = new TemplateExecutor(reader, new TemplateUtils());
+        TemplateExecutor executor = new TemplateExecutor();
         File template = new File(resolvePath(folder, "template.vm"));
-        InputStream templateStream = new FileInputStream(template);
+        String outputFile = resolvePath(folder, "agencyMultipleTestFile.csv");
+
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")), StandardCharsets.UTF_8);
-        assert(expectedOutput.equals(lowerer.lower(templateStream)));
+        executor.executeMapping(reader, null, template.getPath(), false, null, null, outputFile);
+        String obtainedOutput = Files.readString(Paths.get(outputFile), StandardCharsets.UTF_8);
+        assert(expectedOutput.equals(obtainedOutput));
     }
 
     @Test
@@ -74,12 +80,13 @@ public class RDFReaderTests {
         String folder = "agency-parametric";
 
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
-        TemplateExecutor lowerer = new TemplateExecutor(reader, new TemplateUtils());
+        TemplateExecutor executor = new TemplateExecutor();
         File template = new File(resolvePath(folder, "template.vm"));
-        InputStream templateStream = new FileInputStream(template);
 
         String queryPath = resolvePath(folder, "query.txt");
-        Map<String, String> output = lowerer.lower(templateStream, queryPath);
+        String outputFile = resolvePath(folder, )
+        Map<String, String> output = executor.executeMapping(reader, null, template.getPath(), false, queryPath, null, )
+
         for(String id : output.keySet()) {
             String expectedOutput = Files
                     .readString(Paths.get(resolvePath(folder, "agency-" + id + ".csv")),
@@ -87,6 +94,7 @@ public class RDFReaderTests {
             assert(expectedOutput.equals(output.get(id)));
         }
     }
+
 
     // TODO Add tests without stream
     // TODO Add tests for TemplateMap

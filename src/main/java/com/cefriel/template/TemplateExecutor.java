@@ -15,6 +15,19 @@
  */
 package com.cefriel.template;
 
+import com.cefriel.template.io.Formatter;
+import com.cefriel.template.io.Reader;
+import com.cefriel.template.io.rdf.RDFReader;
+import com.cefriel.template.utils.TemplateUtils;
+import com.cefriel.template.utils.Util;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.eclipse.rdf4j.repository.Repository;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -24,199 +37,173 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.cefriel.template.io.Formatter;
-import com.cefriel.template.io.Reader;
-import com.cefriel.template.utils.TemplateUtils;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
-
-import org.apache.velocity.runtime.RuntimeConstants;
-import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.slf4j.LoggerFactory;
-
 public class TemplateExecutor {
 
 	private final org.slf4j.Logger log = LoggerFactory.getLogger(TemplateExecutor.class);
 	private static final String DEFAULT_KEY = "default";
-
-	// Constructor parameters
-	private final TemplateUtils lu;
-
-	// Configurable parameters
-	private Formatter formatter;
-	private boolean trimTemplate;
-	private boolean resourceTemplate;
-	private Map<String, String> map;
+	private boolean resourceTemplate; // true if in resource folder, search in classpath
 
 	// Default parameters
 	private VelocityEngine velocityEngine;
-	private final Reader reader;
 
-	private int count = 0;
-
-	public TemplateExecutor(Reader reader) throws Exception {
-		this.reader = reader;
-		this.lu = new TemplateUtils();
-	}
-
-	public TemplateExecutor(Reader reader, TemplateUtils lu) throws Exception {
-		this.reader = reader;
-		this.lu = lu;
-	}
-
-	public void lower(String templatePath, String destinationPath) throws Exception {
-		procedure(templatePath, destinationPath, null);
-	}
-
-	public void lower(String templatePath, String destinationPath, String queryFile) throws Exception {
-		procedure(templatePath, destinationPath, queryFile);
-	}
-
-    public String lower(InputStream template) throws Exception {
-        return evaluateProcedure(template, null).get(DEFAULT_KEY);
-    }
-
-	public Map<String, String> lower(InputStream template, String queryFile) throws Exception {
-		return evaluateProcedure(template, queryFile);
-	}
-
-    private void procedure(String templatePath, String destinationPath, String queryFile) throws Exception {
-		VelocityContext context = initEngine();
-		executeLowering(templatePath, destinationPath, queryFile, context);
-	}
-
-	private VelocityContext initEngine() throws IOException {
-		if(velocityEngine == null) {
-			velocityEngine = new VelocityEngine();
-			if (resourceTemplate) {
-				velocityEngine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
-				velocityEngine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
-			}
-			velocityEngine.init();
-		}
-
-		VelocityContext context = new VelocityContext();
-		if(this.reader != null) {
-			context.put("reader", reader);
-		}
-
-		context.put("functions", lu);
-
-		if (map != null)
-			context.put("map", map);
-
-		return context;
-	}
-
-    private Map<String, String> evaluateProcedure(InputStream template, String queryFile) throws Exception {
-        VelocityContext context = initEngine();
-
-        if (trimTemplate)
-            log.warn("InputStream Template: trim option not supported!");
-
-		Map<String, String> output = new HashMap<>();
-		if(queryFile != null) {
-			String query = Files.readString(Paths.get(queryFile));
-			log.info("Parametric Template executed with query: " + queryFile);
-			List<Map<String, String>> rows = reader.getDataframe(query);
-
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			template.transferTo(baos);
-			for (Map<String, String> row : rows)
-				executeTemplateStream(new ByteArrayInputStream(baos.toByteArray()),
-						context, output, row);
-		} else {
-			executeTemplateStream(template, context, output);
-		}
-		return output;
-    }
-
-	private void executeLowering(String templatePath, String destinationPath, String queryFile, VelocityContext context) throws Exception {
+	// method called from cli
+	public void executeMapping(Reader reader, TemplateMap map, String templatePath, boolean trimTemplate, String queryFile, Formatter formatter, String outputFile) throws Exception {
+		VelocityContext velocityContext = initEngine(reader, map);
 		log.info("Template path: " + templatePath);
-
-		if(trimTemplate)
+		if (trimTemplate)
 			templatePath = trimTemplate(templatePath);
 
 		if(queryFile != null) {
 			String query = Files.readString(Paths.get(queryFile));
 			log.info("Parametric Template executed with query: " + queryFile);
 			List<Map<String, String>> rows = reader.getDataframe(query);
-			for (Map<String, String> row : rows)
-				executeTemplate(templatePath, destinationPath, context, row);
+			int count = 0;
+			for (Map<String, String> row : rows) {
+				executeTemplate(templatePath, outputFile, velocityContext, formatter, row, generateId(row, count));
+				count++;
+			}
+
 		} else {
-			executeTemplate(templatePath, destinationPath, context);
+			executeTemplate(templatePath, outputFile, velocityContext, formatter);
 		}
 	}
 
-	private void executeTemplate(String templatePath, String destinationPath, VelocityContext context) throws Exception {
-		executeTemplate(templatePath, destinationPath, context, null);
+	// method called when used as library
+	public Map<String, String> executeMapping(Repository repository, String namedGraph, String baseIri, boolean verbose, InputStream template, InputStream templateMapStream, boolean isCsv, InputStream query, String formatterFormat) throws Exception {
+		RDFReader rdfReader = Util.createRDFReader(namedGraph, baseIri, repository, verbose);
+		TemplateMap templateMap = Util.createTemplateMap(templateMapStream, isCsv);
+		VelocityContext velocityContext = initEngine(rdfReader, templateMap);
+		Formatter formatter = Util.createFormatter(formatterFormat);
+
+		return evaluateProcedure(rdfReader, template, query, velocityContext, formatter);
+	}
+	public String executeMapping(Repository repository, String namedGraph, String baseIri, boolean verbose,InputStream template, InputStream templateMapStream, boolean isCsv, String formatterFormat) throws Exception {
+		RDFReader rdfReader = Util.createRDFReader(namedGraph, baseIri, repository, verbose);
+		TemplateMap templateMap = Util.createTemplateMap(templateMapStream, isCsv);
+		VelocityContext velocityContext = initEngine(rdfReader, templateMap);
+		Formatter formatter = Util.createFormatter(formatterFormat);
+
+		return evaluateProcedure(rdfReader, template, null, velocityContext, formatter).get(DEFAULT_KEY);
+	}
+	public Map<String, String> executeMapping(String input, String inputFormat, boolean verbose, InputStream template, InputStream templateMapStream, boolean isCsv, InputStream query, String formatterFormat) throws Exception {
+		Reader reader = Util.createNonRdfReaderFromInput(input, inputFormat, verbose);
+		TemplateMap templateMap = Util.createTemplateMap(templateMapStream, isCsv);
+		VelocityContext velocityContext = initEngine(reader, templateMap);
+		Formatter formatter = Util.createFormatter(formatterFormat);
+
+		return evaluateProcedure(reader, template, query, velocityContext, formatter);
 	}
 
-	private void executeTemplate(String templatePath, String destinationPath, VelocityContext context, Map<String, String> row) throws Exception {
-    	String id = generateId(row);
+	public String executeMapping(String input, String inputFormat, boolean verbose, InputStream template, InputStream templateMapStream, boolean isCsv, String formatterFormat) throws Exception {
+		Reader reader = Util.createNonRdfReaderFromInput(input, inputFormat, verbose);
+		TemplateMap templateMap = Util.createTemplateMap(templateMapStream, isCsv);
+		VelocityContext velocityContext = initEngine(reader, templateMap);
+		Formatter formatter = Util.createFormatter(formatterFormat);
+
+		return evaluateProcedure(reader, template, null, velocityContext, formatter).get(DEFAULT_KEY);
+	}
+
+
+	private VelocityContext initEngine(Reader reader, TemplateMap templateMap) throws IOException {
+		if(this.velocityEngine == null) {
+			this.velocityEngine = new VelocityEngine();
+			if (this.resourceTemplate) {
+				this.velocityEngine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+				this.velocityEngine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+			}
+			this.velocityEngine.init();
+		}
+
+		VelocityContext context = new VelocityContext();
+		if(reader != null) {
+			context.put("reader", reader);
+		}
+
+		context.put("functions", new TemplateUtils());
+
+		if (templateMap != null)
+			context.put("map", templateMap);
+
+		return context;
+	}
+
+    private Map<String, String> evaluateProcedure(Reader reader, InputStream template, InputStream query, VelocityContext context, Formatter formatter) throws Exception {
+		Map<String, String> output = new HashMap<>();
+		if(query != null) {
+			String queryString = inputStreamToString(query);
+			log.info("Parametric Template executed with query: " + queryString);
+			List<Map<String, String>> rows = reader.getDataframe(queryString);
+
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			template.transferTo(baos);
+
+			int c = 0;
+			for (Map<String, String> row : rows) {
+				KV result = executeTemplateStream(new ByteArrayInputStream(baos.toByteArray()),
+						context, formatter, row, generateId(row, c));
+				c++;
+				output.put(result.k(), result.v());
+			}
+		} else {
+			KV result = executeTemplateStream(template, context, formatter);
+			output.put(result.k(), result.v());
+		}
+		return output;
+	}
+	private void executeTemplate(String templatePath, String destinationPath, VelocityContext context, Formatter formatter) throws Exception {
+		executeTemplate(templatePath, destinationPath, context, formatter, null, "");
+	}
+	private void executeTemplate(String templatePath, String destinationPath, VelocityContext context, Formatter formatter, Map<String, String> row, String templateId) throws Exception {
 		if (row != null)
 			context.put("x", row);
 
-		log.info("Executing Template" + id);
-		String pathId = getPathId(destinationPath, id);
+		log.info("Executing Template" + templateId);
+		String pathId = getPathId(destinationPath, templateId);
 
 		Writer writer;
 		writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(pathId), StandardCharsets.UTF_8));
 		Template t = velocityEngine.getTemplate(templatePath);
 		t.merge(context, writer);
 		writer.close();
-
-		handleFormat(pathId);
+		if (formatter != null) {
+			formatter.formatFile(pathId);
+		}
 	}
-
-	private Map<String, String> executeTemplateStream(InputStream template, VelocityContext context,
-													  Map<String, String> output) throws Exception {
-		return executeTemplateStream(template, context, output, null);
+	// simple key-value type
+	private record KV (String k, String v) {}
+	private KV executeTemplateStream(InputStream template, VelocityContext context,
+									 Formatter formatter) throws Exception {
+		return executeTemplateStream(template, context, formatter, null, "");
 	}
-
-	private Map<String, String> executeTemplateStream(InputStream template, VelocityContext context,
-													  Map<String, String> output, Map<String, String> row)
-			throws Exception {
-		String id = generateId(row);
-		if (id.isEmpty())
-			id = DEFAULT_KEY;
+	private KV executeTemplateStream(InputStream template, VelocityContext context,
+									 Formatter formatter, Map<String, String> row, String templateId) throws Exception {
+		String id = templateId.isEmpty() ? DEFAULT_KEY : templateId;
 		if (row != null)
 			context.put("x", row);
 
 		log.info("Executing Template " + id);
 
 		java.io.Reader templateReader = new InputStreamReader(template);
-		Writer writer = new StringWriter();
+		StringWriter writer = new StringWriter();
 		velocityEngine.evaluate(context, writer, "TemplateExecutor", templateReader);
+
 		templateReader.close();
 
 		String result = writer.toString();
 		writer.close();
 
-		output.put(id, handleStreamFormat(result));
-		return output;
+		return new KV(id, formatter.formatString(result));
 	}
 
-	private void handleFormat(String pathId) throws Exception {
-		if (formatter != null)
-			formatter.formatFile(pathId);
+	public static String inputStreamToString(InputStream input) throws IOException {
+		return new String(input.readAllBytes(), StandardCharsets.UTF_8);
 	}
-
-	private String handleStreamFormat(String s) throws Exception {
-		if (formatter != null)
-			return formatter.formatString(s);
-		return s;
-	}
-
-	private String generateId(Map<String, String> row) {
+	private String generateId(Map<String, String> row, int number) {
 		if (row != null)
 			if (row.containsKey("id"))
 				return row.get("id");
 			else {
-				String id = "T-id-" + count;
-				count += 1;
-				return id;
+				return "T-id-" + number;
 			}
 		else
 			return "";
@@ -243,37 +230,4 @@ public class TemplateExecutor {
 		}
 		return pathId;
 	}
-
-	public Formatter getFormatter() {
-		return formatter;
-	}
-
-	public void setFormatter(Formatter formatter) {
-		this.formatter = formatter;
-	}
-
-	public boolean isTrimTemplate() {
-		return trimTemplate;
-	}
-
-	public void setTrimTemplate(boolean trimTemplate) {
-		this.trimTemplate = trimTemplate;
-	}
-
-	public boolean isResourceTemplate() {
-		return resourceTemplate;
-	}
-
-	public void setResourceTemplate(boolean resourceTemplate) {
-		this.resourceTemplate = resourceTemplate;
-	}
-
-	public Map<String, String> getMap() {
-		return map;
-	}
-
-	public void setMap(Map<String, String> map) {
-		this.map = map;
-	}
-
 }

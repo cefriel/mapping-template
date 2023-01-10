@@ -9,3 +9,5 @@ target
 *.jar
 src/test/resources/mapping
 *.iml
+/src/test/resources/agency-multiple-input/agencyMultipleTestFile.csv
+/src/test/resources/agency/agencyTestFile.csv

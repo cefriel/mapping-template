@@ -19,51 +19,29 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
-import com.cefriel.template.io.csv.CSVReader;
-import com.cefriel.template.io.json.JSONReader;
-import com.cefriel.template.io.rdf.RDFFormatter;
-import com.cefriel.template.io.xml.XMLFormatter;
-import com.cefriel.template.io.xml.XMLReader;
-import com.cefriel.template.io.rdf.RDFReader;
 import com.cefriel.template.utils.*;
-import org.eclipse.rdf4j.repository.Repository;
-import org.eclipse.rdf4j.repository.http.HTTPRepository;
-import org.eclipse.rdf4j.repository.sail.SailRepository;
-import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.Rio;
-import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
 
+import static com.cefriel.template.utils.Util.validInputFormat;
+
 public class Main {
 
 	@Parameter(names={"--template","-t"})
 	private String templatePath = "template.vm";
-	@Parameter(names={"--rdf","-rdf"},
+	// todo allow multiple input files but only support rdf, warn not supported for other formats
+	@Parameter(names={"--input","-i"},
 			variableArity = true)
-	private List<String> triplesPaths;
-
-	@Parameter(names={"--input","-i"})
-	private String inputFile;
+	private List<String> inputFilesPaths;
 
 	@Parameter(names={"--input-format","-if"})
 	private String inputFormat;
-
-	@Parameter(names={"--xml","-xml"})
-	private String xmlPath;
-
-	@Parameter(names={"--json","-json"})
-	private String jsonPath;
-
-	@Parameter(names={"--csv","-csv"})
-	private String csvPath;
 	@Parameter(names={"--baseiri","-iri"})
 	private String baseIri = "http://www.cefriel.com/data/";
 	@Parameter(names={"--basepath","-b"})
@@ -82,9 +60,9 @@ public class Main {
 	private boolean trimTemplate;
 
 	@Parameter(names={"--ts-address","-ts"})
-	private String DB_ADDRESS;
+	private String dbAddress;
 	@Parameter(names={"--repository","-r"})
-	private String REPOSITORY_ID;
+	private String repositoryId;
 	@Parameter(names={"--contextIRI","-c"})
 	private String context;
 
@@ -112,20 +90,15 @@ public class Main {
 		main.updateBasePath();
 		main.exec();
 	}
-
 	public void updateBasePath(){
 		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
 		templatePath = basePath + templatePath;
-		if (triplesPaths != null)
-			for (int i = 0; i < triplesPaths.size(); i++)
-				if(triplesPaths.get(i) != null)
-					triplesPaths.set(i, basePath + triplesPaths.get(i));
-		if (xmlPath != null)
-			xmlPath = basePath + xmlPath;
-		if (jsonPath != null)
-			jsonPath = basePath + jsonPath;
-		if (csvPath != null)
-			csvPath = basePath + csvPath;
+		if (inputFilesPaths != null)
+			for (int i = 0; i < inputFilesPaths.size(); i++)
+				if(inputFilesPaths.get(i) != null)
+					inputFilesPaths.set(i, basePath + inputFilesPaths.get(i));
+
+
 		destinationPath = basePath + destinationPath;
 		if (queryPath != null)
 			queryPath = basePath + queryPath;
@@ -137,99 +110,75 @@ public class Main {
 			timePath = basePath + timePath;
 	}
 
-	public void exec() throws Exception {
 
-		TemplateUtils lu = new TemplateUtils();
-
-		Reader reader = null;
-		if (triplesPaths != null) {
-			Repository repo;
-			boolean triplesStore = (DB_ADDRESS != null) && (REPOSITORY_ID != null);
-			if (triplesStore)
-				repo = new HTTPRepository(DB_ADDRESS, REPOSITORY_ID);
-			else
-				repo = new SailRepository(new MemoryStore());
-			RDFReader rdfReader = new RDFReader(repo, context);
-			rdfReader.setBaseIRI(baseIri);
-			RDFFormat format;
-			for (String triplesPath : triplesPaths)
-				if ((new File(triplesPath)).exists()) {
-					format = Rio.getParserFormatForFileName(triplesPath).orElse(RDFFormat.TURTLE);
-					rdfReader.addFile(triplesPath, format);
-				}
-			reader = rdfReader;
-		} else if (xmlPath != null) {
-			reader = new XMLReader(new File(xmlPath));
-		} else if (jsonPath != null) {
-			reader = new JSONReader(new File(jsonPath));
-		} else if (csvPath != null) {
-			reader = new CSVReader(csvPath);
+	public boolean validateInputFiles(List<String> inputFilesPaths, String format) {
+		if (validInputFormat(format)){
+			log.warn("FORMAT: " + format + " is not a supported input");
+			return false;
 		}
 
-		if (reader != null) {
-			if (verbose)
-				reader.setVerbose(true);
+		if(inputFilesPaths.size() == 0) {
+			log.warn("No input file is provided");
+			return false;
+		}
 
-			if (debugQuery) {
-				if (queryPath == null)
-					log.error("Provide a query using the --query option");
-				else {
-					String debugQueryFromFile = Files.readString(Paths.get(queryPath));
-					reader.debugQuery(debugQueryFromFile, destinationPath);
-				}
-				return;
+		if(inputFilesPaths.size() > 1 && !format.equals("rdf")) {
+			log.warn("Multiple input files are supported only for rdf files");
+			return false;
+		}
+
+		return true;
+
+	}
+
+	public void exec() throws Exception {
+
+		Reader reader = null;
+		if (validateInputFiles(inputFilesPaths, inputFormat)) {
+			if (inputFormat.equals("rdf")) {
+				reader = Util.createRDFReader(inputFilesPaths, inputFormat, repositoryId, context, baseIri, verbose);
+			}
+			else {
+				String inputFilePath = inputFilesPaths.get(0);
+				reader = Util.createNonRdfReader(inputFilePath, inputFormat, verbose);
 			}
 		}
 
-		TemplateExecutor tl = new TemplateExecutor(reader, lu);
+		if (reader != null && debugQuery) {
+			if (queryPath == null)
+				log.error("Provide a query using the --query option");
+			else {
+				String debugQueryFromFile = Files.readString(Paths.get(queryPath));
+				reader.debugQuery(debugQueryFromFile, destinationPath);
+			}
+		}
 
-		TemplateMap mc = new TemplateMap();
+		TemplateExecutor tl = new TemplateExecutor();
+
+		TemplateMap templateMap = new TemplateMap();
 		if (keyValueCsvPath != null) {
-			mc.parseMap(keyValueCsvPath, true);
+			templateMap.parseMap(keyValueCsvPath, true);
 			log.info(keyValueCsvPath + " parsed");
 		}
 		if (keyValuePairsPath != null) {
-			mc.parseMap(keyValuePairsPath, false);
+			templateMap.parseMap(keyValuePairsPath, false);
 			log.info(keyValuePairsPath + " parsed");
 		}
-		if(mc.size() > 0)
-			log.info("Parsed " + mc.size() + " key-value pairs");
-		tl.setMap(mc);
+		if(templateMap.size() > 0)
+			log.info("Parsed " + templateMap.size() + " key-value pairs");
 
-		Formatter f = null;
-		if (format != null) {
-			switch (format) {
-				case "xml":
-					f = new XMLFormatter();
-					break;
-				case "turtle":
-					f = new RDFFormatter(RDFFormat.TURTLE);
-					break;
-				case "rdfxml":
-					f = new RDFFormatter(RDFFormat.RDFXML);
-					break;
-				case "nt":
-					f = new RDFFormatter(RDFFormat.NTRIPLES);
-					break;
-				case "jsonld":
-					f = new RDFFormatter(RDFFormat.JSONLD);
-					break;
-			}
-			tl.setFormatter(f);
-		}
-
-		if (trimTemplate)
-			tl.setTrimTemplate(true);
+		Formatter formatter = Util.createFormatter(format);
 
 		if(timePath != null)
 			try (FileWriter pw = new FileWriter(timePath, true)) {
 				long start = Instant.now().toEpochMilli();
-				tl.lower(templatePath, destinationPath, queryPath);
+				tl.executeMapping(reader, templateMap, templatePath, trimTemplate, queryPath, formatter, destinationPath);
 				long duration = Instant.now().toEpochMilli() - start;
 				pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
 			}
-		else
-			tl.lower(templatePath, destinationPath, queryPath);
+		else{
+			tl.executeMapping(reader, templateMap, templatePath, trimTemplate, queryPath, formatter, destinationPath);
+		}
 
 		if(reader != null)
 			reader.shutDown();

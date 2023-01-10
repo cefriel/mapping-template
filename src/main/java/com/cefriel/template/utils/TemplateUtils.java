@@ -38,6 +38,7 @@ import java.util.Map;
 public class TemplateUtils {
 
     private String prefix;
+    // todo remove this prefix here and add it to function itslef rp
 
     /**
      * If a prefix is set, removes it from the parameter {@code String s}. If a prefix is not set,
