@@ -32,7 +32,6 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 public class RDFReaderTests {
-
     private static RDFReader reader;
 
     @BeforeAll
@@ -50,7 +49,7 @@ public class RDFReaderTests {
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
         TemplateExecutor executor = new TemplateExecutor();
         File template = new File(resolvePath(folder, "template.vm"));
-        String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")), StandardCharsets.UTF_8);
+        String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")));
         String result = executor.executeMapping(reader,  template.getPath(), false, false,null, null);
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
         result = result.replaceAll("\\r\\n", "\n");
@@ -67,7 +66,7 @@ public class RDFReaderTests {
         TemplateExecutor executor = new TemplateExecutor();
         File template = new File(resolvePath(folder, "template.vm"));
 
-        String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")), StandardCharsets.UTF_8);
+        String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")));
         String result = executor.executeMapping(reader,  template.getPath(), false, false,null, null);
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
@@ -87,8 +86,7 @@ public class RDFReaderTests {
 
         for(String id : output.keySet()) {
             String expectedOutput = Files
-                    .readString(Paths.get(resolvePath(folder, "agency-" + id + ".csv")),
-                            StandardCharsets.UTF_8);
+                    .readString(Paths.get(resolvePath(folder, "agency-" + id + ".csv")));
             expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
             String result = output.get(id).replaceAll("\\r\\n", "\n");
             assert(expectedOutput.equals(result));
