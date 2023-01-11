@@ -39,7 +39,6 @@ public class Main {
 	@Parameter(names={"--input","-i"},
 			variableArity = true)
 	private List<String> inputFilesPaths;
-
 	@Parameter(names={"--input-format","-if"})
 	private String inputFormat;
 	@Parameter(names={"--baseiri","-iri"})
@@ -48,17 +47,14 @@ public class Main {
 	private String basePath = "./";
 	@Parameter(names={"--output","-o"})
 	private String destinationPath = "output.txt";
-
 	@Parameter(names={"--key-value","-kv"})
 	private String keyValuePairsPath;
 	@Parameter(names={"--key-value-csv","-kvc"})
 	private String keyValueCsvPath;
-
 	@Parameter(names={"--format","-f"})
 	private String format;
 	@Parameter(names={"--trim","-tr"})
 	private boolean trimTemplate;
-
 	@Parameter(names={"--template-resource","-trs"})
 	private boolean templateInResources;
 
@@ -68,19 +64,15 @@ public class Main {
 	private String repositoryId;
 	@Parameter(names={"--contextIRI","-c"})
 	private String context;
-
 	@Parameter(names={"--query","-q"})
 	private String queryPath;
 	@Parameter(names={"--debug-query","-dq"})
 	private boolean debugQuery;
-
 	@Parameter(names={"--verbose","-v"})
 	private boolean verbose;
 	@Parameter(names={"--time","-tm"})
 	private String timePath;
-
     private final Logger log = LoggerFactory.getLogger(Main.class);
-
 	public static void main(String ... argv) throws Exception {
 
 		Main main = new Main();
@@ -101,7 +93,6 @@ public class Main {
 				if(inputFilesPaths.get(i) != null)
 					inputFilesPaths.set(i, basePath + inputFilesPaths.get(i));
 
-
 		destinationPath = basePath + destinationPath;
 		if (queryPath != null)
 			queryPath = basePath + queryPath;
@@ -112,8 +103,6 @@ public class Main {
 		if (timePath != null)
 			timePath = basePath + timePath;
 	}
-
-
 	public boolean validateInputFiles(List<String> inputFilesPaths, String format) {
 		if (validInputFormat(format)){
 			log.warn("FORMAT: " + format + " is not a supported input");
@@ -129,9 +118,7 @@ public class Main {
 			log.warn("Multiple input files are supported only for rdf files");
 			return false;
 		}
-
 		return true;
-
 	}
 
 	public void exec() throws Exception {
@@ -170,7 +157,9 @@ public class Main {
 		if(templateMap.size() > 0)
 			log.info("Parsed " + templateMap.size() + " key-value pairs");
 
-		Formatter formatter = Util.createFormatter(format);
+		Formatter formatter = null;
+		if(format != null)
+			formatter = Util.createFormatter(format);
 
 		if(timePath != null)
 			try (FileWriter pw = new FileWriter(timePath, true)) {
@@ -191,7 +180,5 @@ public class Main {
 
 		if(reader != null)
 			reader.shutDown();
-
 	}
-
 }
