@@ -89,12 +89,11 @@ public class RDFReaderTests {
             String expectedOutput = Files
                     .readString(Paths.get(resolvePath(folder, "agency-" + id + ".csv")),
                             StandardCharsets.UTF_8);
-            assert(expectedOutput.equals(output.get(id)));
+            expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
+            String result = output.get(id).replaceAll("\\r\\n", "\n");
+            assert(expectedOutput.equals(result));
         }
     }
-
-    // TODO Add tests without stream
     // TODO Add tests for TemplateMap
     // TODO Add tests for XMLReader
-    // TODO Add tests for LoweringUtils
 }
