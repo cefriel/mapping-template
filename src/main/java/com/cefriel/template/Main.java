@@ -59,6 +59,9 @@ public class Main {
 	@Parameter(names={"--trim","-tr"})
 	private boolean trimTemplate;
 
+	@Parameter(names={"--template-resource","-trs"})
+	private boolean templateInResources;
+
 	@Parameter(names={"--ts-address","-ts"})
 	private String dbAddress;
 	@Parameter(names={"--repository","-r"})
@@ -157,11 +160,11 @@ public class Main {
 
 		TemplateMap templateMap = new TemplateMap();
 		if (keyValueCsvPath != null) {
-			templateMap.parseMap(keyValueCsvPath, true);
+			templateMap = Util.createTemplateMap(keyValueCsvPath, true);
 			log.info(keyValueCsvPath + " parsed");
 		}
 		if (keyValuePairsPath != null) {
-			templateMap.parseMap(keyValuePairsPath, false);
+			templateMap = Util.createTemplateMap(keyValuePairsPath, false);
 			log.info(keyValuePairsPath + " parsed");
 		}
 		if(templateMap.size() > 0)
@@ -172,12 +175,18 @@ public class Main {
 		if(timePath != null)
 			try (FileWriter pw = new FileWriter(timePath, true)) {
 				long start = Instant.now().toEpochMilli();
-				tl.executeMapping(reader, templateMap, templatePath, trimTemplate, queryPath, formatter, destinationPath);
+				if(queryPath != null)
+					tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter);
+				else
+					tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter);
 				long duration = Instant.now().toEpochMilli() - start;
 				pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
 			}
 		else{
-			tl.executeMapping(reader, templateMap, templatePath, trimTemplate, queryPath, formatter, destinationPath);
+			if(queryPath != null)
+				tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter);
+			else
+				tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter);
 		}
 
 		if(reader != null)

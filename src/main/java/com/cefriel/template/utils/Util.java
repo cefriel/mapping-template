@@ -9,6 +9,10 @@ import com.cefriel.template.io.rdf.RDFFormatter;
 import com.cefriel.template.io.rdf.RDFReader;
 import com.cefriel.template.io.xml.XMLFormatter;
 import com.cefriel.template.io.xml.XMLReader;
+import org.apache.lucene.analysis.util.ClasspathResourceLoader;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -21,7 +25,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 public class Util {
     private static final Logger log = LoggerFactory.getLogger(Util.class);
@@ -85,6 +91,8 @@ public class Util {
     public static boolean validFormatterFormat(String format) {
         return MappingTemplateConstants.FORMATTER_FORMATS.contains(format);
     }
+
+    // todo these creator methods should be constructors in respective classes
     public static Formatter createFormatter(String format) {
         if (validFormatterFormat(format)) {
             return switch (format) {
@@ -113,6 +121,73 @@ public class Util {
         log.info("stream template map parsed");
         log.info("Parsed " + templateMap.size() + " key-value pairs");
         return templateMap;
+    }
+
+    public static String generateRowId(Map<String, String> row, int number) {
+        if (row != null)
+            if (row.containsKey("id"))
+                return row.get("id");
+            else
+                return "t-id-" + number;
+        else
+            return "default";
+    }
+    public static String createOutputFileName(String destinationPath, int number) {
+        if (number == 0)
+            return destinationPath;
+        else {
+            // if destination path specifies an extension i.e "/src/test/result.txt"
+            if (destinationPath.contains(".")) {
+                String extension = destinationPath.substring(destinationPath.lastIndexOf(".") + 1);
+                String filePath = destinationPath.substring(0, destinationPath.lastIndexOf("."));
+                return filePath + "-" + number + "." + extension;
+            }
+            else
+                return destinationPath + "-" + number;
+        }
+    }
+    public static String inputStreamToString(InputStream input) throws IOException {
+        return new String(input.readAllBytes(), StandardCharsets.UTF_8);
+    }
+    public boolean validateInputFiles(List<String> inputFilesPaths, String format) {
+        if (validInputFormat(format)){
+            log.warn("FORMAT: " + format + " is not a supported input");
+            return false;
+        }
+
+        if(inputFilesPaths.size() == 0) {
+            log.warn("No input file is provided");
+            return false;
+        }
+
+        if(inputFilesPaths.size() > 1 && !format.equals("rdf")) {
+            log.warn("Multiple input files are supported only for rdf files");
+            return false;
+        }
+        return true;
+    }
+
+    public static VelocityEngine createVelocityEngine(boolean templateInResources){
+        VelocityEngine velocityEngine = new VelocityEngine();
+        if (templateInResources) {
+            velocityEngine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+            velocityEngine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+        }
+        velocityEngine.init();
+        return velocityEngine;
+    }
+
+    public static VelocityContext createVelocityContext(Reader reader, TemplateMap templateMap) {
+        VelocityContext context = new VelocityContext();
+        if(reader != null) {
+            context.put("reader", reader);
+        }
+        context.put("functions", new TemplateUtils());
+
+        if (templateMap != null)
+            context.put("map", templateMap);
+
+        return context;
     }
 
 
