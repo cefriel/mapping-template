@@ -39,7 +39,6 @@ import java.util.Map;
 public class TemplateUtils {
 
     private String prefix;
-    // todo remove this prefix here and add it to function itslef rp
 
     /**
      * If a prefix is set, removes it from the parameter {@code String s}. If a prefix is not set,
@@ -282,6 +281,9 @@ public class TemplateUtils {
                 RDFFormat format = Rio.getParserFormatForFileName(fileName).orElse(RDFFormat.TURTLE);
                 rdfReader.addFile(fileName, format);
             }
+            else
+                throw new IllegalArgumentException("FILE: " + fileName + " FOR RDFREADER DOES NOT EXIST");
+
         return rdfReader;
     }
 
@@ -308,11 +310,8 @@ public class TemplateUtils {
      * @throws Exception
      */
     public XMLReader getXMLReaderFromFile(String fileName) throws Exception {
-        if (fileName != null) {
-            File xmlDocument = new File(fileName);
-            return new XMLReader(xmlDocument);
-        }
-        return new XMLReader("");
+        File xmlDocument = new File(fileName);
+        return new XMLReader(xmlDocument);
     }
 
     /**
@@ -335,11 +334,8 @@ public class TemplateUtils {
      * @throws Exception
      */
     public JSONReader getJSONReaderFromFile(String fileName) throws Exception {
-        if (fileName != null) {
-            File jsonDocument = new File(fileName);
-            return new JSONReader(jsonDocument);
-        }
-        return new JSONReader("");
+        File jsonDocument = new File(fileName);
+        return new JSONReader(jsonDocument);
     }
 
     /**
@@ -356,16 +352,8 @@ public class TemplateUtils {
     }
 
     public CSVReader getCSVReaderFromFile(String fileName) throws IOException {
-        if (fileName != null) {
-            File f = new File(fileName);
-
-            if (Files.exists(f.toPath())) {
-                return new CSVReader(f);
-            }
-            else
-                throw new IllegalArgumentException("FILE: " + fileName + " DOES NOT EXIST");
-        }
-        throw new IllegalArgumentException("NO FILENAME SPECIFIED FOR CSVREADER");
+        File f = new File(fileName);
+        return new CSVReader(f);
     }
 
     public CSVReader getCSVReaderFromString(String s) throws Exception {

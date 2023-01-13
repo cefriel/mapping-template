@@ -36,6 +36,7 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -57,10 +58,14 @@ public class XMLReader implements Reader {
     private boolean serializeElements;
 
     public XMLReader(File file) throws Exception {
-        this.saxon = new Processor(false);
-        this.config = new Configuration();
-        this.dynamicContext = new DynamicQueryContext(config);
-        dynamicContext.setContextItem(config.buildDocumentTree(new StreamSource(file)).getRootNode());
+        if (Files.exists(file.toPath())) {
+            this.saxon = new Processor(false);
+            this.config = new Configuration();
+            this.dynamicContext = new DynamicQueryContext(config);
+            dynamicContext.setContextItem(config.buildDocumentTree(new StreamSource(file)).getRootNode());
+        }
+        else
+            throw new IllegalArgumentException("FILE: " + file.getPath() + " FOR XMLREADER DOES NOT EXIST");
     }
 
     public XMLReader(String xml) throws Exception {

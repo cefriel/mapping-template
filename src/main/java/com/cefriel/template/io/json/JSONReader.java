@@ -43,11 +43,15 @@ public class JSONReader implements Reader {
     }
 
     public JSONReader(File file) throws IOException {
-        Configuration conf = Configuration.defaultConfiguration()
-                .addOptions(Option.ALWAYS_RETURN_LIST);
+        if (Files.exists(file.toPath())) {
+            Configuration conf = Configuration.defaultConfiguration()
+                    .addOptions(Option.ALWAYS_RETURN_LIST);
 
-        document = conf.jsonProvider().parse(Files
-                .readString(Paths.get(file.getPath())));
+            document = conf.jsonProvider().parse(Files
+                    .readString(Paths.get(file.getPath())));
+        } else
+            throw new IllegalArgumentException("FILE: " + file.getPath() + " FOR JSONREADER DOES NOT EXIST");
+
     }
     @Override
     public void setQueryHeader(String header) {}

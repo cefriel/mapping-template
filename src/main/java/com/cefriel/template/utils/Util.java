@@ -92,7 +92,6 @@ public class Util {
         return MappingTemplateConstants.FORMATTER_FORMATS.contains(format);
     }
 
-    // todo these creator methods should be constructors in respective classes
     public static Formatter createFormatter(String format) {
         if (validFormatterFormat(format)) {
             return switch (format) {

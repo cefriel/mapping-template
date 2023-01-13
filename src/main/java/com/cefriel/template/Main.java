@@ -34,7 +34,6 @@ import static com.cefriel.template.utils.Util.validInputFormat;
 public class Main {
 	@Parameter(names={"--template","-t"})
 	private String templatePath = "template.vm";
-	// todo allow multiple input files but only support rdf, warn not supported for other formats
 	@Parameter(names={"--input","-i"},
 			variableArity = true)
 	private List<String> inputFilesPaths;

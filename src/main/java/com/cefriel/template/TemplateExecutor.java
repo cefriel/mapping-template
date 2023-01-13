@@ -163,7 +163,7 @@ public class TemplateExecutor {
 			StringWriter writer = new StringWriter();
 
 			VelocityEngine velocityEngine = Util.createVelocityEngine(false);
-			velocityEngine.evaluate(context, writer, "TemplateExecutorStream", templateReader);
+			velocityEngine.evaluate(context, writer, "TemplateExecutor", templateReader);
 
 			String result = writer.toString();
 			templateReader.close();
@@ -180,7 +180,7 @@ public class TemplateExecutor {
 					StandardCharsets.UTF_8));
 
 			VelocityEngine velocityEngine = Util.createVelocityEngine(false);
-			velocityEngine.evaluate(context, writer, "TemplateExecutorStream", templateReader);
+			velocityEngine.evaluate(context, writer, "TemplateExecutor", templateReader);
 
 			templateReader.close();
 			writer.close();

@@ -8,6 +8,7 @@ import de.siegmar.fastcsv.reader.NamedCsvRow;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -16,7 +17,10 @@ public class CSVReader implements Reader {
     public NamedCsvReader document;
 
     public CSVReader(File file) throws IOException {
-        this.document = NamedCsvReader.builder().build(file.toPath());
+        if (Files.exists(file.toPath()))
+            this.document = NamedCsvReader.builder().build(file.toPath());
+        else
+            throw new IllegalArgumentException("FILE: " + file.getPath() + " FOR CSVREADER DOES NOT EXIST");
     }
 
     public CSVReader(String csv) throws IOException {
