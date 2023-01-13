@@ -16,6 +16,9 @@
 
 package com.cefriel.template;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,25 +34,28 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TemplateMap extends HashMap<String, String> {
-
-    public void parseMap(String filePath, boolean isCsv) throws IOException {
+    private static final Logger log = LoggerFactory.getLogger(TemplateMap.class);
+    public TemplateMap(String filePath, boolean isCsv) throws IOException {
         Path path = FileSystems.getDefault().getPath(filePath);
         Stream<String> lines = Files.lines(path);
         if (isCsv)
             putAll(parseCsvMap(lines));
         else
             putAll(parseMap(lines));
+        log.info(filePath + " parsed");
+        log.info("Parsed " + this.size() + " key-value pairs");
     }
 
-    public void parseMap(InputStream is, boolean isCsv) throws IOException {
+    public TemplateMap(InputStream is, boolean isCsv) {
         Stream<String> lines = new BufferedReader(new InputStreamReader(is,
                 StandardCharsets.UTF_8)).lines();
         if (isCsv)
             putAll(parseCsvMap(lines));
         else
             putAll(parseMap(lines));
+        log.info("TEMPLATE-MAP stream parsed");
+        log.info("Parsed " + this.size() + " key-value pairs");
     }
-
     private Map<String,String> parseMap(Stream<String> lines) {
         return lines.filter(s -> s.matches("^(.+?):.+"))
                 .collect(Collectors.toMap(k -> k.split(":")[0], v -> v.substring(v.indexOf(":") + 1)));

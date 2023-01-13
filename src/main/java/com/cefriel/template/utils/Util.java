@@ -107,22 +107,6 @@ public class Util {
         else throw new IllegalArgumentException("A FORMATTER for FORMAT: " + format + " is not supported");
     }
 
-    public static TemplateMap createTemplateMap(String filePath, boolean isCsv) throws IOException {
-        TemplateMap templateMap = new TemplateMap();
-        templateMap.parseMap(filePath, isCsv);
-        log.info(filePath + " parsed");
-        log.info("Parsed " + templateMap.size() + " key-value pairs");
-        return templateMap;
-    }
-
-    public static TemplateMap createTemplateMap(InputStream fileContent, boolean isCsv) throws IOException {
-        TemplateMap templateMap = new TemplateMap();
-        templateMap.parseMap(fileContent, isCsv);
-        log.info("stream template map parsed");
-        log.info("Parsed " + templateMap.size() + " key-value pairs");
-        return templateMap;
-    }
-
     public static String generateRowId(Map<String, String> row, int number) {
         if (row != null)
             if (row.containsKey("id"))
@@ -149,24 +133,6 @@ public class Util {
     public static String inputStreamToString(InputStream input) throws IOException {
         return new String(input.readAllBytes(), StandardCharsets.UTF_8);
     }
-    public boolean validateInputFiles(List<String> inputFilesPaths, String format) {
-        if (validInputFormat(format)){
-            log.warn("FORMAT: " + format + " is not a supported input");
-            return false;
-        }
-
-        if(inputFilesPaths.size() == 0) {
-            log.warn("No input file is provided");
-            return false;
-        }
-
-        if(inputFilesPaths.size() > 1 && !format.equals("rdf")) {
-            log.warn("Multiple input files are supported only for rdf files");
-            return false;
-        }
-        return true;
-    }
-
     public static VelocityEngine createVelocityEngine(boolean templateInResources){
         VelocityEngine velocityEngine = new VelocityEngine();
         if (templateInResources) {
