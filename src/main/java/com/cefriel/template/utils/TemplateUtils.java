@@ -29,6 +29,7 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -356,9 +357,15 @@ public class TemplateUtils {
 
     public CSVReader getCSVReaderFromFile(String fileName) throws IOException {
         if (fileName != null) {
-            return new CSVReader(fileName);
+            File f = new File(fileName);
+
+            if (Files.exists(f.toPath())) {
+                return new CSVReader(f);
+            }
+            else
+                throw new IllegalArgumentException("FILE: " + fileName + " DOES NOT EXIST");
         }
-        return new CSVReader("");
+        throw new IllegalArgumentException("NO FILENAME SPECIFIED FOR CSVREADER");
     }
 
     public CSVReader getCSVReaderFromString(String s) throws Exception {
