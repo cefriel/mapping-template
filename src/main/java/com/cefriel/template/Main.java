@@ -32,7 +32,6 @@ import java.util.*;
 import static com.cefriel.template.utils.Util.validInputFormat;
 
 public class Main {
-
 	@Parameter(names={"--template","-t"})
 	private String templatePath = "template.vm";
 	// todo allow multiple input files but only support rdf, warn not supported for other formats
@@ -109,15 +108,19 @@ public class Main {
 			return false;
 		}
 
-		if(inputFilesPaths.size() == 0) {
-			log.warn("No input file is provided");
-			return false;
+		if(inputFilesPaths != null) {
+			if(inputFilesPaths.size() == 0) {
+				log.warn("No input file is provided");
+				return false;
+			}
+
+			if(inputFilesPaths.size() > 1 && !format.equals("rdf")) {
+				log.warn("Multiple input files are supported only for rdf files");
+				return false;
+			}
 		}
 
-		if(inputFilesPaths.size() > 1 && !format.equals("rdf")) {
-			log.warn("Multiple input files are supported only for rdf files");
-			return false;
-		}
+
 		return true;
 	}
 
@@ -125,12 +128,13 @@ public class Main {
 
 		Reader reader = null;
 		if (validateInputFiles(inputFilesPaths, inputFormat)) {
-			if (inputFormat.equals("rdf")) {
-				reader = Util.createRDFReader(inputFilesPaths, inputFormat, repositoryId, context, baseIri, verbose);
-			}
-			else {
-				String inputFilePath = inputFilesPaths.get(0);
-				reader = Util.createNonRdfReader(inputFilePath, inputFormat, verbose);
+			if (inputFormat != null) {
+				if (inputFormat.equals("rdf")) {
+					reader = Util.createRDFReader(inputFilesPaths, inputFormat, repositoryId, context, baseIri, verbose);
+				} else {
+					String inputFilePath = inputFilesPaths.get(0);
+					reader = Util.createNonRdfReader(inputFilePath, inputFormat, verbose);
+				}
 			}
 		}
 
@@ -145,17 +149,13 @@ public class Main {
 
 		TemplateExecutor tl = new TemplateExecutor();
 
-		TemplateMap templateMap = new TemplateMap();
+		TemplateMap templateMap = null;
 		if (keyValueCsvPath != null) {
-			templateMap = Util.createTemplateMap(keyValueCsvPath, true);
-			log.info(keyValueCsvPath + " parsed");
+			templateMap = new TemplateMap(keyValueCsvPath, true);
 		}
 		if (keyValuePairsPath != null) {
-			templateMap = Util.createTemplateMap(keyValuePairsPath, false);
-			log.info(keyValuePairsPath + " parsed");
+			templateMap = new TemplateMap(keyValuePairsPath, false);
 		}
-		if(templateMap.size() > 0)
-			log.info("Parsed " + templateMap.size() + " key-value pairs");
 
 		Formatter formatter = null;
 		if(format != null)
