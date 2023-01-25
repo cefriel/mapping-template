@@ -131,5 +131,4 @@
       <url>https://maven.pkg.github.com/cefriel/rdf-template</url>
     </repository>
   </distributionManagement>
-
 </project>
