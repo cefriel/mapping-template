@@ -123,7 +123,7 @@
     <repository>
       <id>github</id>
       <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/cefriel/mapping-template</url>
+      <url>https://maven.pkg.github.com/cefriel/rdf-template</url>
     </repository>
   </distributionManagement>
 
