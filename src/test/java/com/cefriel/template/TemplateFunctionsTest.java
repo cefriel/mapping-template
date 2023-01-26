@@ -1,6 +1,6 @@
 package com.cefriel.template;
 
-import com.cefriel.template.utils.TemplateUtils;
+import com.cefriel.template.utils.TemplateFunctions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TemplateUtilsTest {
+public class TemplateFunctionsTest {
 
     @Test
     public void splitColumnTest() {
@@ -21,7 +21,7 @@ public class TemplateUtilsTest {
         df.add(row1);
         df.add(row2);
 
-        var templateUtils = new TemplateUtils();
+        var templateUtils = new TemplateFunctions();
 
         df = templateUtils.splitColumn(df, "column", " ");
         for (var row: df) {

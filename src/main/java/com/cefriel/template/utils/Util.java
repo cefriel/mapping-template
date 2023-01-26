@@ -142,17 +142,21 @@ public class Util {
         return velocityEngine;
     }
 
-    public static VelocityContext createVelocityContext(Reader reader, TemplateMap templateMap) {
+    public static VelocityContext createVelocityContext(Reader reader, TemplateMap templateMap, TemplateFunctions templateFunctions) {
         VelocityContext context = new VelocityContext();
         if(reader != null) {
             context.put("reader", reader);
         }
-        context.put("functions", new TemplateUtils());
+        context.put("functions", templateFunctions);
 
         if (templateMap != null)
             context.put("map", templateMap);
 
         return context;
+    }
+
+    public static VelocityContext createVelocityContext(Reader reader, TemplateMap templateMap) {
+        return createVelocityContext(reader, templateMap, new TemplateFunctions());
     }
 
 

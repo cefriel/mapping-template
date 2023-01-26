@@ -17,7 +17,7 @@
 package com.cefriel.template;
 
 import com.cefriel.template.io.rdf.RDFReader;
-import com.cefriel.template.utils.TemplateUtils;
+import com.cefriel.template.utils.TemplateFunctions;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
@@ -26,7 +26,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -50,7 +49,7 @@ public class RDFReaderTests {
         TemplateExecutor executor = new TemplateExecutor();
         File template = new File(resolvePath(folder, "template.vm"));
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")));
-        String result = executor.executeMapping(reader,  template.getPath(), false, false,null, null);
+        String result = executor.executeMapping(reader,  template.getPath(), false, false,null, null, new TemplateFunctions());
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
         result = result.replaceAll("\\r\\n", "\n");
 
@@ -67,7 +66,7 @@ public class RDFReaderTests {
         File template = new File(resolvePath(folder, "template.vm"));
 
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")));
-        String result = executor.executeMapping(reader,  template.getPath(), false, false,null, null);
+        String result = executor.executeMapping(reader,  template.getPath(), false, false,null, null, new TemplateFunctions());
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
         result = result.replaceAll("\\r\\n", "\n");
@@ -82,7 +81,7 @@ public class RDFReaderTests {
         File template = new File(resolvePath(folder, "template.vm"));
 
         String queryPath = resolvePath(folder, "query.txt");
-        Map<String, String> output = executor.executeMappingParametric(reader, template.getPath(), false, false, queryPath, null, null);
+        Map<String, String> output = executor.executeMappingParametric(reader, template.getPath(), false, false, queryPath, null, null, new TemplateFunctions());
 
         for(String id : output.keySet()) {
             String expectedOutput = Files

@@ -160,21 +160,23 @@ public class Main {
 		if(format != null)
 			formatter = Util.createFormatter(format);
 
+		TemplateFunctions templateFunctions = new TemplateFunctions();
+
 		if(timePath != null)
 			try (FileWriter pw = new FileWriter(timePath, true)) {
 				long start = Instant.now().toEpochMilli();
 				if(queryPath != null)
-					tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter);
+					tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
 				else
-					tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter);
+					tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
 				long duration = Instant.now().toEpochMilli() - start;
 				pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
 			}
 		else{
 			if(queryPath != null)
-				tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter);
+				tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
 			else
-				tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter);
+				tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
 		}
 
 		if(reader != null)
