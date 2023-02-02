@@ -36,9 +36,9 @@ public class Main {
 	private String templatePath = "template.vm";
 	@Parameter(names={"--input","-i"},
 			variableArity = true)
-	private List<String> inputFilesPaths;
+	private List<String> inputFilesPaths = null;
 	@Parameter(names={"--input-format","-if"})
-	private String inputFormat;
+	private String inputFormat = null;
 	@Parameter(names={"--baseiri","-iri"})
 	private String baseIri = "http://www.cefriel.com/data/";
 	@Parameter(names={"--basepath","-b"})
@@ -102,6 +102,11 @@ public class Main {
 			timePath = basePath + timePath;
 	}
 	public boolean validateInputFiles(List<String> inputFilesPaths, String format) {
+		if (inputFilesPaths == null && inputFormat == null) {
+			//case when reader is created directly in the template
+			return true;
+		}
+
 		if (!validInputFormat(format)){
 			throw new IllegalArgumentException("FORMAT: " + format + " is not a supported input");
 		}
