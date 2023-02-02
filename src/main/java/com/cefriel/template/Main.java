@@ -102,30 +102,26 @@ public class Main {
 			timePath = basePath + timePath;
 	}
 	public boolean validateInputFiles(List<String> inputFilesPaths, String format) {
-		if (validInputFormat(format)){
-			log.warn("FORMAT: " + format + " is not a supported input");
-			return false;
+		if (!validInputFormat(format)){
+			throw new IllegalArgumentException("FORMAT: " + format + " is not a supported input");
 		}
 
 		if(inputFilesPaths != null) {
 			if(inputFilesPaths.size() == 0) {
-				log.warn("No input file is provided");
-				return false;
+				throw new IllegalArgumentException("No input file is provided");
 			}
 
 			if(inputFilesPaths.size() > 1 && !format.equals("rdf")) {
-				log.warn("Multiple input files are supported only for rdf files");
-				return false;
+				throw new IllegalArgumentException("Multiple input files are supported only for rdf files");
 			}
 		}
-
-
 		return true;
 	}
 
 	public void exec() throws Exception {
 
 		Reader reader = null;
+
 		if (validateInputFiles(inputFilesPaths, inputFormat)) {
 			if (inputFormat != null) {
 				if (inputFormat.equals("rdf")) {
