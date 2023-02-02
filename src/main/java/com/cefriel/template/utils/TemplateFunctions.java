@@ -349,7 +349,7 @@ public class TemplateFunctions {
         }
         return new JSONReader("");
     }
-
+    // todo for all methods read from file update the filename with the basepath
     public CSVReader getCSVReaderFromFile(String fileName) throws IOException {
         File f = new File(fileName);
         return new CSVReader(f);
