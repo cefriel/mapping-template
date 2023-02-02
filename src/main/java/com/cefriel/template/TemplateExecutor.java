@@ -137,7 +137,7 @@ public class TemplateExecutor {
 	}
 
 	// STREAM OPTIONS
-
+	// todo add templateFunctions param
 	// non-parametric return string result
 		public String executeMapping(Reader reader, InputStream template, TemplateMap templateMap, Formatter formatter) throws Exception {
 			VelocityContext velocityContext = Util.createVelocityContext(reader, templateMap);
