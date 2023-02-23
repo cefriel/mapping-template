@@ -36,12 +36,19 @@ public class Util {
     }
     public static Reader createNonRdfReaderFromInput(String input, String format, boolean verbose) throws Exception {
         if (validInputFormat(format)) {
-            Reader reader = switch (format) {
-                case "xml" -> new XMLReader(input);
-                case "json" -> new JSONReader(input);
-                case "csv" -> new CSVReader(input);
-                default -> throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
-            };
+            Reader reader = null;
+            if (format.equals("xml")) {
+                reader = new XMLReader(input);
+            }
+            else if (format.equals("json")) {
+                reader = new JSONReader(input);
+            }
+            else if (format.equals("csv")) {
+                reader = new CSVReader(input);
+            }
+            else
+                throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
+
             reader.setVerbose(verbose);
             return reader;
         }
@@ -50,12 +57,19 @@ public class Util {
     public static Reader createNonRdfReader(String filePath, String format, boolean verbose) throws Exception {
         if (validInputFormat(format)) {
             File f = new File(filePath);
-            Reader reader = switch (format) {
-                case "xml" -> new XMLReader(f);
-                case "json" -> new JSONReader(f);
-                case "csv" -> new CSVReader(f);
-                default -> throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
-            };
+            Reader reader = null;
+            if (format.equals("xml")) {
+                reader = new XMLReader(f);
+            }
+            else if (format.equals("json")) {
+                reader = new JSONReader(f);
+            }
+            else if (format.equals("csv")) {
+                reader = new CSVReader(f);
+            }
+            else
+                throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
+
             reader.setVerbose(verbose);
             return reader;
         }
@@ -94,14 +108,24 @@ public class Util {
 
     public static Formatter createFormatter(String format) {
         if (validFormatterFormat(format)) {
-            return switch (format) {
-                case "xml" -> new XMLFormatter();
-                case "turtle" -> new RDFFormatter(RDFFormat.TURTLE);
-                case "rdfxml" -> new RDFFormatter(RDFFormat.RDFXML);
-                case "nt" -> new RDFFormatter(RDFFormat.NTRIPLES);
-                case "jsonld" -> new RDFFormatter(RDFFormat.JSONLD);
-                default -> throw new IllegalArgumentException("A FORMATTER for FORMAT: " + format + " is not supported");
-            };
+            if (format.equals("xml")) {
+                return new XMLFormatter();
+            }
+            else if (format.equals("turtle")) {
+                return new RDFFormatter(RDFFormat.TURTLE);
+            }
+            else if (format.equals("rdfxml")) {
+                return new RDFFormatter(RDFFormat.RDFXML);
+            }
+            else if (format.equals("nt")) {
+                return new RDFFormatter(RDFFormat.NTRIPLES);
+            }
+            else if (format.equals("jsonld")) {
+                return new RDFFormatter(RDFFormat.JSONLD);
+            }
+            else {
+                throw new IllegalArgumentException("A FORMATTER for FORMAT: " + format + " is not supported");
+            }
         }
         else throw new IllegalArgumentException("A FORMATTER for FORMAT: " + format + " is not supported");
     }
