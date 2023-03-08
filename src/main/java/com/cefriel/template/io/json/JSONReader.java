@@ -71,8 +71,13 @@ public class JSONReader implements Reader {
             for(String key : keys) {
                 String path = JsonPath.read(queryDoc, "$.paths." + key);
                 List<Object> objects = JsonPath.read(document, iterator + "." + path);
+
                 for(int i=0; i< objects.size(); i++)
-                    output.get(i).put(key, objects.get(i).toString());
+                    if (objects.get(i) != null)
+                        output.get(i).put(key, objects.get(i).toString());
+                    else
+                        output.get(i).put(key, "null");
+
             }
         } catch (Exception e) {
             Map<String, String> map = new HashMap<>();
