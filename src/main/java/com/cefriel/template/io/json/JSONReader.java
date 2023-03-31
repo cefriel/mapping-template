@@ -20,6 +20,7 @@ import com.cefriel.template.io.Reader;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.PathNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,20 +65,34 @@ public class JSONReader implements Reader {
         String iterator = JsonPath.read(queryDoc, "$.iterator");
         Set<String> keys = JsonPath.read(queryDoc, "$.paths.keys()");
         List<Map<String, String>> output = new ArrayList<>();
+        Configuration conf = Configuration.builder().options(Option.AS_PATH_LIST).build();
         try {
-            List<String> results = JsonPath.read(document, iterator);
+            List<String> results = JsonPath.using(conf).parse(document).read(iterator);
             for (int i=0; i< results.size(); i++)
                 output.add(new HashMap<>());
             for(String key : keys) {
                 String path = JsonPath.read(queryDoc, "$.paths." + key);
                 List<Object> objects = JsonPath.read(document, iterator + "." + path);
 
-                for(int i=0; i< objects.size(); i++)
-                    if (objects.get(i) != null)
-                        output.get(i).put(key, objects.get(i).toString());
-                    else
-                        output.get(i).put(key, "null");
-
+                if(objects.size() == results.size()) {
+                    for(int i=0; i< objects.size(); i++) {
+                        String value = objects.get(i) == null ? "null" : objects.get(i).toString();
+                        output.get(i).put(key, value);
+                    }
+                }
+                else {
+                    for(int i=0; i< results.size();i++) {
+                        String topPath = results.get(i);
+                        try {
+                            var x = JsonPath.read(document, topPath + "." + path);
+                            var value = x == null ? "null" : x.toString();
+                            output.get(i).put(key, value);
+                        } catch (PathNotFoundException pe) {
+                            // what happens when the path is not found? i.e. the item does not have the searched for field
+                            output.get(i).put(key, "null");
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
             Map<String, String> map = new HashMap<>();
