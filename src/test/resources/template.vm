@@ -1,0 +1,24 @@
+#set ($quantities = $reader.getDataframe('{
+ "iterator": "$.[*]",
+ "paths":
+ {"id": "fields.id",
+ "time": "fields.datetime",
+ "travelTime": "fields.traveltime",
+ "travelTimeReliability": "fields.traveltimereliability",
+ "averageVehicleSpeed": "fields.averagevehiclespeed",
+ "trafficStatus": "fields.trafficstatus",
+ "predefinedLocationReference": "fields.predefinedlocationreference",
+ "datetime": "fields.datetime",
+ "denomination": "fields.denomination",
+ "coordinates": "fields.geo_shape.coordinates"}}'))
+
+## If the attribute is not present then it becomes the value of the first
+## item after that has the attribute.
+
+#foreach($q in $quantities)
+#if ($q.predefinedLocationReference == "491126_D")
+found it: $q.denomination
+#else
+did not find it
+#end
+#end

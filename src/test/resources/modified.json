@@ -1,0 +1,1207 @@
+[{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "655538fefce5dd82fe3c5f1e3a08cc3457a60a80",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 4,
+			"predefinedlocationreference": "213972_D",
+			"averagevehiclespeed": 64,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_44d8",
+			"trafficstatus": "freeFlow",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.116190538539584,
+				-1.718545510658931
+			],
+			"id": 172,
+			"denomination": "Rue de Vezin",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.718007098789906,
+							48.116206297385425
+						],
+						[
+							-1.719083922527956,
+							48.116174779693736
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.718545510658931,
+				48.116190538539584
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "9c9bfc8791f9e45d780c7a40c28df09aab42b1bf",
+		"fields": {
+			"traveltimereliability": 75,
+			"traveltime": 6,
+			"predefinedlocationreference": "213972_G",
+			"averagevehiclespeed": 46,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_44d9",
+			"trafficstatus": "freeFlow",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.116082711620635,
+				-1.7185384723316957
+			],
+			"id": 173,
+			"denomination": "Rue de Vezin",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.71907688307834,
+							48.11606695280734
+						],
+						[
+							-1.718000061585052,
+							48.116098470433926
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.7185384723316957,
+				48.116082711620635
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "8a20b5098cf8a9e725518e4ddf1a63302b2c2e66",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 10,
+			"predefinedlocationreference": "213973_D",
+			"averagevehiclespeed": 37,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_44da",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.11622625426335,
+				-1.717330731272104
+			],
+			"id": 174,
+			"denomination": "Rue de Vezin",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.71665504853073,
+							48.11624699966081
+						],
+						[
+							-1.717879635223885,
+							48.11620932565337
+						],
+						[
+							-1.718006435982263,
+							48.11620631494743
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.717330731272104,
+				48.11622625426335
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "1ecec7f0669c51a55423faeb02efadcf3e147652",
+		"fields": {
+			"traveltimereliability": 75,
+			"traveltime": 9,
+			"predefinedlocationreference": "213973_G",
+			"averagevehiclespeed": 40,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_44db",
+			"trafficstatus": "freeFlow",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.116118412673465,
+				-1.717324177434383
+			],
+			"id": 175,
+			"denomination": "Rue de Vezin",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.718000724390494,
+							48.11609845286301
+						],
+						[
+							-1.717873502015261,
+							48.116101473572996
+						],
+						[
+							-1.717872658430409,
+							48.11610149656887
+						],
+						[
+							-1.716647652585057,
+							48.1161391834751
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.717324177434383,
+				48.116118412673465
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "1a95d8b6ac6f1564b7832f8d368976acbf03c091",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 3,
+			"predefinedlocationreference": "213974_D",
+			"averagevehiclespeed": 58,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_44dc",
+			"trafficstatus": "freeFlow",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.116187195570035,
+				-1.719459815131283
+			],
+			"id": 176,
+			"denomination": "Rue de Vezin",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.719076505041933,
+							48.11617476802926
+						],
+						[
+							-1.719843125220633,
+							48.1161996231108
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.719459815131283,
+				48.116187195570035
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "c48fcca4b912fd9191b2dc51ca7d7be5fe533198",
+		"fields": {
+			"traveltimereliability": 75,
+			"traveltime": 4,
+			"predefinedlocationreference": "213974_G",
+			"averagevehiclespeed": 55,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_44dd",
+			"trafficstatus": "freeFlow",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.11607939198688,
+				-1.719467609839692
+			],
+			"id": 177,
+			"denomination": "Rue de Vezin",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.719850919130509,
+							48.11609181950198
+						],
+						[
+							-1.719084300548875,
+							48.11606696447176
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.719467609839692,
+				48.11607939198688
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "e9716cff4510f475ec3289baf871ca3d3a0b2e2b",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 5,
+			"predefinedlocationreference": "282910_D",
+			"averagevehiclespeed": 39,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_451e",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.141660552939385,
+				-1.6574809651641385
+			],
+			"id": 242,
+			"denomination": "Avenue sto cazzo",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.657539750321508,
+							48.14143198093755
+						],
+						[
+							-1.657513760393525,
+							48.14156513752106
+						],
+						[
+							-1.657411317494408,
+							48.14188634263867
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6574809651641385,
+				48.141660552939385
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "8b9b6096e11813c5d4a9606a62f1ba9059638855",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 4,
+			"predefinedlocationreference": "282910_G",
+			"averagevehiclespeed": 42,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_451f",
+			"trafficstatus": "freeFlow",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.14167884717323,
+				-1.6576399122546426
+			],
+			"id": 243,
+			"denomination": "Avenue sto cazzo",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.657569023798681,
+							48.14190887354111
+						],
+						[
+							-1.657672142786964,
+							48.1415855454831
+						],
+						[
+							-1.657673239912568,
+							48.14158127034615
+						],
+						[
+							-1.657699649521049,
+							48.14144596139231
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6576399122546426,
+				48.14167884717323
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "8d460b98b315fc5104459aa11236dfae6202cf0e",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 7,
+			"predefinedlocationreference": "420870_D",
+			"averagevehiclespeed": 37,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_4688",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.096217086804884,
+				-1.6400969487792443
+			],
+			"id": 604,
+			"denomination": "Rue de Ch�teaugiron",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.640487472150013,
+							48.0964262547015
+						],
+						[
+							-1.639706425408475,
+							48.096007918908285
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6400969487792443,
+				48.096217086804884
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "e24857ef264029217bb8e98a7f824eac01d68e2f",
+		"fields": {
+			"traveltimereliability": 70,
+			"traveltime": 16,
+			"predefinedlocationreference": "420870_G",
+			"averagevehiclespeed": 16,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_4689",
+			"trafficstatus": "congested",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.09630138474286,
+				-1.6399963345247905
+			],
+			"id": 605,
+			"denomination": "Rue de Ch�teaugiron",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.639605810917391,
+							48.09609221650871
+						],
+						[
+							-1.64038685813219,
+							48.096510552977
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6399963345247905,
+				48.09630138474286
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "3da213b71eeddbe686f9ebe6d00b40f491bf0def",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 8,
+			"predefinedlocationreference": "45029_D",
+			"averagevehiclespeed": 45,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_4825",
+			"trafficstatus": "freeFlow",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.12907396163776,
+				-1.6449493209912638
+			],
+			"id": 1017,
+			"denomination": "Rue de Foug�res",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.645518715400173,
+							48.12892718076739
+						],
+						[
+							-1.644379926582355,
+							48.12922074250812
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6449493209912638,
+				48.12907396163776
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "0d9df72bf488754db74fe92f1b443b5f328ddea9",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 10,
+			"predefinedlocationreference": "45029_G",
+			"averagevehiclespeed": 34,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_4826",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.12917468209079,
+				-1.64500725414835
+			],
+			"id": 1018,
+			"denomination": "Rue de Foug�res",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.64443785878594,
+							48.12932146324021
+						],
+						[
+							-1.64557664951076,
+							48.12902790094138
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.64500725414835,
+				48.12917468209079
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "7d08d2b9c63fa47c1e3f5bf2f6468a47952e2252",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 7,
+			"predefinedlocationreference": "45614_D",
+			"averagevehiclespeed": 32,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_4894",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.098100363087845,
+				-1.643518771743868
+			],
+			"id": 1128,
+			"denomination": "Rue de Ch�teaugiron",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.643837925726607,
+							48.09828956160665
+						],
+						[
+							-1.643311433542297,
+							48.09797716942412
+						],
+						[
+							-1.643310536204887,
+							48.09797664486399
+						],
+						[
+							-1.64319891731903,
+							48.097912362709664
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.643518771743868,
+				48.098100363087845
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "1a75cd18e03cf390e70178e332736e71e9d4f4b8",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 6,
+			"predefinedlocationreference": "45614_G",
+			"averagevehiclespeed": 36,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_4895",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.098181684771674,
+				-1.6434128326963924
+			],
+			"id": 1129,
+			"denomination": "Rue de Ch�teaugiron",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.643093877936068,
+							48.09799420450367
+						],
+						[
+							-1.643205045305317,
+							48.09805822669918
+						],
+						[
+							-1.64373109189205,
+							48.098370354863945
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6434128326963924,
+				48.098181684771674
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "2021c7b6ccb178dc0ac7a63341d13adb1ccc3ce1",
+		"fields": {
+			"traveltimereliability": 57,
+			"traveltime": 5,
+			"predefinedlocationreference": "46335_D",
+			"averagevehiclespeed": 28,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_48e7",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.09716622947887,
+				-1.6889791665716736
+			],
+			"id": 1211,
+			"denomination": "Rue de Nantes",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.688910266429143,
+							48.09728914601625
+						],
+						[
+							-1.689048066714204,
+							48.097043312941494
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6889791665716736,
+				48.09716622947887
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "90670f7d227b8bf96fb0cf3774dd995c354ef928",
+		"fields": {
+			"traveltimereliability": 75,
+			"traveltime": 3,
+			"predefinedlocationreference": "46335_G",
+			"averagevehiclespeed": 38,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_48e8",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.09712828861602,
+				-1.6888283303357379
+			],
+			"id": 1212,
+			"denomination": "Rue de Nantes",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.688897230793344,
+							48.09700537216771
+						],
+						[
+							-1.688759429878132,
+							48.09725120506433
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6888283303357379,
+				48.09712828861602
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "0db453ae325e07c2533a75f61e7e4a23e87bc3ba",
+		"fields": {
+			"traveltimereliability": 75,
+			"traveltime": 1,
+			"predefinedlocationreference": "46923_D",
+			"averagevehiclespeed": 42,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_492a",
+			"trafficstatus": "freeFlow",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.140513774026324,
+				-1.657683470612478
+			],
+			"id": 1278,
+			"denomination": "Avenue sto cazzo",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.65768972746502,
+							48.140472647263884
+						],
+						[
+							-1.657677213759936,
+							48.14055490078876
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.657683470612478,
+				48.140513774026324
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "d82ba6343b511fd8f7b91c1f2e1e9ad60d5bbb47",
+		"fields": {
+			"traveltimereliability": 75,
+			"traveltime": 1,
+			"predefinedlocationreference": "46923_G",
+			"averagevehiclespeed": 32,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_492b",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.140524707359255,
+				-1.657843896007605
+			],
+			"id": 1279,
+			"denomination": "Avenue sto cazzo",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.657837639281597,
+							48.1405658341303
+						],
+						[
+							-1.657850152733612,
+							48.14048358058821
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.657843896007605,
+				48.140524707359255
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "de0ec089fe2f501e8bf9a80a00b6e2faaf70884b",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 5,
+			"predefinedlocationreference": "489866_D",
+			"averagevehiclespeed": 32,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_4981",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.09588444267391,
+				-1.639473236283743
+			],
+			"id": 1365,
+			"denomination": "Rue de Ch�teaugiron",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.639706425408475,
+							48.096007918908285
+						],
+						[
+							-1.639409939389325,
+							48.0958491151126
+						],
+						[
+							-1.639407140453924,
+							48.09584768201195
+						],
+						[
+							-1.639238009422866,
+							48.095764944614054
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.639473236283743,
+				48.09588444267391
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "1712232f1f3027b926362ae200aaed2619cf36c4",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 11,
+			"predefinedlocationreference": "489866_G",
+			"averagevehiclespeed": 15,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_4982",
+			"trafficstatus": "congested",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.095970200949274,
+				-1.6393754062687125
+			],
+			"id": 1366,
+			"denomination": "Rue de Ch�teaugiron",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.639142992496741,
+							48.0958521080235
+						],
+						[
+							-1.63931070079602,
+							48.09593414950963
+						],
+						[
+							-1.639605810917391,
+							48.09609221650871
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6393754062687125,
+				48.095970200949274
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "1c12bbcea14b97464c429a2ff27becd2efb0b364",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 2,
+			"predefinedlocationreference": "490194_D",
+			"averagevehiclespeed": 31,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_4989",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.094558194174205,
+				-1.6981886444124403
+			],
+			"id": 1373,
+			"denomination": "Boulevard Jean Mermoz",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.698072354942744,
+							48.09461441554711
+						],
+						[
+							-1.698304933882137,
+							48.0945019728013
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6981886444124403,
+				48.094558194174205
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "5aa9ca38a912e83f76a6eaae78a73b2bc5d18fd1",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 2,
+			"predefinedlocationreference": "490194_G",
+			"averagevehiclespeed": 36,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_498a",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.09447067465428,
+				-1.698094362052319
+			],
+			"id": 1374,
+			"denomination": "Boulevard Jean Mermoz",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.698210651427589,
+							48.094414453375634
+						],
+						[
+							-1.697978072677048,
+							48.09452689593293
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.698094362052319,
+				48.09447067465428
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "52074ff2a9a5ba8345067707e9d88f28b8a5e149",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 17,
+			"predefinedlocationreference": "490828_D",
+			"averagevehiclespeed": 37,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_4999",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.135009319110885,
+				-1.627027483662111
+			],
+			"id": 1389,
+			"denomination": "Route de Foug�res",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.62779573237276,
+							48.134617545104376
+						],
+						[
+							-1.62659327544499,
+							48.13522949350398
+						],
+						[
+							-1.626591954035845,
+							48.135230180579484
+						],
+						[
+							-1.626261606569218,
+							48.13540565402587
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.627027483662111,
+				48.135009319110885
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "e8856f30deb475d5ecd3e108ab7b486a20315b93",
+		"fields": {
+			"traveltimereliability": 57,
+			"traveltime": 19,
+			"predefinedlocationreference": "490828_G",
+			"averagevehiclespeed": 32,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_499a",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.13509455767855,
+				-1.6271263936069378
+			],
+			"id": 1390,
+			"denomination": "Route de Foug�res",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.626361833459056,
+							48.13549019854528
+						],
+						[
+							-1.626691525739415,
+							48.135315072941566
+						],
+						[
+							-1.627893317488605,
+							48.13470346248419
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6271263936069378,
+				48.13509455767855
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "4c8d10544d1021c22bddc693cfaa680e81314ec0",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 3,
+			"predefinedlocationreference": "491005_D",
+			"averagevehiclespeed": 45,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_49a1",
+			"trafficstatus": "freeFlow",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.12928390416651,
+				-1.644134900245083
+			],
+			"id": 1397,
+			"denomination": "Rue de Foug�res",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.644379926582355,
+							48.12922074250812
+						],
+						[
+							-1.643889873907811,
+							48.129347065824916
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.644134900245083,
+				48.12928390416651
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "086a50ddfccf14f6d3e9a1be66447b1cb28f0d9d",
+		"fields": {
+			"traveltimereliability": 60,
+			"traveltime": 4,
+			"predefinedlocationreference": "491005_G",
+			"averagevehiclespeed": 34,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"gml_id": "v_rva_troncon_fcd.fid-722fb9f8_184c264cda5_49a2",
+			"trafficstatus": "heavy",
+			"func_class": 666,
+			"geo_point_2d": [
+				48.12938462502473,
+				-1.6441928320485109
+			],
+			"id": 1398,
+			"denomination": "Rue de Foug�res",
+			"geo_shape": {
+				"coordinates": [
+					[
+						[
+							-1.643947805311082,
+							48.129447786809244
+						],
+						[
+							-1.64443785878594,
+							48.12932146324021
+						]
+					]
+				],
+				"type": "MultiLineString"
+			}
+		},
+		"geometry": {
+			"type": "Point",
+			"coordinates": [
+				-1.6441928320485109,
+				48.12938462502473
+			]
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+	{
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "ac9528741c716df33776db69a0f5c11a4ea504b8",
+		"fields": {
+			"traveltimereliability": 93,
+			"traveltime": 30,
+			"predefinedlocationreference": "491126_D",
+			"averagevehiclespeed": 14,
+			"datetime": "2022-11-29T16:00:00+01:00",
+			"trafficstatus": "congested"
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	},
+ {
+		"datasetid": "etat-du-trafic-en-temps-reel",
+		"recordid": "ac9528741c716df33776db69a0f5c11a4ea504b8",
+		"fields": {
+			"traveltimereliability": 93,
+			"traveltime": 30,
+			"predefinedlocationreference": "4126_D",
+			"averagevehiclespeed": 14,
+			"datetime": "2022-11-29T16:00:00+01:00",
+		       "trafficstatus": "congested",
+		    "denomination": "Sto cazzo"
+		},
+		"record_timestamp": "2022-11-29T16:04:00.792+01:00"
+	}
+ 
+]
