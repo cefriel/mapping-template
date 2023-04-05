@@ -65,8 +65,10 @@ public class JSONReader implements Reader {
         String iterator = JsonPath.read(queryDoc, "$.iterator");
         Set<String> keys = JsonPath.read(queryDoc, "$.paths.keys()");
         List<Map<String, String>> output = new ArrayList<>();
+        // config to get results as jsonPaths
         Configuration conf = Configuration.builder().options(Option.AS_PATH_LIST).build();
         try {
+            // Extract paths for each node identified by the iterator
             List<String> results = JsonPath.using(conf).parse(document).read(iterator);
             for (int i=0; i< results.size(); i++)
                 output.add(new HashMap<>());
@@ -74,12 +76,17 @@ public class JSONReader implements Reader {
                 String path = JsonPath.read(queryDoc, "$.paths." + key);
                 List<Object> objects = JsonPath.read(document, iterator + "." + path);
 
+                // CASE 1, all the nodes identified by the iterator have the key (sub field)
+                // A single query to extract all values for the key
                 if(objects.size() == results.size()) {
                     for(int i=0; i< objects.size(); i++) {
                         String value = objects.get(i) == null ? "null" : objects.get(i).toString();
                         output.get(i).put(key, value);
                     }
                 }
+                // CASE 2, not all nodes have the key (sub field)
+                // For each node a query is executed to get the value for the key (sub field)
+                // The subquery is composed of the jsonpath for the node and the specific key (sub field)
                 else {
                     for(int i=0; i< results.size();i++) {
                         String topPath = results.get(i);
@@ -88,8 +95,9 @@ public class JSONReader implements Reader {
                             var value = x == null ? "null" : x.toString();
                             output.get(i).put(key, value);
                         } catch (PathNotFoundException pe) {
-                            // what happens when the path is not found? i.e. the item does not have the searched for field
-                            output.get(i).put(key, "null");
+                            // what happens when the path is not found? i.e. the item does not have the field the jsonPath is pointing to
+                            // for now we do not put the key in the map
+                            log.warn("PATH NOT FOUND: " + topPath + "." + path);
                         }
                     }
                 }

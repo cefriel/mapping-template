@@ -24,5 +24,5 @@
 24: id 1390 denomination Route de Foug�res
 25: id 1397 denomination Rue de Foug�res
 26: id 1398 denomination Rue de Foug�res
-27: id null denomination null
-28: id null denomination boh
+27: id $q.id denomination $q.denomination
+28: id $q.id denomination boh
