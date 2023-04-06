@@ -13,6 +13,9 @@ import org.apache.lucene.analysis.util.ClasspathResourceLoader;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.tools.generic.DateTool;
+import org.apache.velocity.tools.generic.MathTool;
+import org.apache.velocity.tools.generic.NumberTool;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -172,6 +175,10 @@ public class Util {
             context.put("reader", reader);
         }
         context.put("functions", templateFunctions);
+        // apache velocity generic tools
+        context.put("math", new MathTool());
+        context.put("number", new NumberTool());
+        context.put("date", new DateTool());
 
         if (templateMap != null)
             context.put("map", templateMap);
