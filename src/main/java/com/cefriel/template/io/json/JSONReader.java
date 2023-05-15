@@ -36,7 +36,7 @@ public class JSONReader implements Reader {
     private final Logger log = LoggerFactory.getLogger(JSONReader.class);
     Object document;
 
-    public JSONReader(String json) throws FileNotFoundException {
+    public JSONReader(String json) {
         Configuration conf = Configuration.defaultConfiguration()
                 .addOptions(Option.ALWAYS_RETURN_LIST);
 
