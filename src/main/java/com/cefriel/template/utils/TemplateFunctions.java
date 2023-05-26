@@ -230,13 +230,14 @@ public class TemplateFunctions {
      * @param key Key to be used to access the map
      * @param <K> Type for keys in the map
      * @param <V> Type for values in the map
+     * @param defaultValue Value to return when key is not found in map. Defaults to null if not passed as parameter.
      * @return The value of type {@code V} associated with {@code key} in the map
      */
+    public <K,V> V getMapValue(Map<K, V> map, K key, V defaultValue){
+        return checkMap(map, key) ? map.get(key) : defaultValue;
+    }
     public <K,V> V getMapValue(Map<K, V> map, K key){
-        if (checkMap(map, key))
-            return map.get(key);
-        else
-            return null;
+        return getMapValue(map, key, null);
     }
 
     /**
@@ -349,7 +350,7 @@ public class TemplateFunctions {
         }
         return new JSONReader("");
     }
-    // todo for all methods read from file update the filename with the basepath
+
     public CSVReader getCSVReaderFromFile(String fileName) throws IOException {
         File f = new File(fileName);
         return new CSVReader(f);
