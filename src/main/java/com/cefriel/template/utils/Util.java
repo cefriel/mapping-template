@@ -14,7 +14,6 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.tools.generic.DateTool;
-import org.apache.velocity.tools.generic.EscapeTool;
 import org.apache.velocity.tools.generic.MathTool;
 import org.apache.velocity.tools.generic.NumberTool;
 import org.eclipse.rdf4j.repository.Repository;
@@ -180,7 +179,6 @@ public class Util {
         context.put("math", new MathTool());
         context.put("number", new NumberTool());
         context.put("date", new DateTool());
-        context.put("esc", new EscapeTool());
 
         if (templateMap != null)
             context.put("map", templateMap);
