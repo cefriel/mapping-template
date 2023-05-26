@@ -21,6 +21,7 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.PathNotFoundException;
+import net.minidev.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,13 +80,13 @@ public class JSONReader implements Reader {
                 // objects can either be a list of objects or a single object(string)
                 // if it is a single object then in the output list i have only one item
 
-                if (!(objects instanceof Collections)) {
+                if (!(objects instanceof JSONArray)) {
                     String value = objects == null ? "null" : objects.toString();
                     output.get(0).put(key,value);
                 }
 
                 else {
-                    List<Objects> objectsList = (List<Objects>) objects;
+                    JSONArray objectsList = (JSONArray) objects;
                     // CASE 1, all the nodes identified by the iterator have the key (sub field)
                     // A single query to extract all values for the key
                     if (objectsList.size() == results.size()) {
