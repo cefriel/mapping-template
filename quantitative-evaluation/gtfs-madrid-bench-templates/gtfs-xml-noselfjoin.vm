@@ -169,13 +169,13 @@ return map {
 
 ## CALENDAR DATES
 #foreach($service_id in $mCalendarDates.keySet())
- ex:metro\/services\/${row.service_id} gtfs:serviceRule ex:metro\/calendar_date_rule\/${row.service_id}-${row.date} .
+ ex:metro\/services\/${service_id} a gtfs:Service .
 #end
 
 #foreach($row in $calendarDatesData)
- ex:metro\/calendar_date_rule\/${row.service_id}-${row.date} a gtfs:CalendarDateRule ;
+ ex:metro\/services\/${row.service_id} gtfs:serviceRule ex:metro\/calendar_date_rule\/${row.service_id}-${row.date} .
 
- ex:metro\/calendar_date_rule\/${row.service_id} a gtfs:CalendarDateRule ;
+ ex:metro\/calendar_date_rule\/${row.service_id}-${row.date} a gtfs:CalendarDateRule ;
  dct:date "$row.date"^^xsd:date ;
  gtfs:dateAddition "$row.exception_type"^^xsd:boolean .
 #end
