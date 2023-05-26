@@ -1,18 +1,9 @@
-#set ($quantities = $reader.getDataframe('{
- "iterator": "$.[*]",
- "paths":
- {"id": "fields.id",
- "time": "fields.datetime",
- "travelTime": "fields.traveltime",
- "travelTimeReliability": "fields.traveltimereliability",
- "averageVehicleSpeed": "fields.averagevehiclespeed",
- "trafficStatus": "fields.trafficstatus",
- "predefinedLocationReference": "fields.predefinedlocationreference",
- "datetime": "fields.datetime",
- "denomination": "fields.denomination",
- "coordinates": "fields.geo_shape.coordinates"}}'))
-## If the attribute is not present then it becomes the value of the first
-## item after that has the attribute.
-#foreach($q in $quantities)
-$foreach.count: id $q.id denomination $q.denomination
+#set ($xs = $reader.getDataframe('{
+"iterator": "$.[*]",
+"paths":
+{"a": "a",
+"b": "b"}}'))
+##
+#foreach($x in $xs)
+$foreach.count: a $x.a b $x.b
 #end
