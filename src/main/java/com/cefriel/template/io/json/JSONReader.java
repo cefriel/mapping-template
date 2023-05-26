@@ -74,30 +74,41 @@ public class JSONReader implements Reader {
                 output.add(new HashMap<>());
             for(String key : keys) {
                 String path = JsonPath.read(queryDoc, "$.paths." + key);
-                List<Object> objects = JsonPath.read(document, iterator + "." + path);
+                Object objects = JsonPath.read(document, iterator + "." + path);
 
-                // CASE 1, all the nodes identified by the iterator have the key (sub field)
-                // A single query to extract all values for the key
-                if(objects.size() == results.size()) {
-                    for(int i=0; i< objects.size(); i++) {
-                        String value = objects.get(i) == null ? "null" : objects.get(i).toString();
-                        output.get(i).put(key, value);
-                    }
+                // objects can either be a list of objects or a single object(string)
+                // if it is a single object then in the output list i have only one item
+
+                if (!(objects instanceof Collections)) {
+                    String value = objects == null ? "null" : objects.toString();
+                    output.get(0).put(key,value);
                 }
-                // CASE 2, not all nodes have the key (sub field)
-                // For each node a query is executed to get the value for the key (sub field)
-                // The subquery is composed of the jsonpath for the node and the specific key (sub field)
+
                 else {
-                    for(int i=0; i< results.size();i++) {
-                        String topPath = results.get(i);
-                        try {
-                            var x = JsonPath.read(document, topPath + "." + path);
-                            var value = x == null ? "null" : x.toString();
+                    List<Objects> objectsList = (List<Objects>) objects;
+                    // CASE 1, all the nodes identified by the iterator have the key (sub field)
+                    // A single query to extract all values for the key
+                    if (objectsList.size() == results.size()) {
+                        for (int i = 0; i < objectsList.size(); i++) {
+                            String value = objectsList.get(i) == null ? "null" : objectsList.get(i).toString();
                             output.get(i).put(key, value);
-                        } catch (PathNotFoundException pe) {
-                            // what happens when the path is not found? i.e. the item does not have the field the jsonPath is pointing to
-                            // for now we do not put the key in the map
-                            log.warn("PATH NOT FOUND: " + topPath + "." + path);
+                        }
+                    }
+                    // CASE 2, not all nodes have the key (sub field)
+                    // For each node a query is executed to get the value for the key (sub field)
+                    // The subquery is composed of the jsonpath for the node and the specific key (sub field)
+                    else {
+                        for (int i = 0; i < results.size(); i++) {
+                            String topPath = results.get(i);
+                            try {
+                                var x = JsonPath.read(document, topPath + "." + path);
+                                var value = x == null ? "null" : x.toString();
+                                output.get(i).put(key, value);
+                            } catch (PathNotFoundException pe) {
+                                // what happens when the path is not found? i.e. the item does not have the field the jsonPath is pointing to
+                                // for now we do not put the key in the map
+                                log.warn("PATH NOT FOUND: " + topPath + "." + path);
+                            }
                         }
                     }
                 }
