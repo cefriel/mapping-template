@@ -2,30 +2,38 @@
 @prefix e: <http://myontology.com/> .
 @prefix dbo: <http://dbpedia.org/ontology/> .
 @prefix schema: <http://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 #set ($charReader = $functions.getCSVReaderFromFile("people.csv"))
 #set ($episodeReader = $functions.getCSVReaderFromFile("episodes.csv"))
-#set ($charDF = $charReader.getDataframe())
-#set ($episodeDF = $episodeReader.getDataframe())
-#set ($mEpisodeAppearences = $functions.getMap($episodeDF, "number"))
-##
-#foreach($ep in $episodeDF)
-ex:episode_$ep.number a schema:Episode .
-ex:episode_$ep.number schema:title "$ep.title" .
+#set ($characters = $charReader.getDataframe())
+#set ($episodes = $episodeReader.getDataframe())
+#set ($episodeAppearences = $functions.getMap($episodes, "number"))
 
+#foreach($ep in $episodes)
+ex:episode_$ep.number a schema:Episode ;
+    schema:title "$ep.title" .
 #end
-##
-#foreach($char in $charDF)
 
-ex:$char.id a schema:Person ex:Characters .
-ex:$char.id schema:givenName "$char.firstname" ex:Characters .
-ex:$char.id schema:lastName "$char.lastname" ex:Characters .
-ex:$char.id e:debutEpisode "$char.debutEpisode"^^xsd:integer ex:Characters .
-ex:$char.id dbo:hairColor "$char.hairColor.toUpperCase()"@en ex:Characters .
-#set($tEpisode = $functions.getMapValue($mEpisodeAppearences, $char.debutEpisode))
+#foreach($ch in $characters)
+ex:Characters {
+ex:$ch.id a schema:Person ;
+    schema:givenName "$ch.firstname" ;
+    schema:lastName "$ch.lastname" ;
+    e:debutEpisode "$ch.debutEpisode"^^xsd:int ;
+    dbo:hairColor "$ch.hairColor.toUpperCase()"@en .
+}
+
+ex:Episodes { ex:$ch.id e:debutEpisode "$ch.debutEpisode"^^xsd:integer . }
+
+#set($tEpisode = $functions.getMapValue($episodeAppearences, $ch.debutEpisode))
 #if($tEpisode.number) 
-ex:$char.id e:appearsIn ex:episode_$tEpisode.number ex:Characters .
-ex:$char.id e:appearsIn ex:episode_$tEpisode.number ex:Episodes .
+ex:Characters {
+ex:$ch.id e:appearsIn ex:episode_$tEpisode.number .
+}
+
+ex:Episodes {
+ex:$ch.id e:appearsIn ex:episode_$tEpisode.number .
+}
 #end
-ex:$char.id e:debutEpisode "$char.debutEpisode"^^xsd:integer ex:Episodes .
 #end

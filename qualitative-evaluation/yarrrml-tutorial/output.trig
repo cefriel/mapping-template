@@ -1,0 +1,63 @@
+@prefix ex: <http://www.example.com/> .
+@prefix e: <http://myontology.com/> .
+@prefix dbo: <http://dbpedia.org/ontology/> .
+@prefix schema: <http://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:episode_1 a schema:Episode ;
+    schema:title "Fairy Tail" .
+ex:episode_2 a schema:Episode ;
+    schema:title "The Fire Dragon, the Monkey, and the Ox" .
+ex:episode_3 a schema:Episode ;
+    schema:title "Infiltrate! The Everlue Mansion!" .
+ex:episode_4 a schema:Episode ;
+    schema:title "DEAR KABY" .
+
+ex:Characters {
+ex:0 a schema:Person ;
+    schema:givenName "Natsu" ;
+    schema:lastName "Dragneel" ;
+    e:debutEpisode "1"^^xsd:int ;
+    dbo:hairColor "PINK"@en .
+}
+ex:Episodes { ex:0 e:debutEpisode "1"^^xsd:integer . }
+ex:Characters { ex:0 e:appearsIn ex:episode_1 . }
+ex:Episodes { ex:0 e:appearsIn ex:episode_1 . }
+ex:Characters {
+ex:1 a schema:Person ;
+    schema:givenName "Gray" ;
+    schema:lastName "Fullbuster" ;
+    e:debutEpisode "2"^^xsd:int ;
+    dbo:hairColor "DARK BLUE"@en .
+}
+ex:Episodes { ex:1 e:debutEpisode "2"^^xsd:integer . }
+ex:Characters { ex:1 e:appearsIn ex:episode_2 . }
+ex:Episodes { ex:1 e:appearsIn ex:episode_2 . }
+ex:Characters {
+ex:2 a schema:Person ;
+    schema:givenName "Gajeel" ;
+    schema:lastName "Redfox" ;
+    e:debutEpisode "21"^^xsd:int ;
+    dbo:hairColor "BLACK"@en .
+}
+ex:Episodes { ex:2 e:debutEpisode "21"^^xsd:integer . }
+ex:Characters {
+ex:3 a schema:Person ;
+    schema:givenName "Lucy" ;
+    schema:lastName "Heartfilia" ;
+    e:debutEpisode "1"^^xsd:int ;
+    dbo:hairColor "BLONDE"@en .
+}
+ex:Episodes { ex:3 e:debutEpisode "1"^^xsd:integer . }
+ex:Characters { ex:3 e:appearsIn ex:episode_1 . }
+ex:Episodes { ex:3 e:appearsIn ex:episode_1 . }
+ex:Characters {
+ex:4 a schema:Person ;
+    schema:givenName "Erza" ;
+    schema:lastName "Scarlet" ;
+    e:debutEpisode "4"^^xsd:int ;
+    dbo:hairColor "SCARLET"@en .
+}
+ex:Episodes { ex:4 e:debutEpisode "4"^^xsd:integer . }
+ex:Characters { ex:4 e:appearsIn ex:episode_4 .}
+ex:Episodes { ex:4 e:appearsIn ex:episode_4 . }

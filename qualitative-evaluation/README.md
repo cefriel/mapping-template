@@ -261,31 +261,40 @@ can be converted to RDF with the following template:
 @prefix e: <http://myontology.com/> .
 @prefix dbo: <http://dbpedia.org/ontology/> .
 @prefix schema: <http://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-#set ($charReader = $functions.getCSVReaderFromFile("./join-example/people.csv"))
-#set ($episodeReader = $functions.getCSVReaderFromFile("./join-example/episodes.csv"))
-#set ($charDF = $charReader.getDataframe())
-#set ($episodeDF = $episodeReader.getDataframe())
-#set ($mEpisodeAppearences = $functions.getMap($episodeDF, "number"))
+#set ($charReader = $functions.getCSVReaderFromFile("people.csv"))
+#set ($episodeReader = $functions.getCSVReaderFromFile("episodes.csv"))
+#set ($characters = $charReader.getDataframe())
+#set ($episodes = $episodeReader.getDataframe())
+#set ($episodeAppearences = $functions.getMap($episodes, "number"))
 
-#foreach($ep in $episodeDF)
+#foreach($ep in $episodes)
 ex:episode_$ep.number a schema:Episode ;
     schema:title "$ep.title" .
 #end
 
-#foreach($char in $charDF)
-ex:$char.id a schema:Person ex:Characters ;
-    schema:givenName "$char.firstname" ex:Characters ;
-    schema:lastName "$char.lastname" ex:Characters .
-    e:debutEpisode "$char.debutEpisode"^^xsd:integer ex:Characters ;
-    dbo:hairColor "$char.hairColor.toUpperCase()"@en ex:Characters .
+#foreach($ch in $characters)
+ex:Characters {
+ex:$ch.id a schema:Person ;
+    schema:givenName "$ch.firstname" ;
+    schema:lastName "$ch.lastname" ;
+    e:debutEpisode "$ch.debutEpisode"^^xsd:int ;
+    dbo:hairColor "$ch.hairColor.toUpperCase()"@en .
+}
 
-#set($tEpisode = $functions.getMapValue($mEpisodeAppearences, $char.debutEpisode))
+ex:Episodes { ex:$ch.id e:debutEpisode "$ch.debutEpisode"^^xsd:integer . }
+
+#set($tEpisode = $functions.getMapValue($episodeAppearences, $ch.debutEpisode))
 #if($tEpisode.number) 
-ex:$char.id e:appearsIn ex:episode_$tEpisode.number ex:Characters .
-    e:appearsIn ex:episode_$tEpisode.number ex:Episodes .
+ex:Characters {
+ex:$ch.id e:appearsIn ex:episode_$tEpisode.number .
+}
+
+ex:Episodes {
+ex:$ch.id e:appearsIn ex:episode_$tEpisode.number .
+}
 #end
-ex:$char.id e:debutEpisode "$char.debutEpisode"^^xsd:integer ex:Episodes .
 #end
 ```
 
@@ -293,38 +302,39 @@ When multiple files are needed in a mapping they can be specified directly in th
 
 This example showcases how to produce RDF quads, the usage of functions, the specification of data types and language tags and the usage of joins.
 
-Quads can be produced by directly specifing to which graph the RDF triple belongs to.
+Quads can be produced by directly specifing to which graph the RDF triple belongs to. In this case we adopt the TriG RDF syntax.
 
 ``` {.vtl}
-ex:$char.id schema:givenName "$char.firstname" ex:Characters .
+ex:Characters { ex:$char.id schema:givenName "$char.firstname" . }
 ```
 
 ``` {.ttl}
-ex:0 schema:givenName "Natsu" ex:Characters .
+ex:Characters { ex:0 schema:givenName "Natsu" . }
 ```
 
 Datatypes and language tags are similarly directly expressed in the template.
 Note that to convert the hairColor string property to uppercase the Java function `toUpperCase()` can be used thanks to the [Apache Velocity template language (VTL)](https://velocity.apache.org/engine/2.3/user-guide.html).
 
 ``` {.vtl}
-ex:$char.id dbo:hairColor "$char.hairColor.toUpperCase()"@en ex:Characters .
+ex:$char.id dbo:hairColor "$char.hairColor.toUpperCase()"@en .
 ```
 
 ``` {.ttl}
-ex:0 dbo:hairColor "PINK"@en ex:Characters .
+ex:0 dbo:hairColor "PINK"@en .
 ```
 
 The join condition is expressed by:
 
 ``` {.vtl}
 ...
-#set ($mEpisodeAppearences = $functions.getMap($episodeDF, "number"))
+#set ($episodeAppearences = $functions.getMap($episodes, "number"))
 ...
 ...
 #set($tEpisode = $functions.getMapValue($mEpisodeAppearences, $char.debutEpisode))
 #if($tEpisode.number) 
-ex:$char.id e:appearsIn ex:episode_$tEpisode.number ex:Characters .
-ex:$char.id e:appearsIn ex:episode_$tEpisode.number ex:Episodes .
+ex:Characters { ex:$ch.id e:appearsIn ex:episode_$tEpisode.number . }
+
+ex:Episodes { ex:$ch.id e:appearsIn ex:episode_$tEpisode.number . }
 #end
 ```
 
@@ -336,17 +346,13 @@ The join operation is completed by retrieving the episode appearance of a charac
 From the command line, using the following command
 
 ``` {.bash org-language="sh"}
-java -jar mapping-template.jar -t template.vm -f n3 -o output.ttl
+java -jar mapping-template.jar -t template.vm -o output.trig
 ```
 
 which specifies the following parameters:
 
 `-t`
 :   The template to use in the mapping process.
-
-`-f`
-:   The format against which the output of the mapping process will be
-    validated against.
 
 `-o`
 :   The output file.
@@ -358,62 +364,65 @@ The following RDF output file is produced:
 @prefix e: <http://myontology.com/> .
 @prefix dbo: <http://dbpedia.org/ontology/> .
 @prefix schema: <http://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-ex:episode_1 a schema:Episode .
-ex:episode_1 schema:title "Fairy Tail" .
+ex:episode_1 a schema:Episode ;
+    schema:title "Fairy Tail" .
+ex:episode_2 a schema:Episode ;
+    schema:title "The Fire Dragon, the Monkey, and the Ox" .
+ex:episode_3 a schema:Episode ;
+    schema:title "Infiltrate! The Everlue Mansion!" .
+ex:episode_4 a schema:Episode ;
+    schema:title "DEAR KABY" .
 
-ex:episode_2 a schema:Episode .
-ex:episode_2 schema:title "The Fire Dragon, the Monkey, and the Ox" .
-
-ex:episode_3 a schema:Episode .
-ex:episode_3 schema:title "Infiltrate! The Everlue Mansion!" .
-
-ex:episode_4 a schema:Episode .
-ex:episode_4 schema:title "DEAR KABY" .
-
-
-ex:0 a schema:Person ex:Characters .
-ex:0 schema:givenName "Natsu" ex:Characters .
-ex:0 schema:lastName "Dragneel" ex:Characters .
-ex:0 e:debutEpisode "1"^^xsd:integer ex:Characters .
-ex:0 dbo:hairColor "PINK"@en ex:Characters .
-ex:0 e:appearsIn ex:episode_1 ex:Characters .
-ex:0 e:appearsIn ex:episode_1 ex:Episodes .
-ex:0 e:debutEpisode "1"^^xsd:integer ex:Episodes .
-
-ex:1 a schema:Person ex:Characters .
-ex:1 schema:givenName "Gray" ex:Characters .
-ex:1 schema:lastName "Fullbuster" ex:Characters .
-ex:1 e:debutEpisode "2"^^xsd:integer ex:Characters .
-ex:1 dbo:hairColor "DARK BLUE"@en ex:Characters .
-ex:1 e:appearsIn ex:episode_2 ex:Characters .
-ex:1 e:appearsIn ex:episode_2 ex:Episodes .
-ex:1 e:debutEpisode "2"^^xsd:integer ex:Episodes .
-
-ex:2 a schema:Person ex:Characters .
-ex:2 schema:givenName "Gajeel" ex:Characters .
-ex:2 schema:lastName "Redfox" ex:Characters .
-ex:2 e:debutEpisode "21"^^xsd:integer ex:Characters .
-ex:2 dbo:hairColor "BLACK"@en ex:Characters .
-ex:2 e:debutEpisode "21"^^xsd:integer ex:Episodes .
-
-ex:3 a schema:Person ex:Characters .
-ex:3 schema:givenName "Lucy" ex:Characters .
-ex:3 schema:lastName "Heartfilia" ex:Characters .
-ex:3 e:debutEpisode "1"^^xsd:integer ex:Characters .
-ex:3 dbo:hairColor "BLONDE"@en ex:Characters .
-ex:3 e:appearsIn ex:episode_1 ex:Characters .
-ex:3 e:appearsIn ex:episode_1 ex:Episodes .
-ex:3 e:debutEpisode "1"^^xsd:integer ex:Episodes .
-
-ex:4 a schema:Person ex:Characters .
-ex:4 schema:givenName "Erza" ex:Characters .
-ex:4 schema:lastName "Scarlet" ex:Characters .
-ex:4 e:debutEpisode "4"^^xsd:integer ex:Characters .
-ex:4 dbo:hairColor "SCARLET"@en ex:Characters .
-ex:4 e:appearsIn ex:episode_4 ex:Characters .
-ex:4 e:appearsIn ex:episode_4 ex:Episodes .
-ex:4 e:debutEpisode "4"^^xsd:integer ex:Episodes .
+ex:Characters {
+ex:0 a schema:Person ;
+    schema:givenName "Natsu" ;
+    schema:lastName "Dragneel" ;
+    e:debutEpisode "1"^^xsd:int ;
+    dbo:hairColor "PINK"@en .
+}
+ex:Episodes { ex:0 e:debutEpisode "1"^^xsd:integer . }
+ex:Characters { ex:0 e:appearsIn ex:episode_1 . }
+ex:Episodes { ex:0 e:appearsIn ex:episode_1 . }
+ex:Characters {
+ex:1 a schema:Person ;
+    schema:givenName "Gray" ;
+    schema:lastName "Fullbuster" ;
+    e:debutEpisode "2"^^xsd:int ;
+    dbo:hairColor "DARK BLUE"@en .
+}
+ex:Episodes { ex:1 e:debutEpisode "2"^^xsd:integer . }
+ex:Characters { ex:1 e:appearsIn ex:episode_2 . }
+ex:Episodes { ex:1 e:appearsIn ex:episode_2 . }
+ex:Characters {
+ex:2 a schema:Person ;
+    schema:givenName "Gajeel" ;
+    schema:lastName "Redfox" ;
+    e:debutEpisode "21"^^xsd:int ;
+    dbo:hairColor "BLACK"@en .
+}
+ex:Episodes { ex:2 e:debutEpisode "21"^^xsd:integer . }
+ex:Characters {
+ex:3 a schema:Person ;
+    schema:givenName "Lucy" ;
+    schema:lastName "Heartfilia" ;
+    e:debutEpisode "1"^^xsd:int ;
+    dbo:hairColor "BLONDE"@en .
+}
+ex:Episodes { ex:3 e:debutEpisode "1"^^xsd:integer . }
+ex:Characters { ex:3 e:appearsIn ex:episode_1 . }
+ex:Episodes { ex:3 e:appearsIn ex:episode_1 . }
+ex:Characters {
+ex:4 a schema:Person ;
+    schema:givenName "Erza" ;
+    schema:lastName "Scarlet" ;
+    e:debutEpisode "4"^^xsd:int ;
+    dbo:hairColor "SCARLET"@en .
+}
+ex:Episodes { ex:4 e:debutEpisode "4"^^xsd:integer . }
+ex:Characters { ex:4 e:appearsIn ex:episode_4 .}
+ex:Episodes { ex:4 e:appearsIn ex:episode_4 . }
 ```
 
 RDF-Star
