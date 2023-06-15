@@ -5,9 +5,8 @@ target
 .vscode
 .attach_*
 
-!qualitative-evaluation/csv-json-example/output.json
+*.key
+settings.xml
+
 *.jar
-src/test/resources/mapping
 *.iml
-/src/test/resources/agency-multiple-input/agencyMultipleTestFile.csv
-/src/test/resources/agency/agencyTestFile.csv

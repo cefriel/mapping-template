@@ -71,6 +71,8 @@ public class Main {
 	@Parameter(names={"--time","-tm"})
 	private String timePath;
     private final Logger log = LoggerFactory.getLogger(Main.class);
+
+
 	public static void main(String ... argv) throws Exception {
 
 		Main main = new Main();
@@ -83,6 +85,7 @@ public class Main {
 		main.updateBasePath();
 		main.exec();
 	}
+
 	public void updateBasePath(){
 		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
 		templatePath = basePath + templatePath;
@@ -101,6 +104,7 @@ public class Main {
 		if (timePath != null)
 			timePath = basePath + timePath;
 	}
+
 	public boolean validateInputFiles(List<String> inputFilesPaths, String format) {
 		if (inputFilesPaths == null && inputFormat == null) {
 			//case when reader is created directly in the template

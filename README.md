@@ -1,6 +1,6 @@
 # mapping-template
 
-A template-based component exploiting [Apache Velocity](https://velocity.apache.org/) to define declarative mappings.
+A template-based component exploiting [Apache Velocity](https://velocity.apache.org/) to define declarative mappings for schema and data transformations.
 
 #### Usage as a Library
 
@@ -95,3 +95,23 @@ If `-ts` and `-r` options are set a remote repository is used for queries and th
 - If it is feasible for the specific case, splitting templates into multiple files and then combining them improves performances. 
 - It is better to avoid nested cycles in the template without using support data structures.
 - The component can be used as an external library to launch multiple template executions in parallel.
+
+### Commercial Support
+
+If you need commercial support for the `mapping-template` contact us at [info@cefriel.com](mailto:info@cefriel.com).
+
+### License
+
+_Copyright (c) 2019-2023 Cefriel._
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
