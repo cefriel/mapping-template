@@ -2,9 +2,20 @@
 
 A template-based component exploiting [Apache Velocity](https://velocity.apache.org/) to define declarative mappings for schema and data transformations.
 
+Example templates are provided in the [qualitative-evaluation](https://github.com/cefriel/mapping-template/tree/main/qualitative-evaluation) folder.
+
 #### Usage as a Library
 
-The  `mapping-template`  can be used via command line but also as a library through the `TemplateExecutor` class. It allows to execute templates through the filesystem or through `InputStream`s. Configuration examples can be found in the `Main` class and in the `test` folder.
+The  `mapping-template` can be used via command line but also as a library through the `TemplateExecutor` class. It allows to execute templates through the filesystem or through `InputStream`s. Configuration examples can be found in the `Main` class and in the `test` folder.
+
+The `mapping-template` is available on Maven Central and can be added as a dependency in Java projects as described [here](https://search.maven.org/artifact/com.cefriel/mapping-template). Using Maven the following dependency should be specified in the `pom.xml` selecting a [release](https://github.com/cefriel/mapping-template/releases) version:
+```
+<dependency>
+  <groupId>com.cefriel</groupId>
+  <artifactId>mapping-template</artifactId>
+  <version>${version}</version>
+</dependency>
+```
 
 ### Documentation
 This section contains the documentation to use the tool and to produce compliant templates.
