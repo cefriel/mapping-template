@@ -1,5 +1,7 @@
 # mapping-template
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.cefriel/mapping-template.svg?label=Maven%20Central)](https://search.maven.org/artifact/com.cefriel/mapping-template)
+
 A template-based component exploiting [Apache Velocity](https://velocity.apache.org/) to define declarative mappings for schema and data transformations.
 
 Example templates are provided in the [qualitative-evaluation](https://github.com/cefriel/mapping-template/tree/main/qualitative-evaluation) folder.
