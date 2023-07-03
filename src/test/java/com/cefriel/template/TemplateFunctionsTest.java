@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,6 +79,18 @@ public class TemplateFunctionsTest {
         CustomTemplateFunctions customTemplateFunctions = new CustomTemplateFunctions();
 
         String result = executor.executeMapping(null,  template.getPath(), false, false,null, null, customTemplateFunctions);
+        Assertions.assertEquals(result, customTemplateFunctions.printMessage());
+    }
+
+    @Test
+    public void testCustomFunctionsStreamMode() throws Exception {
+        TemplateExecutor executor = new TemplateExecutor();
+        File template = new File("src/test/resources/custom-functions/template.vm");
+        FileInputStream fileInputStream = new FileInputStream(template);
+
+        CustomTemplateFunctions customTemplateFunctions = new CustomTemplateFunctions();
+        String result = executor.executeMapping(null, fileInputStream, null, null, customTemplateFunctions);
+
         Assertions.assertEquals(result, customTemplateFunctions.printMessage());
     }
 
