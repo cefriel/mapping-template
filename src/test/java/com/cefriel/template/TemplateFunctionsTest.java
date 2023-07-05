@@ -24,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -74,11 +76,11 @@ public class TemplateFunctionsTest {
     @Test
     public void testCustomFunctions() throws Exception {
         TemplateExecutor executor = new TemplateExecutor();
-        File template = new File("src/test/resources/custom-functions/template.vm");
+        Path template = Paths.get("src/test/resources/custom-functions/template.vm");
 
         CustomTemplateFunctions customTemplateFunctions = new CustomTemplateFunctions();
 
-        String result = executor.executeMapping(null,  template.getPath(), false, false,null, null, customTemplateFunctions);
+        String result = executor.executeMapping(null,  template, false, false,null, null, customTemplateFunctions);
         Assertions.assertEquals(result, customTemplateFunctions.printMessage());
     }
 

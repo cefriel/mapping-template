@@ -45,6 +45,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -158,18 +160,19 @@ public class Util {
         else
             return "default";
     }
-    public static String createOutputFileName(String destinationPath, int suffixNumber) {
+    public static Path createOutputFileName(Path destinationPath, int suffixNumber) {
         if (suffixNumber == 0)
             return destinationPath;
         else {
             // if destination path specifies an extension i.e "/src/test/result.txt"
-            if (destinationPath.contains(".")) {
-                String extension = destinationPath.substring(destinationPath.lastIndexOf(".") + 1);
-                String filePath = destinationPath.substring(0, destinationPath.lastIndexOf("."));
-                return filePath + "-" + suffixNumber + "." + extension;
+            String path = destinationPath.toString();
+            if (path.contains(".")) {
+                String extension = path.substring(path.lastIndexOf(".") + 1);
+                String filePath = path.substring(0, path.lastIndexOf("."));
+                return Paths.get(filePath + "-" + suffixNumber + "." + extension);
             }
             else
-                return destinationPath + "-" + suffixNumber;
+                return Paths.get(destinationPath + "-" + suffixNumber);
         }
     }
     public static String inputStreamToString(InputStream input) throws IOException {

@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
@@ -47,9 +48,9 @@ public class RDFReaderTests {
         String folder = "agency";
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
         TemplateExecutor executor = new TemplateExecutor();
-        File template = new File(resolvePath(folder, "template.vm"));
+        Path template = Paths.get(resolvePath(folder, "template.vm"));
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")));
-        String result = executor.executeMapping(reader,  template.getPath(), false, false,null, null, new TemplateFunctions());
+        String result = executor.executeMapping(reader,  template, false, false,null, null, new TemplateFunctions());
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
         result = result.replaceAll("\\r\\n", "\n");
 
@@ -63,10 +64,10 @@ public class RDFReaderTests {
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
         reader.addFile(resolvePath(folder, "input2.ttl"), RDFFormat.TURTLE);
         TemplateExecutor executor = new TemplateExecutor();
-        File template = new File(resolvePath(folder, "template.vm"));
+        Path template = Paths.get(resolvePath(folder, "template.vm"));
 
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")));
-        String result = executor.executeMapping(reader,  template.getPath(), false, false,null, null, new TemplateFunctions());
+        String result = executor.executeMapping(reader,  template, false, false,null, null, new TemplateFunctions());
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
         result = result.replaceAll("\\r\\n", "\n");
@@ -78,10 +79,10 @@ public class RDFReaderTests {
         String folder = "agency-parametric";
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
         TemplateExecutor executor = new TemplateExecutor();
-        File template = new File(resolvePath(folder, "template.vm"));
+        Path template = Paths.get(resolvePath(folder, "template.vm"));
 
-        String queryPath = resolvePath(folder, "query.txt");
-        Map<String, String> output = executor.executeMappingParametric(reader, template.getPath(), false, false, queryPath, null, null, new TemplateFunctions());
+        Path queryPath = Paths.get(resolvePath(folder, "query.txt"));
+        Map<String, String> output = executor.executeMappingParametric(reader, template, false, false, queryPath, null, null, new TemplateFunctions());
 
         for(String id : output.keySet()) {
             String expectedOutput = Files

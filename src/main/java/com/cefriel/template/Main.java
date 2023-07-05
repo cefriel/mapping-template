@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
@@ -171,17 +172,17 @@ public class Main {
 			try (FileWriter pw = new FileWriter(timePath, true)) {
 				long start = Instant.now().toEpochMilli();
 				if(queryPath != null)
-					tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
+					tl.executeMappingParametric(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
 				else
-					tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
+					tl.executeMapping(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
 				long duration = Instant.now().toEpochMilli() - start;
 				pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
 			}
 		else{
 			if(queryPath != null)
-				tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
+				tl.executeMappingParametric(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
 			else
-				tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
+				tl.executeMapping(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
 		}
 
 		if(reader != null)
