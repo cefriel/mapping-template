@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class JsonReaderTest {
@@ -31,9 +32,9 @@ public class JsonReaderTest {
     public void jsonTest() throws Exception {
         JSONReader reader = new JSONReader(new File("src/test/resources/json/example.json"));
         TemplateExecutor executor = new TemplateExecutor();
-        File template = new File("src/test/resources/json/template.vm");
+        Path template = Paths.get("src/test/resources/json/template.vm");
 
-        String result = executor.executeMapping(reader,  template.getPath(), false, false,null, null, new TemplateFunctions());
+        String result = executor.executeMapping(reader, template, false, false,null, null, new TemplateFunctions());
         String expectedOutput = Files.readString(Paths.get("src/test/resources/json/correct-output.ttl"));
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
