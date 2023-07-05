@@ -158,18 +158,18 @@ public class Util {
         else
             return "default";
     }
-    public static String createOutputFileName(String destinationPath, int number) {
-        if (number == 0)
+    public static String createOutputFileName(String destinationPath, int suffixNumber) {
+        if (suffixNumber == 0)
             return destinationPath;
         else {
             // if destination path specifies an extension i.e "/src/test/result.txt"
             if (destinationPath.contains(".")) {
                 String extension = destinationPath.substring(destinationPath.lastIndexOf(".") + 1);
                 String filePath = destinationPath.substring(0, destinationPath.lastIndexOf("."));
-                return filePath + "-" + number + "." + extension;
+                return filePath + "-" + suffixNumber + "." + extension;
             }
             else
-                return destinationPath + "-" + number;
+                return destinationPath + "-" + suffixNumber;
         }
     }
     public static String inputStreamToString(InputStream input) throws IOException {
