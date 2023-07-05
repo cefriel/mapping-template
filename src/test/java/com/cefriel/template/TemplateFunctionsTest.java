@@ -16,16 +16,25 @@
 
 package com.cefriel.template;
 
+import com.cefriel.template.io.csv.CSVReader;
 import com.cefriel.template.utils.TemplateFunctions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class TemplateFunctionsTest {
+
+    public class CustomTemplateFunctions extends TemplateFunctions {
+        public String printMessage() {
+            return "test";
+        }
+    }
     @Test
     public void getMapValueTest() {
         TemplateFunctions templateFunctions = new TemplateFunctions();
@@ -60,4 +69,17 @@ public class TemplateFunctionsTest {
             assert (row.get("column2").equals("value2"));
         }
     }
+
+    @Test
+    public void testCustomFunctions() throws Exception {
+        TemplateExecutor executor = new TemplateExecutor();
+        File template = new File("src/test/resources/custom-functions/template.vm");
+
+        CustomTemplateFunctions customTemplateFunctions = new CustomTemplateFunctions();
+
+        String result = executor.executeMapping(null,  template.getPath(), false, false,null, null, customTemplateFunctions);
+        Assertions.assertEquals(result, customTemplateFunctions.printMessage());
+    }
+
+
 }
