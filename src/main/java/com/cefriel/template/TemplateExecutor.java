@@ -90,7 +90,7 @@ public class TemplateExecutor {
 		if (formatter != null)
 			formatter.formatFile(outputFilePath.toString());
 
-		return outputFilePath;
+		return outputFilePath.toAbsolutePath();
 	}
 	// parametric - return result
 	private Map<String, String> applyTemplateParametric(Path templatePath, String query,  VelocityContext context, VelocityEngine velocityEngine, Formatter formatter) throws Exception {
@@ -127,7 +127,7 @@ public class TemplateExecutor {
 					context.put("x", row);
 				Path resultFilePath = applyTemplate(templatePath, context, velocityEngine, formatter,
 						Util.createOutputFileName(outputFilePath, counter));
-				resultFilePaths.add(resultFilePath);
+				resultFilePaths.add(resultFilePath.toAbsolutePath());
 				counter++;
 			}
 			return resultFilePaths;
@@ -190,7 +190,7 @@ public class TemplateExecutor {
 			if (formatter != null)
 				formatter.formatFile(outputFilePath.toString());
 
-			return outputFilePath;
+			return outputFilePath.toAbsolutePath();
 		}
 
 		// parametric - return result
@@ -240,7 +240,7 @@ public class TemplateExecutor {
 						context.put("x", row);
 					Path resultFilePath = applyTemplate(templateStreamCopy, context, formatter,
 							Util.createOutputFileName(outputFilePath, counter));
-					resultFilePaths.add(resultFilePath);
+					resultFilePaths.add(resultFilePath.toAbsolutePath());
 					counter++;
 				}
 				return resultFilePaths;
