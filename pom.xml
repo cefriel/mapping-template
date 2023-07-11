@@ -55,9 +55,9 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git://github.com/cefriel/mapping-template.git</connection>
-    <developerConnection>scm:git:ssh://github.com:cefriel/mapping-template.git</developerConnection>
-    <url>http://github.com/cefriel/mapping-template/tree/main</url>
+    <connection>scm:git:https://github.com/cefriel/mapping-template.git</connection>
+    <developerConnection>scm:git:https://github.com/cefriel/mapping-template.git</developerConnection>
+    <url>https://github.com/cefriel/mapping-template/tree/main</url>
   </scm>
 
   <properties>
