@@ -67,7 +67,7 @@ Functions to optimise the access to data frames are:
 
 ##### `Velocity Tools`
 
-To provide commonly required functionalities a subset of the [Apache Velocity Tools](https://velocity.apache.org/tools/3.1/tools-summary.html) can be used. These are:
+To provide commonly required functionalities a subset of the [Apache Velocity Tools](https://velocity.apache.org/tools/3.1/tools-summary.html) can be used inside of template files. These are:
 
 - `$math`, [MathTool](https://velocity.apache.org/tools/3.1/tools-summary.html#MathTool) providing math functions.
 - `$date`, [ComparisonDateTool](https://velocity.apache.org/tools/3.1/tools-summary.html#ComparisonDateTool) used to format, parse and compare dates.
@@ -76,8 +76,8 @@ To provide commonly required functionalities a subset of the [Apache Velocity To
 ##### `$map`
 The `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
 
-#### TemplateUtils subclasses
-Subclasses of `TemplateUtils` may be defined and set to modify the utility functions available in processing the template.
+#### TemplateFunctions subclasses
+Subclasses of the `TemplateFunctions` class may be defined and set to modify the utility functions available in processing the template.
 
 #### `mapping-template.jar` ####
 This is the intended usage of the `mapping-template.jar`.
