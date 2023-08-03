@@ -80,14 +80,12 @@ options:
   -b, --basepath <arg>            Base path for files (input, template, output). Default value is './'.
   -c, --contextIRI <arg>          IRI identifies the named graph for context-aware querying of the repository. 
                                   Default behaviour: the entire repository is considered for querying.
+  -q, --query <arg>               Path to the file containing a query.
   -dq, --debug-query              Saves in the output file the result of the query provided with -q option.
   -f, --format <arg>              Activate procedures for specific output formats. Supported values: 'xml' 
                                   (XML parsing to check structure, indentation), 'turtle', 'rdfxml', 'nt'.
-  -rdf, --rdf <arg>               Path(s) of input RDF file(s), if no remote repository is specified an 
-                                  in-memory repository is initialized and triples are made available for querying.
-  -xml, --xml <arg>               Path of input XML file.
-  -json, --json <arg>             Path of input JSON file.
-  -csv, --csv <arg>               Path of input CSV file.
+  -if, --input-format <arg>		  Format for the input file(s). Supported values are: 'csv', 'json', 'xml', 'rdf'.
+  -i, --input <arg>               Path for the input file. Multiple input files are supported if the '--input-format' is 'rdf'.
   -kv, --key-value <arg>          Path for a file containing a key:value pair for each line. These pairs
                                   are made available as a map in the template.
   -kvc, --key-value-csv <arg>     Path for a csv file with one line interpreted as a set of key[column]-value[line] pairs. 
@@ -100,9 +98,9 @@ options:
   -ts, --ts-address <arg>         Triples store address.
   -v, --verbose                   Debug information are logged.
 ```
-Only one between `-xml`, `-csv`, `-json` and `-rdf` option can be used at once, the `$reader` is initialised accordingly. Additional `Reader`s should be defined in the template using the available functions.
+A `$reader` is initialized based on the specified `-if` option. Additional `Reader`s should be defined in the template using the available functions.
 
-If `-ts` and `-r` options are set a remote repository is used for queries and the `-rdf` option is ignored, if they are not set `-rdf` option is mandatory. Assumptions to use a remote repository are: the triples store is up and running, and triples are already in there.
+If `-ts` and `-r` options are set a remote repository is used for queries and the `-if rdf`  option is ignored. If they are not set the `-if rdf` option is mandatory. Assumptions to use a remote repository are: the triples store is up and running, and triples are already in there.
 
 #### Tips ####
 - If it is feasible for the specific case, splitting templates into multiple files and then combining them improves performances. 
