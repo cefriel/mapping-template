@@ -65,6 +65,14 @@ Functions to optimise the access to data frames are:
 - `getListMapValue(Map<K, List<V>> listMap, K key)`: if `checkMap(listMap, key)` is `true` returns the value for `key` in `listMap`, otherwise returns an empty list.
 - `mergeResults(List<Map<String,String>> results, List<Map<String,String>> otherResults)`: merge two data frames
 
+##### `Velocity Tools`
+
+To provide commonly required functionalities a subset of the [Apache Velocity Tools](https://velocity.apache.org/tools/3.1/tools-summary.html) can be used. These are:
+
+- `$math`, [MathTool](https://velocity.apache.org/tools/3.1/tools-summary.html#MathTool) providing math functions.
+- `$date`, [ComparisonDateTool](https://velocity.apache.org/tools/3.1/tools-summary.html#ComparisonDateTool) used to format, parse and compare dates.
+- `$number`, [NumberTool](https://velocity.apache.org/tools/3.1/tools-summary.html#NumberTool) used to format numbers.
+
 ##### `$map`
 The `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
 
