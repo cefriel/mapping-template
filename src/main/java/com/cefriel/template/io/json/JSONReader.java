@@ -141,6 +141,13 @@ public class JSONReader implements Reader {
         log.warn("Verbose option not implemented");
     }
 
+    /**
+     * Not implemented for JSONReader yet.
+     * @param outputFormat String identifying the output format
+     */
+    @Override
+    public void setOutputFormat(String outputFormat) { return;}
+
     @Override
     public void shutDown() {}
 }

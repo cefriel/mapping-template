@@ -208,6 +208,13 @@ public class XMLReader implements Reader {
         this.verbose = verbose;
     }
 
+    /**
+     * Not implemented for XMLReader yet.
+     * @param outputFormat String identifying the output format
+     */
+    @Override
+    public void setOutputFormat(String outputFormat) { return;}
+
     public String getQueryHeader() {
         return queryHeader;
     }

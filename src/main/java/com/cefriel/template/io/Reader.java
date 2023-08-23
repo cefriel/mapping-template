@@ -61,6 +61,12 @@ public interface Reader {
     void setVerbose(boolean verbose);
 
     /**
+     * If {@code outputFormat} is set the values returned in a Dataframe are escaped accordingly.
+     * @param outputFormat String identifying the output format
+     */
+    void setOutputFormat(String outputFormat);
+
+    /**
      * Shutdown the Reader.
      */
     void shutDown();

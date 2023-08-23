@@ -62,7 +62,7 @@ public class RDFReader implements Reader {
     private String baseIRI;
 
     private String queryHeader;
-
+    private String outputFormat;
     private boolean verbose;
 
     public RDFReader() {
@@ -175,6 +175,10 @@ public class RDFReader implements Reader {
         return results;
     }
 
+    private List<Map<String, String>> extractDataframe(String query) {
+        return verbose ? executeQueryStringValueVerbose(query) : getQueryResultsStringValue(query);
+    }
+
     /**
      * Executes a SPARQL query returning a list of rows as {@code List<Map<String,String>>}
      * and logging ({@code INFO} level) the query, the duration and the number of rows returned.
@@ -183,7 +187,11 @@ public class RDFReader implements Reader {
      * @return Result of the SPARQL query with {@code String} values
      */
     public List<Map<String, String>> getDataframe(String query) {
-        return verbose ? executeQueryStringValueVerbose(query) : getQueryResultsStringValue(query);
+        List<Map<String, String>> results = extractDataframe(query);
+        if (outputFormat != null)
+            if (outputFormat.equalsIgnoreCase("xml"))
+                return getDataframeXMLEscaped(results);
+        return results;
     }
 
     @Override
@@ -192,17 +200,16 @@ public class RDFReader implements Reader {
     }
 
     /**
-     * Executes a SPARQL query returning a list of rows as {@code List<Map<String,String>>}
-     * escaping XML special chars. It logs ({@code INFO} level) the query, the duration and
-     * the number of rows returned. if the {@code verbose} option is enabled.
-     * @param query SPARQL query to be executed
-     * @return Result of the SPARQL query with {@code String} values
+     * Takes as input a {@code List<Map<String,String>>} dataframe and escapes
+     * XML special chars. It logs ({@code INFO} level) the query, the duration and
+     * the number of rows returned if the {@code verbose} option is enabled.
+     * @param dataframe Dataframe to be escaped
+     * @return Escaped dataframe
      */
-    public List<Map<String, String>> executeQueryStringValueXML(String query) {
-        List<Map<String, String>> results = getDataframe(query);
-        for (Map<String, String> result : results)
-            result.replaceAll((k, v) -> StringEscapeUtils.escapeXml11(v));
-        return results;
+    private List<Map<String, String>> getDataframeXMLEscaped(List<Map<String, String>> dataframe) {
+        for (Map<String, String> row : dataframe)
+            row.replaceAll((k, v) -> StringEscapeUtils.escapeXml11(v));
+        return dataframe;
     }
 
     /**
@@ -352,6 +359,15 @@ public class RDFReader implements Reader {
      */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
+    }
+
+    /**
+     * Supported formats: XML.
+     * @param outputFormat String identifying the output format
+     */
+    @Override
+    public void setOutputFormat(String outputFormat) {
+        this.outputFormat = outputFormat;
     }
 
     /**

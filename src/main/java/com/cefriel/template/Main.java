@@ -163,8 +163,10 @@ public class Main {
 		}
 
 		Formatter formatter = null;
-		if(format != null)
+		if(format != null) {
 			formatter = Util.createFormatter(format);
+			reader.setOutputFormat(format);
+		}
 
 		TemplateFunctions templateFunctions = new TemplateFunctions();
 

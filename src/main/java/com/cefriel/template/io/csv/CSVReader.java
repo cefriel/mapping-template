@@ -79,6 +79,13 @@ public class CSVReader implements Reader {
 
     }
 
+    /**
+     * Not implemented for CSVReader yet.
+     * @param outputFormat String identifying the output format
+     */
+    @Override
+    public void setOutputFormat(String outputFormat) { return;}
+
     @Override
     public void shutDown() {
 
