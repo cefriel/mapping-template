@@ -4,7 +4,7 @@
 
 A template-based component exploiting [Apache Velocity](https://velocity.apache.org/) to define declarative mappings for schema and data transformations.
 
-Example templates are provided in the [qualitative-evaluation](https://github.com/cefriel/mapping-template/tree/main/qualitative-evaluation) folder.
+Example templates are provided in the [examples](https://github.com/cefriel/mapping-template/tree/main/examples) folder.
 
 #### Usage as a Library
 
