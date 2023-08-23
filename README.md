@@ -92,9 +92,9 @@ options:
   -q, --query <arg>               Path to the file containing a query.
   -dq, --debug-query              Saves in the output file the result of the query provided with -q option.
   -f, --format <arg>              Activate procedures for specific output formats. Supported values: 'xml' 
-                                  (XML parsing to check structure, indentation), 'turtle', 'rdfxml', 'nt'.
-  -fun, --functions <arg>         Provide the path to a Java file defining a TemplateFunctions subclass
-  -if, --input-format <arg>		  Format for the input file(s). Supported values are: 'csv', 'json', 'xml', 'rdf'.
+                                  (XML escape, XML parsing to check structure, indentation), 'turtle', 'rdfxml', 'nt'.
+  -fun, --functions <arg>         Provide the path to a Java file defining a TemplateFunctions subclass.
+  -if, --input-format <arg>       Format for the input file(s). Supported values are: 'csv', 'json', 'xml', 'rdf'.
   -i, --input <arg>               Path for the input file. Multiple input files are supported if the '--input-format' is 'rdf'.
   -kv, --key-value <arg>          Path for a file containing a key:value pair for each line. These pairs
                                   are made available as a map in the template.
