@@ -76,8 +76,9 @@ To provide commonly required functionalities a subset of the [Apache Velocity To
 ##### `$map`
 The `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
 
-#### TemplateFunctions subclasses
-Subclasses of the `TemplateFunctions` class may be defined and set to modify the utility functions available in processing the template.
+#### Custom `TemplateFunctions` subclasses
+Subclasses of the `TemplateFunctions` class may be defined and provided using the `-fun` option to modify the utility functions available in processing the template.
+The provided class is compiled at runtime and made available through the `$functions` variable in the template.
 
 #### `mapping-template.jar` ####
 This is the intended usage of the `mapping-template.jar`.
@@ -92,6 +93,7 @@ options:
   -dq, --debug-query              Saves in the output file the result of the query provided with -q option.
   -f, --format <arg>              Activate procedures for specific output formats. Supported values: 'xml' 
                                   (XML parsing to check structure, indentation), 'turtle', 'rdfxml', 'nt'.
+  -fun, --functions <arg>         Provide the path to a Java file defining a TemplateFunctions subclass
   -if, --input-format <arg>		  Format for the input file(s). Supported values are: 'csv', 'json', 'xml', 'rdf'.
   -i, --input <arg>               Path for the input file. Multiple input files are supported if the '--input-format' is 'rdf'.
   -kv, --key-value <arg>          Path for a file containing a key:value pair for each line. These pairs

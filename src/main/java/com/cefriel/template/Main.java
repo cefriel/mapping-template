@@ -23,9 +23,13 @@ import com.cefriel.template.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import java.io.File;
 import java.io.FileWriter;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
@@ -71,6 +75,8 @@ public class Main {
 	private boolean verbose;
 	@Parameter(names={"--time","-tm"})
 	private String timePath;
+	@Parameter(names={"--functions","-fun"})
+	private String functionsPath;
     private final Logger log = LoggerFactory.getLogger(Main.class);
 
 
@@ -108,7 +114,7 @@ public class Main {
 
 	public boolean validateInputFiles(List<String> inputFilesPaths, String format) {
 		if (inputFilesPaths == null && inputFormat == null) {
-			//case when reader is created directly in the template
+			//case when Reader is created directly in the template
 			return true;
 		}
 
@@ -169,6 +175,28 @@ public class Main {
 		}
 
 		TemplateFunctions templateFunctions = new TemplateFunctions();
+		if (functionsPath != null) {
+			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+			File utilsFile = new File(functionsPath);
+			compiler.run(null, null, null, utilsFile.getPath());
+
+			File classDir = new File(utilsFile.getParent());
+			URLClassLoader classLoader = URLClassLoader.newInstance(new URL[]{(classDir).toURI().toURL()});
+
+			// List all the files in the directory and identify the class file
+			File[] classFiles = classDir.listFiles((dir, name) -> name.endsWith(".class"));
+			if (classFiles != null) {
+				for (File classFile : classFiles) {
+					String className = classFile.getName().replace(".class", "");
+					Class<?> loadedClass = Class.forName(className, true, classLoader);
+
+					if ((TemplateFunctions.class).isAssignableFrom(loadedClass)) {
+						templateFunctions = (TemplateFunctions) loadedClass.getDeclaredConstructor().newInstance();
+						break;
+					}
+				}
+			}
+		}
 
 		if(timePath != null)
 			try (FileWriter pw = new FileWriter(timePath, true)) {
