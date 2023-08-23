@@ -119,7 +119,7 @@ If `-ts` and `-r` options are set a remote repository is used for queries and th
 
 ### Commercial Support
 
-If you need commercial support for the `mapping-template` contact us at [info@cefriel.com](mailto:info@cefriel.com).
+If you need commercial support for the `mapping-template` contact us at [chimera-dev@cefriel.com](mailto:chimera-dev@cefriel.com).
 
 ### License
 
