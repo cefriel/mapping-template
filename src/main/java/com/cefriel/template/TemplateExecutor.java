@@ -202,7 +202,7 @@ public class TemplateExecutor {
 				// copy templateStream which is otherwise consumed
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				template.transferTo(baos);
-				ByteArrayInputStream templateStreamCopy = new ByteArrayInputStream(baos.toByteArray());
+
 
 				HashMap<String, String> output = new HashMap<>();
 				int counter = 0;
@@ -211,7 +211,7 @@ public class TemplateExecutor {
 						context.put("x", row);
 
 					String rowId = Util.generateRowId(row, counter);
-					String result = applyTemplate(templateStreamCopy, context, formatter);
+					String result = applyTemplate(new ByteArrayInputStream(baos.toByteArray()), context, formatter);
 					output.put(rowId, result);
 					counter++;
 				}
@@ -232,13 +232,12 @@ public class TemplateExecutor {
 				// copy templateStream which is otherwise consumed
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				template.transferTo(baos);
-				ByteArrayInputStream templateStreamCopy = new ByteArrayInputStream(baos.toByteArray());
 
 				int counter = 0;
 				for (Map<String, String> row : dataframe) {
 					if (row != null)
 						context.put("x", row);
-					Path resultFilePath = applyTemplate(templateStreamCopy, context, formatter,
+					Path resultFilePath = applyTemplate(new ByteArrayInputStream(baos.toByteArray()), context, formatter,
 							Util.createOutputFileName(outputFilePath, counter));
 					resultFilePaths.add(resultFilePath.toAbsolutePath());
 					counter++;

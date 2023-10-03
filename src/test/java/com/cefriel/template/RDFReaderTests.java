@@ -32,19 +32,15 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 public class RDFReaderTests {
-    private static RDFReader reader;
-
-    @BeforeAll
-    static void initAll() {
-        Repository repo = new SailRepository(new MemoryStore());
-        reader = new RDFReader(repo);
-        reader.setBaseIRI("http://www.cefriel.com/data/");
-    }
     private String resolvePath(String folder, String file) {
         return "src/test/resources/" + folder + "/" + file;
     }
     @Test
     public void agencyTestFile() throws Exception {
+        Repository repo = new SailRepository(new MemoryStore());
+        RDFReader reader = new RDFReader(repo);
+        reader.setBaseIRI("http://www.cefriel.com/data/");
+
         String folder = "agency";
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
         TemplateExecutor executor = new TemplateExecutor();
@@ -60,6 +56,10 @@ public class RDFReaderTests {
 
     @Test
     public void agencyMultipleInputFile() throws Exception {
+        Repository repo = new SailRepository(new MemoryStore());
+        RDFReader reader = new RDFReader(repo);
+        reader.setBaseIRI("http://www.cefriel.com/data/");
+
         String folder = "agency-multiple-input";
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
         reader.addFile(resolvePath(folder, "input2.ttl"), RDFFormat.TURTLE);
@@ -76,6 +76,10 @@ public class RDFReaderTests {
     }
     @Test
     public void agencyParametric() throws Exception {
+        Repository repo = new SailRepository(new MemoryStore());
+        RDFReader reader = new RDFReader(repo);
+        reader.setBaseIRI("http://www.cefriel.com/data/");
+
         String folder = "agency-parametric";
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
         TemplateExecutor executor = new TemplateExecutor();
@@ -83,6 +87,28 @@ public class RDFReaderTests {
 
         Path queryPath = Paths.get(resolvePath(folder, "query.txt"));
         Map<String, String> output = executor.executeMappingParametric(reader, template, false, false, queryPath, null, null, new TemplateFunctions());
+
+        for(String id : output.keySet()) {
+            String expectedOutput = Files
+                    .readString(Paths.get(resolvePath(folder, "agency-" + id + ".csv")));
+            expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
+            String result = output.get(id).replaceAll("\\r\\n", "\n");
+            assert(expectedOutput.equals(result));
+        }
+    }
+
+    @Test
+    public void agencyParametricStream() throws Exception {
+        Repository repo = new SailRepository(new MemoryStore());
+        RDFReader reader = new RDFReader(repo);
+        reader.setBaseIRI("http://www.cefriel.com/data/");
+
+        TemplateExecutor executor = new TemplateExecutor();
+        String folder = "agency-parametric";
+        reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
+        InputStream template = new FileInputStream(Paths.get(resolvePath(folder, "template.vm")).toString());
+        InputStream query = new FileInputStream(Paths.get(resolvePath(folder, "query.txt")).toString());
+        Map<String, String> output = executor.executeMappingParametric(reader, template, query, null, null, new TemplateFunctions());
 
         for(String id : output.keySet()) {
             String expectedOutput = Files
