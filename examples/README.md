@@ -36,13 +36,16 @@ ex:$row.id rdf:type transit:Stop ;
 From the command line, using the following command
 
 ``` {.bash org-language="sh"}
-java -jar mapping-template.jar --csv example.csv -t template.vm -f turtle -o output.ttl
+java -jar mapping-template.jar --input-format csv --input example.csv -t template.vm -f turtle -o output.ttl
 ```
 
 which specifies the following parameters:
 
---csv
-:   The source CSV file.
+`--input-format`
+:   The format of the input file.
+
+`--input`
+:	The input file.
 
 -t
 : The template to use in the mapping process.
@@ -115,13 +118,16 @@ ex:$stop.busId rdf:type transit:stop ;
 From the command line, using the following command
 
 ``` {.bash org-language="sh"}
-java -jar mapping-template.jar --xml example.xml -t template.vm -f turtle -o output.ttl
+java -jar mapping-template.jar --input-format --input example.xml -t template.vm -f turtle -o output.ttl
 ```
 
 which specifies the following parameters:
 
---xml
-:   The source XML file.
+`--input-format`
+:   The format of the input file.
+
+`--input`
+:	The input file.
 
 -t
 :   The template to use in the mapping process.
@@ -197,13 +203,16 @@ ex:$x.city rdf:type schema:city ;
 From the command line, using the following command
 
 ``` {.bash org-language="sh"}
-java -jar mapping-template.jar --json example.json -t template.vm -f turtle -o output.ttl
+java -jar mapping-template.jar --input-format json --input example.json -t template.vm -f turtle -o output.ttl
 ```
 
 which specifies the following parameters:
 
---json
-:   The source JSON file.
+`--input-format`
+:   The format of the input file.
+
+`--input`
+:	The input file.
 
 -t
 :   The template to use in the mapping process.
@@ -452,13 +461,16 @@ Can be converted to RDF-Star with the following template.
 From the command line, using the following command
 
 ``` {.bash org-language="sh"}
-java -jar mapping-template.jar --csv example.csv -t template.vm -f n3 -o output.ttl
+java -jar mapping-template.jar --input-format csv --input example.csv -t template.vm -f n3 -o output.ttl
 ```
 
 which specifies the following parameters:
 
-`--csv`
-:   The source CSV file.
+`--input-format`
+:   The format of the input file.
+
+`--input`
+:	The input file.
 
 `-t`
 :   The template to use in the mapping process.
@@ -521,13 +533,16 @@ column which contains two values, is split into the "title1" and
 From the command line, using the following command
 
 ``` {.bash org-language="sh"}
-java -jar mapping-template.jar --csv example.csv -t template.vm -f n3 -o output.ttl
+java -jar mapping-template.jar --input-format csv --input example.csv -t template.vm -f n3 -o output.ttl
 ```
 
 which specifies the following parameters:
 
---csv
-:   The source CSV file.
+`--input-format`
+:   The format of the input file.
+
+`--input`
+:	The input file.
 
 -t
 :   The template to use in the mapping process.
@@ -591,13 +606,16 @@ Note the usage of functions offered by [Apache Velocity](https://velocity.apache
 From the command line, using the following command
 
 ``` {.bash org-language="sh"}
-java -jar mapping-template.jar --csv example.csv -t template.vm -o output.json
+java -jar mapping-template.jar --input-format csv --input example.csv -t template.vm -o output.json
 ```
 
 which specifies the following parameters:
 
---csv
-:   The source CSV file.
+`--input-format`
+:   The format of the input file.
+
+`--input`
+:	The input file.
 
 -t
 :   The template to use in the mapping process.
