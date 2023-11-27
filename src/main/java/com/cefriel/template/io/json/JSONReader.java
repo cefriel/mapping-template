@@ -37,6 +37,8 @@ public class JSONReader implements Reader {
     private final Logger log = LoggerFactory.getLogger(JSONReader.class);
     Object document;
 
+    private boolean verbose;
+
     public JSONReader(String json) {
         Configuration conf = Configuration.defaultConfiguration()
                 .addOptions(Option.ALWAYS_RETURN_LIST);
@@ -108,7 +110,9 @@ public class JSONReader implements Reader {
                             } catch (PathNotFoundException pe) {
                                 // what happens when the path is not found? i.e. the item does not have the field the jsonPath is pointing to
                                 // for now we do not put the key in the map
-                                log.warn("PATH NOT FOUND: " + topPath + "." + path);
+                                if(verbose) {
+                                    log.warn("PATH NOT FOUND: " + topPath + "." + path);
+                                }
                             }
                         }
                     }
@@ -138,7 +142,7 @@ public class JSONReader implements Reader {
 
     @Override
     public void setVerbose(boolean verbose) {
-        log.warn("Verbose option not implemented");
+        this.verbose = verbose;
     }
 
     /**
