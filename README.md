@@ -6,7 +6,7 @@ A template-based component exploiting [Apache Velocity](https://velocity.apache.
 
 ### Mapping Template Language (MTL)
 
-The [Wiki](https://github.com/cefriel/mapping-template) contains the documentation to specify compliant mapping templates.
+The [Wiki](https://github.com/cefriel/mapping-template/wiki/Mapping-Template-Language-(MTL)) contains the documentation to specify compliant mapping templates.
 
 Example templates are provided in the [examples](https://github.com/cefriel/mapping-template/tree/main/examples) folder.
 
