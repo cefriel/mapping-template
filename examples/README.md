@@ -1,6 +1,8 @@
 Conversion examples
 ===================
 
+This folder contains several example mapping templates implementing different mapping scenarios. The instructions on how to run the examples using the `mapping-template` tool are reported for each example. 
+
 RML CSV example
 ----------
 
