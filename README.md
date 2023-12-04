@@ -4,11 +4,15 @@
 
 A template-based component exploiting [Apache Velocity](https://velocity.apache.org/) to define declarative mappings for schema and data transformations.
 
+### Mapping Template Language (MTL)
+
+The [Wiki](https://github.com/cefriel/mapping-template) contains the documentation to specify compliant mapping templates.
+
 Example templates are provided in the [examples](https://github.com/cefriel/mapping-template/tree/main/examples) folder.
 
-#### Usage as a Library
+### Usage as a Library
 
-The  `mapping-template` can be used via command line but also as a library through the `TemplateExecutor` class. It allows to execute templates through the filesystem or through `InputStream`s. Configuration examples can be found in the `Main` class and in the `test` folder.
+The  `mapping-template` can be used as a library through the `TemplateExecutor` class. It allows to execute mapping templates accessing data from the filesystem or through `InputStream`s. Configuration examples can be found in the `Main` class and in the `test` folder.
 
 The `mapping-template` is available on Maven Central and can be added as a dependency in Java projects as described [here](https://search.maven.org/artifact/com.cefriel/mapping-template). Using Maven the following dependency should be specified in the `pom.xml` selecting a [release](https://github.com/cefriel/mapping-template/releases) version:
 ```
@@ -18,69 +22,9 @@ The `mapping-template` is available on Maven Central and can be added as a depen
   <version>${version}</version>
 </dependency>
 ```
+The component can be used as an external library to launch multiple template executions in parallel.
 
-### Documentation
-This section contains the documentation to use the tool and to produce compliant templates.
-
-#### Template Default Variables
-The `mapping-template` component offers a set of already bound variables that can be used in the template.
-
-##### `$reader` 
-
-The `$reader` variable offers methods to extract data frames accordingly to the provided input.
-
-- If RDF input files are provided, it is bound to `RDFReader` accepting SPARQL queries.
-- If CSV input files are provided, it is bound to `CSVReader` automatically generating a data frame from the CSV.
-- If XML input files are provided, it is bound to `XMLReader` accepting XQuery queries.
-- If JSON input files are provided, it is bound to `JsonReader` accepting JsonPath queries.
-
-##### `$functions`
-
-The `$functions` variable offers a set of utility methods that can be extended defining sub-classes (see the section below). 
-
-Functions to define `Reader`s are:
-- `getRDFReaderFromFile(String filename)` and `getRDFReaderFromString(String s)`: returns dynamically a RDFReader from a RDF file or string
-- `getXMLReaderFromFile(String filename)` and `getXMLReaderFromString(String s)`: returns dynamically a XMLReader from a XML file or string
-- `getJSONReaderFromFile(String filename)` and `getJSONReaderFromString(String s)`: returns dynamically a JSONReader from a JSON file or string
-- `getCSVReaderFromFile(String filename)` and `getCSVReaderFromString(String s)`: returns dynamically a CSVReader from a CSV file or string
-
-Utility functions (e.g., for data transformation) are:
-- `rp(String s)`: if a prefix is set, removes it from the parameter string. If a prefix is not set, or the prefix is not contained in the given string it returns the string as it is.
-- `setPrefix(String prefix)`: set a prefix for the `rp` method.
-- `sp(String s, String substring)`: returns the substring of the parameter string after the first occurrence of the parameter substring.
-- `p(String s, String substring)`: returns the substring of the parameter string before the first occurrence of the parameter substring.
-- `replace(String s, String regex, String replacement)`: returns a string replacing all the occurrences of the regex with the replacement provided.
-- `newline()`: returns a newline string.
-- `hash(String s)`: returns a string representing the hash of the parameter.
-- `checkString(String s)`: returns `true` if the string is not null and not an empty string.
-
-Functions to optimise the access to data frames are:
-- `getMap(List<Map<String, String>> results, String key)`: creates a support data structure to access data frames faster. Builds a map associating a single row with its value w.r.t a specified column (key parameter). The assumption is for each row the value for the given column is unique, otherwise, the result will be incomplete.
-- `getListMap(List<Map<String, String>> results, String key)`: creates a support data structure to access data frames faster. Builds a map associating a value with all rows having that as value for a specified column (key parameter).
-- `checkList(List<T> l)`: returns `true` if the list is not null and not empty.
-- `checkList(List<T> l, T o)`: returns `true` if the list is not null, not empty and contains `o`.
-- `checkMap(Map<K,V> m)`: returns `true` if the map is not null and not empty.
-- `checkMap(Map<K, V> m, K key)`: returns `true` if the map is not null, not empty and contains the key `key`.
-- `getMapValue(Map<K, V> map, K key)`: if `checkMap(map, key)` is `true` returns the value for `key` in `map`, otherwise returns `null`. 
-- `getListMapValue(Map<K, List<V>> listMap, K key)`: if `checkMap(listMap, key)` is `true` returns the value for `key` in `listMap`, otherwise returns an empty list.
-- `mergeResults(List<Map<String,String>> results, List<Map<String,String>> otherResults)`: merge two data frames
-
-##### `Velocity Tools`
-
-To provide commonly required functionalities a subset of the [Apache Velocity Tools](https://velocity.apache.org/tools/3.1/tools-summary.html) can be used inside of template files. These are:
-
-- `$math`, [MathTool](https://velocity.apache.org/tools/3.1/tools-summary.html#MathTool) providing math functions.
-- `$date`, [ComparisonDateTool](https://velocity.apache.org/tools/3.1/tools-summary.html#ComparisonDateTool) used to format, parse and compare dates.
-- `$number`, [NumberTool](https://velocity.apache.org/tools/3.1/tools-summary.html#NumberTool) used to format numbers.
-
-##### `$map`
-The `$map` variable contains all key-value pairs specified with both `-kv` and `-kvc` options.
-
-#### Custom `TemplateFunctions` subclasses
-Subclasses of the `TemplateFunctions` class may be defined and provided using the `-fun` option to modify the utility functions available in processing the template.
-The provided class is compiled at runtime and made available through the `$functions` variable in the template.
-
-#### `mapping-template.jar` ####
+### Usage via CLI
 This is the intended usage of the `mapping-template.jar`.
 
 ```
@@ -108,14 +52,11 @@ options:
   -ts, --ts-address <arg>         Triples store address.
   -v, --verbose                   Debug information are logged.
 ```
+Instructions on how to run the example mapping templates via command line are provided in the [examples/README](https://github.com/cefriel/mapping-template/tree/main/examples/README.md).
+
 A `$reader` is initialized based on the specified `-if` option. Additional `Reader`s should be defined in the template using the available functions.
 
 If `-ts` and `-r` options are set a remote repository is used for queries and the `-if rdf`  option is ignored. If they are not set the `-if rdf` option is mandatory. Assumptions to use a remote repository are: the triples store is up and running, and triples are already in there.
-
-#### Tips ####
-- If it is feasible for the specific case, splitting templates into multiple files and then combining them improves performances. 
-- It is better to avoid nested cycles in the template without using support data structures.
-- The component can be used as an external library to launch multiple template executions in parallel.
 
 ### Commercial Support
 
