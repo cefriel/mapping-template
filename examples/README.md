@@ -1,6 +1,8 @@
 Conversion examples
 ===================
 
+This folder contains several example mapping templates implementing different mapping scenarios. The instructions on how to run the examples using the `mapping-template` tool are reported for each example. 
+
 RML CSV example
 ----------
 
@@ -47,14 +49,14 @@ which specifies the following parameters:
 `--input`
 :	The input file.
 
--t
+`-t`
 : The template to use in the mapping process.
 
--f
+`-f`
 :   The format against which the output of the mapping process will be
     validated against.
 
--o
+`-o`
 :   The output file.
 
 The following RDF (Turtle) output file is produced:
@@ -129,14 +131,14 @@ which specifies the following parameters:
 `--input`
 :	The input file.
 
--t
+`-t`
 :   The template to use in the mapping process.
 
--f
+`-f`
 :   The format against which the output of the mapping process will be
     validated against.
 
--o
+`-o`
 :   The output file.
 
 The following RDF (Turtle) output file is produced:
@@ -214,14 +216,14 @@ which specifies the following parameters:
 `--input`
 :	The input file.
 
--t
+`-t`
 :   The template to use in the mapping process.
 
--f
+`-f`
 :   The format against which the output of the mapping process will be
     validated against.
 
--o
+`-o`
 :   The output file.
 
 The following RDF (Turtle) output file is produced:
@@ -239,10 +241,10 @@ ex:Brussels a schema:city ;
   gn:countryCode "BE" .
 ```
 
-Yarrrml example
+YARRRML example
 -----------
 
-The example from the [Yarrrml tutorial](https://rml.io/yarrrml/tutorial/getting-started/):
+The example from the [YARRRML tutorial](https://rml.io/yarrrml/tutorial/getting-started/):
 
 people.csv
 ``` {.csv}
@@ -347,10 +349,10 @@ ex:Episodes { ex:$ch.id e:appearsIn ex:episode_$tEpisode.number . }
 #end
 ```
 
-The two keys involved in the join are "number" and "debutEpisode", respectively found in the episodes.csv and people.csv files. 
-Because we know that each character debuts in at most one episode we can use the support function "getMap(df, key)" to create a support data structure to optimize the join process. Were this assumption not to hold the "getListMap(df, key)" function can be used to access the multiple rows where the column value (key) is the same.
+The two keys involved in the join are `number` and `debutEpisode`, respectively found in the `episodes.csv` and `people.csv` files. 
+Because we know that each character debuts in at most one episode, we can use the support function `getMap(df, key)` to create a support data structure to optimize the join process. Otherwise, the `getListMap(df, key)` function could be used to access the multiple rows having the same value for a certain column (key).
 
-The join operation is completed by retrieving the episode appearance of a character by their debutEpisode key. An explicit null check is required to make sure that a value is present for the particular debutEpisode key.
+The join operation is completed by retrieving the episode appearance of a character by their `debutEpisode` key. An explicit null check is required to make sure that a value is present for the particular `debutEpisode` key.
 
 From the command line, using the following command
 
@@ -358,7 +360,7 @@ From the command line, using the following command
 java -jar mapping-template.jar -t template.vm -o output.trig
 ```
 
-which specifies the following parameters:
+which specifies the following parameters
 
 `-t`
 :   The template to use in the mapping process.
@@ -366,7 +368,7 @@ which specifies the following parameters:
 `-o`
 :   The output file.
 
-The following RDF output file is produced:
+the following RDF output file is produced:
 
 ``` {.ttl}
 @prefix ex: <http://www.example.com/> .
@@ -434,10 +436,10 @@ ex:Characters { ex:4 e:appearsIn ex:episode_4 .}
 ex:Episodes { ex:4 e:appearsIn ex:episode_4 . }
 ```
 
-RDF-Star
+RDF-star
 ----------
 
-The CSV example from the [RML Star specification](https://kg-construct.github.io/rml-star-spec/#nested):
+The CSV example from the [RML-star specification](https://kg-construct.github.io/rml-star-spec/#nested):
 
 ``` {.csv}
 entity,type,confidence,predictor
@@ -447,7 +449,7 @@ Bobby,Dog,0.6,alpha
 Bobby,Giraffe,1.0,beta
 ```
 
-Can be converted to RDF-Star with the following template. 
+Can be converted to RDF-star with the following template. 
 
 ``` {.vtl}
 @prefix ex: <http://example.org/>
@@ -496,7 +498,7 @@ The following RDF output file is produced:
 CSV multiple values to RDF
 ----------
 
-The following CSV example file contains multiple values for in the title column.
+The following CSV example file contains multiple values in the title column.
 
 ``` {.csv}
 book_id,title
@@ -525,10 +527,10 @@ A column containing multiple values can be split into multiple columns
 by the `splitColumn(df, column, separatorRegex)` function.  The
 content of the column is split into *n* values for *n* new columns
 according to the number *n* of separatorRegex regex matches on the
-source column value. The new columns follow the "original column
-name""match number" naming convention.  In the example the "title"
-column which contains two values, is split into the "title1" and
-"title2" columns.
+source column value. The new columns follow the `"original column
+name""match number"` naming convention.  In the example the `title`
+column which contains two values, is split into the `title1` and
+`title2` columns.
 
 From the command line, using the following command
 
@@ -536,7 +538,7 @@ From the command line, using the following command
 java -jar mapping-template.jar --input-format csv --input example.csv -t template.vm -f n3 -o output.ttl
 ```
 
-which specifies the following parameters:
+which specifies the following parameters
 
 `--input-format`
 :   The format of the input file.
@@ -544,14 +546,14 @@ which specifies the following parameters:
 `--input`
 :	The input file.
 
--t
+`-t`
 :   The template to use in the mapping process.
 
--f
+`-f`
 :   The format against which the output of the mapping process will be
     validated against.
 
--o
+`-o`
 :   The output file.
 
 The following RDF output file is produced:
@@ -572,10 +574,10 @@ dc:title "La Sirena"@it.
 
 CSV to JSON example
 ----------
-The output format for the mapping process is not limited to RDF. On the contrary the templated based approach allows for potentially any output format.
-In this example we will look at converting data from the csv format to the json format.
+The output format for the mapping process is not limited to RDF. On the contrary, the templated based approach allows for potentially any output format.
+In this example, we will look at converting data from the csv format to the json format.
 
-The following csv file
+The following CSV file
 
 ``` {.csv}
 book_id,title
@@ -617,10 +619,10 @@ which specifies the following parameters:
 `--input`
 :	The input file.
 
--t
+`-t`
 :   The template to use in the mapping process.
 
--o
+`-o`
 :   The output file.
 
 The following JSON output file is produced:
