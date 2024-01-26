@@ -20,6 +20,7 @@ import com.cefriel.template.TemplateMap;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
 import com.cefriel.template.io.csv.CSVReader;
+import com.cefriel.template.io.json.JSONFormatter;
 import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.io.rdf.RDFFormatter;
 import com.cefriel.template.io.rdf.RDFReader;
@@ -129,26 +130,24 @@ public class Util {
 
     public static Formatter createFormatter(String format) {
         if (validFormatterFormat(format)) {
-            if (format.equals("xml")) {
-                return new XMLFormatter();
-            }
-            else if (format.equals("turtle")) {
-                return new RDFFormatter(RDFFormat.TURTLE);
-            }
-            else if (format.equals("rdfxml")) {
-                return new RDFFormatter(RDFFormat.RDFXML);
-            }
-            else if (format.equals("nt")) {
-                return new RDFFormatter(RDFFormat.NTRIPLES);
-            }
-            else if (format.equals("jsonld")) {
-                return new RDFFormatter(RDFFormat.JSONLD);
-            }
-            else {
-                throw new IllegalArgumentException("A FORMATTER for FORMAT: " + format + " is not supported");
+            switch (format) {
+                case "xml":
+                    return new XMLFormatter();
+                case "json":
+                    return new JSONFormatter();
+                case "turtle":
+                    return new RDFFormatter(RDFFormat.TURTLE);
+                case "rdfxml":
+                    return new RDFFormatter(RDFFormat.RDFXML);
+                case "nt":
+                    return new RDFFormatter(RDFFormat.NTRIPLES);
+                case "jsonld":
+                    return new RDFFormatter(RDFFormat.JSONLD);
+                default:
+                    throw new IllegalArgumentException("FORMATTER for FORMAT " + format + " not found");
             }
         }
-        else throw new IllegalArgumentException("A FORMATTER for FORMAT: " + format + " is not supported");
+        else throw new IllegalArgumentException("FORMAT " + format + " not listed as valid value for the option");
     }
 
     public static String generateRowId(Map<String, String> row, int number) {
