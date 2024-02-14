@@ -19,6 +19,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
+import com.cefriel.template.io.sql.MySQLReader;
 import com.cefriel.template.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,8 +61,11 @@ public class Main {
 	private boolean trimTemplate;
 	@Parameter(names={"--template-resource","-trs"})
 	private boolean templateInResources;
-
-	@Parameter(names={"--ts-address","-ts"})
+	@Parameter(names={"--username","-us"})
+	private String username;
+	@Parameter(names={"--password","-psw"})
+	private String password;
+	@Parameter(names={"--remote-url","-url"})
 	private String dbAddress;
 	@Parameter(names={"--repository","-r"})
 	private String repositoryId;
@@ -77,6 +81,7 @@ public class Main {
 	private String timePath;
 	@Parameter(names={"--functions","-fun"})
 	private String functionsPath;
+
     private final Logger log = LoggerFactory.getLogger(Main.class);
 
 
@@ -141,8 +146,11 @@ public class Main {
 		if (validateInputFiles(inputFilesPaths, inputFormat)) {
 			if (inputFormat != null) {
 				if (inputFormat.equals("rdf")) {
-					reader = Util.createRDFReader(inputFilesPaths, inputFormat, repositoryId, context, baseIri, verbose);
-				} else {
+					reader = Util.createRDFReader(inputFilesPaths, dbAddress, repositoryId, context, baseIri, verbose);
+				} else if (inputFormat.equals("mysql"))   {
+					reader = new MySQLReader(dbAddress, username, password);
+				}
+				else {
 					String inputFilePath = inputFilesPaths.get(0);
 					reader = Util.createNonRdfReader(inputFilePath, inputFormat, verbose);
 				}
@@ -169,7 +177,7 @@ public class Main {
 		}
 
 		Formatter formatter = null;
-		if(format != null) {
+		if(reader != null && format != null) {
 			formatter = Util.createFormatter(format);
 			reader.setOutputFormat(format);
 		}
