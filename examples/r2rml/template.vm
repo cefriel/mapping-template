@@ -1,0 +1,14 @@
+@prefix ex: <http://example.com/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+#set($patients = $reader.getDataframe('
+SELECT *
+FROM patient
+'))
+
+#foreach($p in $patients)
+<http://example.com/Patient$p.ID> a foaf:Person;
+    ex:birthdate "$p.BirthDate"^^xsd:date ;
+    ex:entrancedate "$p.EntranceDate"^^xsd:datetime .
+#end
