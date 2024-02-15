@@ -351,11 +351,23 @@ public class TemplateFunctions {
         return new JSONReader("");
     }
 
+    /**
+     * Get a CSVReader to query the CSV content of the provided file.
+     * @param fileName The file path for the CSV file.
+     * @return A CSVReader
+     * @throws Exception
+     */
     public CSVReader getCSVReaderFromFile(String fileName) throws IOException {
         File f = new File(fileName);
         return new CSVReader(f);
     }
 
+    /**
+     * Get a CSVReader to query the CSV content of the provided string.
+     * @param s The CSV string.
+     * @return A CSVReader
+     * @throws Exception
+     */
     public CSVReader getCSVReaderFromString(String s) throws Exception {
         if (s != null) {
             return new CSVReader(s);
