@@ -19,7 +19,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
-import com.cefriel.template.io.sql.MySQLReader;
+import com.cefriel.template.io.sql.SQLReader;
 import com.cefriel.template.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,11 +128,9 @@ public class Main {
 		}
 
 		if(inputFilesPaths != null) {
-			if(inputFilesPaths.size() == 0) {
+			if(inputFilesPaths.isEmpty()) {
 				throw new IllegalArgumentException("No input file is provided");
-			}
-
-			if(inputFilesPaths.size() > 1 && !format.equals("rdf")) {
+			} else if(!format.equals("rdf")) {
 				throw new IllegalArgumentException("Multiple input files are supported only for rdf files");
 			}
 		}
@@ -146,23 +144,27 @@ public class Main {
 		if (validateInputFiles(inputFilesPaths, inputFormat)) {
 			if (inputFormat != null) {
 				if (inputFormat.equals("rdf")) {
-					reader = Util.createRDFReader(inputFilesPaths, dbAddress, repositoryId, context, baseIri, verbose);
-				} else if (inputFormat.equals("mysql"))   {
-					reader = new MySQLReader(dbAddress, username, password);
+					reader = Util.createRDFReader(inputFilesPaths, dbAddress, repositoryId, context, baseIri);
+				} else if (inputFormat.equals("mysql") || inputFormat.equals("postgresql"))   {
+					reader = new SQLReader(inputFormat, dbAddress, username, password);
 				}
 				else {
 					String inputFilePath = inputFilesPaths.get(0);
-					reader = Util.createNonRdfReader(inputFilePath, inputFormat, verbose);
+					reader = Util.createNonRdfReader(inputFilePath, inputFormat);
 				}
 			}
 		}
 
-		if (reader != null && debugQuery) {
-			if (queryPath == null)
-				log.error("Provide a query using the --query option");
-			else {
-				String debugQueryFromFile = Files.readString(Paths.get(queryPath));
-				reader.debugQuery(debugQueryFromFile, destinationPath);
+		if (reader != null) {
+			reader.setVerbose(verbose);
+
+			if (debugQuery) {
+				if (queryPath == null)
+					log.error("Provide a query using the --query option");
+				else {
+					String debugQueryFromFile = Files.readString(Paths.get(queryPath));
+					reader.debugQuery(debugQueryFromFile, destinationPath);
+				}
 			}
 		}
 

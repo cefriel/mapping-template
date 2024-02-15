@@ -29,9 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MySQLReader implements Reader {
+public class SQLReader implements Reader {
 
-    private final Logger log = LoggerFactory.getLogger(MySQLReader.class);
+    private final Logger log = LoggerFactory.getLogger(SQLReader.class);
 
     private Connection conn;
 
@@ -40,9 +40,9 @@ public class MySQLReader implements Reader {
     private static final Object lock = new Object();
 
 
-    public MySQLReader(String url, String username, String password) {
-        if (!url.contains("jdbc:mysql"))
-            url = "jdbc:mysql://" + url;
+    public SQLReader(String database, String url, String username, String password) {
+        if (!url.contains("jdbc:"))
+            url = "jdbc:" + database + "://" + url;
         log.info("Connection to database with URL: " + url);
 
         try {
@@ -52,7 +52,7 @@ public class MySQLReader implements Reader {
         }
     }
 
-    public MySQLReader(Connection conn) {
+    public SQLReader(Connection conn) {
         this.conn = conn;
     }
 

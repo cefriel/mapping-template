@@ -56,7 +56,7 @@ public class Util {
     public static boolean validInputFormat(String format) {
         return MappingTemplateConstants.INPUT_FORMATS.contains(format);
     }
-    public static Reader createNonRdfReaderFromInput(String input, String format, boolean verbose) throws Exception {
+    public static Reader createNonRdfReaderFromInput(String input, String format) throws Exception {
         if (validInputFormat(format)) {
             Reader reader = null;
             if (format.equals("xml")) {
@@ -70,13 +70,11 @@ public class Util {
             }
             else
                 throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
-
-            reader.setVerbose(verbose);
             return reader;
         }
         else throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
     }
-    public static Reader createNonRdfReader(String filePath, String format, boolean verbose) throws Exception {
+    public static Reader createNonRdfReader(String filePath, String format) throws Exception {
         if (validInputFormat(format)) {
             File f = new File(filePath);
             Reader reader = null;
@@ -92,19 +90,17 @@ public class Util {
             else
                 throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
 
-            reader.setVerbose(verbose);
             return reader;
         }
         else throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
     }
-    public static RDFReader createRDFReader(String graphName, String baseIri, Repository repository, boolean verbose) {
+    public static RDFReader createRDFReader(String graphName, String baseIri, Repository repository) {
         RDFReader reader = new RDFReader(repository);
         reader.setContext(graphName);
         reader.setBaseIRI(baseIri);
-        reader.setVerbose(verbose);
         return reader;
     }
-    public static RDFReader createRDFReader(List<String> inputFilesPaths, String dbAddress, String repositoryId, String graphName, String baseIri, boolean verbose) throws Exception {
+    public static RDFReader createRDFReader(List<String> inputFilesPaths, String dbAddress, String repositoryId, String graphName, String baseIri) throws Exception {
         if (inputFilesPaths != null) {
             Repository repo;
             if ((dbAddress != null) && (repositoryId != null)) {
@@ -112,7 +108,7 @@ public class Util {
             } else {
                 repo = new SailRepository(new MemoryStore());
             }
-            RDFReader rdfReader = createRDFReader(graphName, baseIri, repo, verbose);
+            RDFReader rdfReader = createRDFReader(graphName, baseIri, repo);
             RDFFormat format;
             for (String triplesPath : inputFilesPaths)
                 if ((new File(triplesPath)).exists()) {

@@ -21,7 +21,7 @@ import java.util.HashSet;
 
 public class MappingTemplateConstants {
     public static final HashSet<String> INPUT_FORMATS = new HashSet<>(Arrays.asList(
-            "xml", "csv", "json", "rdf", "mysql"));
+            "xml", "csv", "json", "rdf", "mysql", "postgresql"));
 
     public static final HashSet<String> FORMATTER_FORMATS = new HashSet<>(Arrays.asList(
             "xml", "json", "turtle", "rdfxml", "nt", "jsonld"));
