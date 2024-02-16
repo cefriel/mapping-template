@@ -67,8 +67,8 @@ public class Main {
 	private String password;
 	@Parameter(names={"--remote-url","-url"})
 	private String dbAddress;
-	@Parameter(names={"--repository","-r"})
-	private String repositoryId;
+	@Parameter(names={"--remote-id","-id"})
+	private String dbId;
 	@Parameter(names={"--contextIRI","-c"})
 	private String context;
 	@Parameter(names={"--query","-q"})
@@ -144,9 +144,9 @@ public class Main {
 		if (validateInputFiles(inputFilesPaths, inputFormat)) {
 			if (inputFormat != null) {
 				if (inputFormat.equals("rdf")) {
-					reader = Util.createRDFReader(inputFilesPaths, dbAddress, repositoryId, context, baseIri);
+					reader = Util.createRDFReader(inputFilesPaths, dbAddress, dbId, context, baseIri);
 				} else if (inputFormat.equals("mysql") || inputFormat.equals("postgresql"))   {
-					reader = new SQLReader(inputFormat, dbAddress, username, password);
+					reader = new SQLReader(inputFormat, dbAddress, dbId, username, password);
 				}
 				else {
 					String inputFilePath = inputFilesPaths.get(0);

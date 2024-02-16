@@ -100,11 +100,11 @@ public class Util {
         reader.setBaseIRI(baseIri);
         return reader;
     }
-    public static RDFReader createRDFReader(List<String> inputFilesPaths, String dbAddress, String repositoryId, String graphName, String baseIri) throws Exception {
+    public static RDFReader createRDFReader(List<String> inputFilesPaths, String repositoryUrl, String repositoryId, String graphName, String baseIri) throws Exception {
         if (inputFilesPaths != null) {
             Repository repo;
-            if ((dbAddress != null) && (repositoryId != null)) {
-                repo = new HTTPRepository(dbAddress, repositoryId);
+            if ((repositoryUrl != null) && (repositoryId != null)) {
+                repo = new HTTPRepository(repositoryUrl, repositoryId);
             } else {
                 repo = new SailRepository(new MemoryStore());
             }

@@ -40,9 +40,9 @@ public class SQLReader implements Reader {
     private static final Object lock = new Object();
 
 
-    public SQLReader(String database, String url, String username, String password) {
+    public SQLReader(String driver,  String url, String database, String username, String password) {
         if (!url.contains("jdbc:"))
-            url = "jdbc:" + database + "://" + url;
+            url = "jdbc:" + driver + "://" + url + "/" + database;
         log.info("Connection to database with URL: " + url);
 
         try {

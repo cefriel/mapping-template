@@ -357,7 +357,7 @@ public class TemplateFunctions {
      * @return A CSVReader
      * @throws Exception
      */
-    public CSVReader getCSVReaderFromFile(String fileName) throws IOException {
+    public CSVReader getCSVReaderFromFile(String fileName) throws Exception {
         File f = new File(fileName);
         return new CSVReader(f);
     }
