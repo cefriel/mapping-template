@@ -645,3 +645,109 @@ The following JSON output file is produced:
     ]
 }
 ```
+
+R2RML example
+----------
+The example from the [R2RML Test Case D016](https://www.w3.org/2001/sw/rdb2rdf/test-cases/#D016-1table1primarykey10columns3rowsSQLdatatypes) shows a template accessing data from a MySQL and a Postgres relational databases.
+
+The content of the database is initialised as reported in the `.sql` files.
+
+``` {.sql}
+CREATE TABLE "Patient" (
+"ID" INTEGER,
+"FirstName" VARCHAR(50),
+"LastName" VARCHAR(50),
+"Sex" VARCHAR(6),
+"Weight" REAL,
+"Height" FLOAT,
+"BirthDate" DATE,
+"EntranceDate" TIMESTAMP,
+"PaidInAdvance" BOOLEAN,
+"Photo" VARBINARY(200),
+PRIMARY KEY ("ID")
+);
+
+INSERT INTO "Patient" ("ID", "FirstName","LastName","Sex","Weight","Height","BirthDate","EntranceDate","PaidInAdvance","Photo") 
+VALUES (10,'Monica','Geller','female',80.25,1.65,'1981-10-10','2009-10-10 12:12:22',[..]);
+
+INSERT INTO "Patient" ("ID", "FirstName","LastName","Sex","Weight","Height","BirthDate","EntranceDate","PaidInAdvance","Photo") 
+VALUES (11,'Rachel','Green','female',70.22,1.70,'1982-11-12','2008-11-12 09:45:44',TRUE,[..]);
+
+INSERT INTO "Patient" ("ID", "FirstName","LastName","Sex","Weight","Height","BirthDate","EntranceDate","PaidInAdvance","Photo") 
+VALUES (12,'Chandler','Bing','male',90.31,1.76,'1978-04-06','2007-03-12 02:13:14',TRUE,[..]');
+
+```
+
+The data be converted to RDF with the following template.
+
+``` {.vtl}
+@prefix ex: <http://example.com/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+#set($patients = $reader.getDataframe('
+SELECT *
+FROM patient
+'))
+
+#foreach($p in $patients)
+<http://example.com/Patient$p.ID> a foaf:Person;
+    ex:birthdate "$p.BirthDate"^^xsd:date ;
+    ex:entrancedate "$p.EntranceDate"^^xsd:datetime .
+#end
+
+```
+
+Two scripts `run-mysql.sh` and `run-postgres.sh` are provided to initialize and run two Docker containers with MySQL and Postgres databases, respectively.
+From the command line, the following commands can be used to execute the template (also reported in the script `run.sh`)
+
+``` {.bash org-language="sh"}
+java -jar mapping-template.jar --username r2rml --password r2rml -url localhost:3306 -id r2rml -if mysql -f turtle -o output-mysql.ttl -t template.vm
+
+java -jar mapping-template.jar --username r2rml --password r2rml -url localhost:5432 -id r2rml -if postgresql -f turtle -o output-postgres.ttl -t template.vm
+```
+
+which specifies the following parameters:
+
+`-if`
+:   The format of the input file, in this case the type of database considered.
+
+`-url`
+:	The URL to reach the database.
+
+`--username`
+:	The username for accessing the database.
+
+`--password`
+:	The password for accessing the database.
+
+`-t`
+: The template to use in the mapping process.
+
+`-f`
+:   The format against which the output of the mapping process will be
+    validated against.
+
+`-o`
+:   The output file.
+
+The following RDF (Turtle) output file is produced:
+
+``` {.ttl}
+@prefix ex: <http://example.com/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+ex:Patient10 a foaf:Person;
+  ex:birthdate "1981-10-10"^^xsd:date;
+  ex:entrancedate "2009-10-10 12:12:22"^^xsd:datetime .
+
+ex:Patient11 a foaf:Person;
+  ex:birthdate "1982-11-12"^^xsd:date;
+  ex:entrancedate "2008-11-12 09:45:44"^^xsd:datetime .
+
+ex:Patient12 a foaf:Person;
+  ex:birthdate "1978-04-06"^^xsd:date;
+  ex:entrancedate "2007-03-12 02:13:14"^^xsd:datetime .
+
+```

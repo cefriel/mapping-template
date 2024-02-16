@@ -36,27 +36,29 @@ options:
   -q, --query <arg>               Path to the file containing a query.
   -dq, --debug-query              Saves in the output file the result of the query provided with -q option.
   -f, --format <arg>              Activate procedures for specific output formats. Supported values: 'xml' 
-                                  (XML escape, XML parsing to check structure, indentation), 'turtle', 'rdfxml', 'nt'.
+                                  (XML escape, XML parsing to check structure, indentation), 'turtle', 'rdfxml', 'nt', 'json'.
   -fun, --functions <arg>         Provide the path to a Java file defining a TemplateFunctions subclass.
-  -if, --input-format <arg>       Format for the input file(s). Supported values are: 'csv', 'json', 'xml', 'rdf'.
+  -if, --input-format <arg>       Format for the input(s). Supported values are: 'csv', 'json', 'xml', 'rdf', 'mysql', 'postgresql'.
   -i, --input <arg>               Path for the input file. Multiple input files are supported if the '--input-format' is 'rdf'.
   -kv, --key-value <arg>          Path for a file containing a key:value pair for each line. These pairs
                                   are made available as a map in the template.
   -kvc, --key-value-csv <arg>     Path for a csv file with one line interpreted as a set of key[column]-value[line] pairs. 
                                   These pairs are made available as a map in the template.
   -o, --output <arg>              Path of output file. Default: output.txt
-  -r, --repository <arg>          Repository Id related to the triples store.
   -t, --template <arg>            Path of template file. Default: template.vm
   -tm, --time <arg>               Path of file reporting template execution time. Default: timing not saved. 
   -tr, --trim                     Trim newlines from the template before executing it to reduce memory usage.
-  -ts, --ts-address <arg>         Triples store address.
+  -url, --remote-url <arg>        Address for accessing remote database (relational or triplestore).
+  -id, --remote-id <arg>          Identifier of the remote database or repository for triplestores.
+  -us, --username <arg>           Username for accessing remote database.
+  -psw, --password <arg>          Password for accessing remote database.
   -v, --verbose                   Debug information are logged.
 ```
 Instructions on how to run the example mapping templates via command line are provided in the [examples/README](https://github.com/cefriel/mapping-template/tree/main/examples/README.md).
 
 A `$reader` is initialized based on the specified `-if` option. Additional `Reader`s should be defined in the template using the available functions.
 
-If `-ts` and `-r` options are set a remote repository is used for queries and the `-if rdf`  option is ignored. If they are not set the `-if rdf` option is mandatory. Assumptions to use a remote repository are: the triples store is up and running, and triples are already in there.
+If `-url` and `-id` options are set a remote database/repository is used for queries and the `-i`  option is ignored. If they are not set the `-i` option is mandatory. Assumptions to use a remote database/repository are: (i) it is up and running, and (ii) data are already in there.
 
 ### Commercial Support
 
