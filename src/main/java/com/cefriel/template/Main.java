@@ -130,7 +130,7 @@ public class Main {
 		if(inputFilesPaths != null) {
 			if(inputFilesPaths.isEmpty()) {
 				throw new IllegalArgumentException("No input file is provided");
-			} else if(!format.equals("rdf")) {
+			} else if(inputFilesPaths.size() > 1 && !format.equals("rdf")) {
 				throw new IllegalArgumentException("Multiple input files are supported only for rdf files");
 			}
 		}
