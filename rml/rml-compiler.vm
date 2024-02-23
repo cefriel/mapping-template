@@ -1,0 +1,251 @@
+## This template reuses and adapts the "mapping query" from the SDM-RDFizer source code (https://github.com/SDM-TIB/SDM-RDFizer) developed by the Scientific Data Management Group at TIB.
+## The query is modified to be compliant with the latest RML specification (https://w3id.org/rml).
+
+#set ( $prefixes = $reader.setPrefixes("
+    prefix rml: <http://w3id.org/rml/>
+    prefix dcat: <http://www.w3.org/ns/dcat#>
+") )
+
+#set($d="$") 
+#set($a="#") 
+#set($pa="{") 
+#set($pc="}")
+
+#set ( $mappings_content= $reader.getDataframe("
+
+SELECT DISTINCT *
+WHERE {
+
+	# Subject -------------------------------------------------------------------------
+			?triples_map_id rml:logicalSource ?_source .
+			OPTIONAL{?_source rml:source ?data_source .}
+			OPTIONAL{
+                ?data_source a dcat:Distribution .
+				?data_source dcat:accessURL ?access_url . # download URL would be better
+			}
+			OPTIONAL {?_source rml:referenceFormulation ?ref_form .} # missing in BC page
+			OPTIONAL { ?_source rml:iterator ?iterator . }
+			# replaced with rml:source OPTIONAL { ?_source rr:tableName ?tablename .}
+			# removed rml:query OPTIONAL { ?_source rml:query ?query .}
+            # TODO Handle rml:null
+
+			?triples_map_id rml:subjectMap ?_subject_map .
+			OPTIONAL {?_subject_map rml:template ?subject_template .}
+			OPTIONAL {?_subject_map rml:reference ?subject_reference .}
+			OPTIONAL {?_subject_map rml:constant ?subject_constant}
+			OPTIONAL { ?_subject_map rml:class ?rdf_class . }
+			OPTIONAL { ?_subject_map rml:termType ?termtype . }
+			OPTIONAL { ?_subject_map rml:graph ?graph . }
+			OPTIONAL { ?_subject_map rml:graphMap ?_graph_structure .
+					   ?_graph_structure rml:constant ?graph . }
+			OPTIONAL { ?_subject_map rml:graphMap ?_graph_structure .
+					   ?_graph_structure rml:template ?graph . }		   
+
+	# Predicate -----------------------------------------------------------------------
+			OPTIONAL {
+			?triples_map_id rml:predicateObjectMap ?_predicate_object_map .
+
+			OPTIONAL {
+				?triples_map_id rml:predicateObjectMap ?_predicate_object_map .
+				?_predicate_object_map rml:predicateMap ?_predicate_map .
+				?_predicate_map rml:constant ?predicate_constant .
+			}
+			OPTIONAL {
+				?_predicate_object_map rml:predicateMap ?_predicate_map .
+				?_predicate_map rml:template ?predicate_template .
+			}
+			OPTIONAL {
+				?_predicate_object_map rml:predicateMap ?_predicate_map .
+				?_predicate_map rml:reference ?predicate_reference .
+			}
+			OPTIONAL {
+				?_predicate_object_map rml:predicate ?predicate_constant_shortcut .
+			 }
+
+
+	# Object --------------------------------------------------------------------------
+			OPTIONAL {
+				?_predicate_object_map rml:objectMap ?_object_map .
+				?_object_map rml:constant ?object_constant .
+				OPTIONAL {
+					?_object_map rml:datatype ?object_datatype .
+				}
+			}
+			OPTIONAL {
+				?_predicate_object_map rml:objectMap ?_object_map .
+				?_object_map rml:template ?object_template .
+				OPTIONAL {?_object_map rml:termType ?term .}
+				OPTIONAL {?_object_map rml:languageMap ?language_map.
+						  ?language_map rml:reference ?language_value.}
+				OPTIONAL {
+					?_object_map rml:datatype ?object_datatype .
+				}
+			}
+			OPTIONAL {
+				?_predicate_object_map rml:objectMap ?_object_map .
+				?_object_map rml:reference ?object_reference .
+				OPTIONAL { ?_object_map rml:language ?language .}
+				OPTIONAL {?_object_map rml:languageMap ?language_map.
+						  ?language_map rml:reference ?language_value.}
+				OPTIONAL {?_object_map rml:termType ?term .}
+				OPTIONAL {
+					?_object_map rml:datatype ?object_datatype .
+				}
+			}
+			OPTIONAL {
+				?_predicate_object_map rml:objectMap ?_object_map .
+				?_object_map rml:parentTriplesMap ?object_parent_triples_map .
+				OPTIONAL {
+					?_object_map rml:joinCondition ?join_condition .
+					?join_condition rml:child ?child_value;
+								 rml:parent ?parent_value.
+					OPTIONAL {?_object_map rml:termType ?term .}
+				}
+			}
+			OPTIONAL {
+				?_predicate_object_map rml:object ?object_constant_shortcut .
+			}
+			OPTIONAL {?_predicate_object_map rml:graph ?predicate_object_graph .}
+			OPTIONAL { ?_predicate_object_map  rml:graphMap ?_graph_structure .
+					   ?_graph_structure rml:constant ?predicate_object_graph  . }
+			OPTIONAL { ?_predicate_object_map  rml:graphMap ?_graph_structure .
+					   ?_graph_structure rml:template ?predicate_object_graph  . }	
+			}
+			OPTIONAL {
+				?_source a d2rq:Database;
+  				d2rq:jdbcDSN ?jdbcDSN; 
+  				d2rq:jdbcDriver ?jdbcDriver; 
+			    d2rq:username ?user;
+			    d2rq:password ?password .
+			}
+		} 
+") )
+
+#set($lmSources = $functions.getListMap($mappings_content, "_source"))
+#foreach($lmSource in $lmSources.entrySet())
+    #set($source = $lmSource.value.get(0))
+    #set($sourceUrl = $functions.replace($source.access_url, "file://", "")
+    #set($refForm = $source.ref_form)
+    #set($sourceHash = $functions.hash($source._source))
+    #if($refForm == "http://w3id.org/rml/CSV")
+        ${d}reader_$sourceHash = ${d}functions.getCSVReaderFromFile($sourceUrl)
+    #elseif ($tm0.iterator_tech == "http://w3id.org/rml/XPath")
+        ${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile($sourceUrl)
+    #elseif ($tm0.iterator_tech=="http://w3id.org/rml/JSONPath")
+        ${d}reader_$sourceHash = ${d}functions.getJSONReaderFromFile($sourceUrl)
+    #elseif ($refForm == "http://w3id.org/rml/RDF")
+        ${d}reader_$sourceHash = ${d}functions.getRDFReaderFromFile($sourceUrl)
+    #else
+        ## TODO Error "NO READER FOUND" 
+    #end
+    #set($iterator = $source.iterator)
+
+    #*
+    Get all templates and references to define the dataframe to be extracted
+
+
+    default_namespace http://www.cefriel.com/kt/
+
+    #set($lmTmSource = $functions.getListMap($tm_Source,"triples_map_id"))
+    #if($tm0.subject_template)
+    #if (($tm0.subject_termtype) && ($tm0.subject_termtype=="http://www.w3.org/ns/r2rml#BlankNode"))
+      $tm0.subject_template 
+    #else
+      $tm0.subject_template
+    #end
+  #elseif($tm0.subject_reference)
+      ${pa}$tm0.subject_reference${pc}
+  #elseif($tm0.subject_constant)
+      $tm0.subject_constant
+  #elseif($tm0.subject_termtype)
+      $tm0.subject_termtype
+  #end
+    
+  <!-- GRAPH -->
+  #if($tm0.subj_graph_reference)
+      ${pa}$tm0.subj_graph_reference${pc}
+  #elseif($tm0.subj_graph_constant)
+      $tm0.subj_graph_constant
+  #elseif($tm0.subj_graph_template)
+      $tm0.subj_graph_template
+  #end
+
+  #end
+
+  #foreach($tm in $ltm_content.entrySet())
+  #set($tm_id = $functions.hash($tm.key.toString()))
+  #if ($tm.value.get(0).iterator_tech=="http://semweb.mmlab.be/ns/ql#XPath")
+  tripleMaker_$tm_id
+  #elseif ($tm.value.get(0).iterator_tech=="http://semweb.mmlab.be/ns/ql#JSONPath")
+  tripleMaker_$tm_id
+  #else
+  tripleMaker_$tm_id
+  #end
+
+      http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+      
+    #foreach($tmp in $tm.value)
+        ## <!-- P-O $tmp -->
+        #if($tmp.predicate_constant)
+            $tmp.predicate_constant
+        #elseif($tmp.predicate_template)
+            $tmp.predicate_template
+        #elseif($tmp.predicate_reference)
+            ${pa}$tmp.predicate_reference${pc}
+        #end
+    #end
+    
+    #foreach($tmp in $tm.value)
+        #if($tmp.subject_rdf_class)<value>$tmp.subject_rdf_class</value>#end
+    #end      
+    #foreach($tmp in $tm.value)
+        #if($tmp.object_constant)$tmp.object_constant
+        #elseif($tmp.object_template)$tmp.object_template
+        #elseif($tmp.object_reference)${pa}$tmp.object_reference${pc}
+        #end
+    #end
+
+    #foreach($tmp in $tm.value)
+        #if($tmp.subject_rdf_class)
+        http://www.w3.org/ns/r2rml#IRI
+        #end
+    #end
+      
+      #foreach($tmp in $tm.value)
+        ## <!-- Object type $tmp -->
+        #if($tmp.object_constant)
+            #if($tmp.object_constant.toString().contains("://"))
+            http://www.w3.org/ns/r2rml#IRI
+            #else
+                #if($tmp.object_language)
+                http://www.w3.org/ns/r2rml#Literal@$tmp.object_language
+                #else
+                http://www.w3.org/ns/r2rml#Literal
+                #end
+            #end
+        #elseif($tmp.object_reference)
+                #if($tmp.object_language)
+                http://www.w3.org/ns/r2rml#Literal@$tmp.object_language
+                #else
+                http://www.w3.org/ns/r2rml#Literal
+                #end
+        #else
+            $tmp.object_termtype
+        #end
+      #end
+  #end
+
+#foreach($source in $sources)
+#set ( $source_descr = $reader.executeQueryStringValue("SELECT DISTINCT ?data_format ?iterator
+		WHERE {
+            ?tm a rr:TriplesMap;
+                rml:logicalSource [
+                    rml:source ""$source.data_source"";
+                    rml:referenceFormulation ?data_format;
+                    rml:iterator ?iterator
+                ].
+        }
+        GROUP BY ?iterator ?data_format
+") )
+
+    *#
