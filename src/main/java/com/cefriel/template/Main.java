@@ -19,6 +19,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
+import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.io.sql.SQLReader;
 import com.cefriel.template.utils.*;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import java.io.FileWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
@@ -39,10 +41,10 @@ import static com.cefriel.template.utils.Util.validInputFormat;
 
 public class Main {
 	@Parameter(names={"--template","-t"})
-	private String templatePath = "template.vm";
+	private Path templatePath = Path.of("template.vm");
 	@Parameter(names={"--input","-i"},
 			variableArity = true)
-	private List<String> inputFilesPaths = null;
+	private List<Path> inputFilesPaths = null;
 	@Parameter(names={"--input-format","-if"})
 	private String inputFormat = null;
 	@Parameter(names={"--baseiri","-iri"})
@@ -99,46 +101,26 @@ public class Main {
 	}
 
 	public void updateBasePath(){
-		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
-		templatePath = basePath + templatePath;
-		if (inputFilesPaths != null)
-			for (int i = 0; i < inputFilesPaths.size(); i++)
-				if(inputFilesPaths.get(i) != null)
-					inputFilesPaths.set(i, basePath + inputFilesPaths.get(i));
-
-		destinationPath = basePath + destinationPath;
-		if (queryPath != null)
-			queryPath = basePath + queryPath;
-		if (keyValueCsvPath != null)
-			keyValueCsvPath = basePath + keyValueCsvPath;
-		if (keyValuePairsPath != null)
-			keyValuePairsPath = basePath + keyValuePairsPath;
-		if (timePath != null)
-			timePath = basePath + timePath;
-	}
-
-	public boolean validateInputFiles(List<String> inputFilesPaths, String format) {
-		if (inputFilesPaths == null && inputFormat == null) {
-			//case when Reader is created directly in the template
-			return true;
+		if (basePath != null) {
+			basePath = basePath.endsWith("/") ? basePath : basePath + "/";
+			templatePath = Path.of(basePath + templatePath.toString());
+			if (inputFilesPaths != null)
+				for (int i = 0; i < inputFilesPaths.size(); i++)
+					if(inputFilesPaths.get(i) != null)
+						inputFilesPaths.set(i, Path.of(basePath.toString() + inputFilesPaths.get(i)));
+			destinationPath = basePath + destinationPath;
+			if (queryPath != null)
+				queryPath = basePath + queryPath;
+			if (keyValueCsvPath != null)
+				keyValueCsvPath = basePath + keyValueCsvPath;
+			if (keyValuePairsPath != null)
+				keyValuePairsPath = basePath + keyValuePairsPath;
+			if (timePath != null)
+				timePath = basePath + timePath;
 		}
-
-		if (!validInputFormat(format)){
-			throw new IllegalArgumentException("FORMAT: " + format + " is not a supported input");
-		}
-
-		if(inputFilesPaths != null) {
-			if(inputFilesPaths.isEmpty()) {
-				throw new IllegalArgumentException("No input file is provided");
-			} else if(inputFilesPaths.size() > 1 && !format.equals("rdf")) {
-				throw new IllegalArgumentException("Multiple input files are supported only for rdf files");
-			}
-		}
-		return true;
 	}
 
 	public void exec() throws Exception {
-
 		Reader reader = Util.createReader(inputFormat, inputFilesPaths, dbAddress, dbId, context, baseIri, username, password);
 
 		if (reader != null) {
@@ -198,17 +180,17 @@ public class Main {
 			try (FileWriter pw = new FileWriter(timePath, true)) {
 				long start = Instant.now().toEpochMilli();
 				if(queryPath != null)
-					tl.executeMappingParametric(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+					tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
 				else
-					tl.executeMapping(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+					tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
 				long duration = Instant.now().toEpochMilli() - start;
 				pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
 			}
 		else{
 			if(queryPath != null)
-				tl.executeMappingParametric(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+				tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
 			else
-				tl.executeMapping(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+				tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
 		}
 
 		if(reader != null)

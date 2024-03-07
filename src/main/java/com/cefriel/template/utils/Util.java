@@ -75,31 +75,34 @@ public class Util {
             default: throw new InvalidParameterException("Cannot create Reader for inputFormat: " + inputFormat);
         }
     }
-    public static Reader createInMemoryReader(String inputFormat, List<String> inputFilesPaths, String graphName, String baseIri) throws Exception {
+    public static Reader createInMemoryReader(String inputFormat, List<Path> inputFilesPaths, String graphName, String baseIri) throws Exception {
         if (!validInputFormat(inputFormat))
             throw new UnsupportedOperationException("Unsupported Reader format: " + inputFormat);
 
-        if(inputFilesPaths.isEmpty())
-            throw new InvalidParameterException("Cannot create Reader with no input file");
+        if(inputFilesPaths.isEmpty() && !inputFormat.equals("rdf"))
+            // an rdf reader can be initialized (when not created from cli) and then files can be added to it with the addFile method
+            throw new InvalidParameterException("Cannot create a " + inputFormat + "Reader with no input file");
 
         switch (inputFormat) {
             case "json":
                 if (inputFilesPaths.size() > 1)
                     throw new InvalidParameterException("Cannot create JSONReader with more than one input file.");
                 else
-                    return new JSONReader(inputFilesPaths.get(0));
+                    return new JSONReader(inputFilesPaths.get(0).toFile());
             case "xml":
                 if (inputFilesPaths.size() > 1)
                     throw new InvalidParameterException("Cannot create XMLReader with more than one input file.");
                 else
-                    return new XMLReader(inputFilesPaths.get(0));
+                    return new XMLReader(inputFilesPaths.get(0).toFile());
             case "csv":
                 if (inputFilesPaths.size() > 1)
                     throw new InvalidParameterException("Cannot create CSVReader with more than one input file.");
                 else
-                    return new CSVReader(inputFilesPaths.get(0));
+                    return new CSVReader(inputFilesPaths.get(0).toFile());
             case "rdf":
-                RDFReader rdfReader = new RDFReader(inputFilesPaths);
+                RDFReader rdfReader = new RDFReader();
+                for (Path triplesFile : inputFilesPaths)
+                    rdfReader.addFile(triplesFile.toString());
                 if (graphName != null)
                     rdfReader.setContext(graphName);
                 if (baseIri != null)
@@ -109,15 +112,13 @@ public class Util {
         }
     }
 
-    public static Reader createReader(String inputFormat, List<String> inputFilesPaths, String dbAddress, String dbId, String graphName, String baseIri, String username, String password) throws Exception {
-        // determine if trying to create remote or in memory Reader
-        // if dbadress is specified then it is remote
-
+    public static Reader createReader(String inputFormat, List<Path> inputFilesPaths, String dbAddress, String dbId, String graphName, String baseIri, String username, String password) throws Exception {
         if (inputFilesPaths == null && inputFormat == null) {
             //case when Reader is created directly in the template
             return null;
         }
-
+        // determine if trying to create remote or in memory Reader
+        // if dbadress is specified then it is remote
         boolean isRemoteReader = (dbAddress != null) ;
 
         if (isRemoteReader) {
