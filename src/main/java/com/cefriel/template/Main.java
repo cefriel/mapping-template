@@ -50,7 +50,7 @@ public class Main {
 	@Parameter(names={"--baseiri","-iri"})
 	private String baseIri = "http://www.cefriel.com/data/";
 	@Parameter(names={"--basepath","-b"})
-	private String basePath = "./";
+	private String basePath;
 	@Parameter(names={"--output","-o"})
 	private String destinationPath = "output.txt";
 	@Parameter(names={"--key-value","-kv"})
