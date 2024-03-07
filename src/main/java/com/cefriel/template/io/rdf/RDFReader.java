@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -55,12 +56,9 @@ import org.slf4j.LoggerFactory;
 public class RDFReader implements Reader {
 
     private final Logger log = LoggerFactory.getLogger(RDFReader.class);
-
     private Repository repository;
     private IRI context;
-
     private String baseIRI;
-
     private String queryHeader;
     private String outputFormat;
     private boolean verbose;
@@ -78,17 +76,17 @@ public class RDFReader implements Reader {
            repository = new SailRepository(new MemoryStore());
     }
 
-    public RDFReader(String address, String repositoryId) {
-        this.repository = new HTTPRepository(address, repositoryId);
+    public RDFReader(String repositoryUrl, String repositoryId) {
+        this.repository = new HTTPRepository(repositoryUrl, repositoryId);
     }
 
-    public RDFReader(String address, String repositoryId, String context) {
-        this.repository = new HTTPRepository(address, repositoryId);
+    public RDFReader(String repositoryUrl, String repositoryId, String context) {
+        this.repository = new HTTPRepository(repositoryUrl, repositoryId);
         setContext(context);
     }
 
-    public RDFReader(String address, String repositoryId, IRI contextIRI) {
-        this.repository = new HTTPRepository(address, repositoryId);
+    public RDFReader(String repositoryUrl, String repositoryId, IRI contextIRI) {
+        this.repository = new HTTPRepository(repositoryUrl, repositoryId);
         setContext(contextIRI);
     }
 
@@ -104,6 +102,12 @@ public class RDFReader implements Reader {
     public RDFReader(Repository repository, IRI contextIRI) {
         this.repository = repository;
         setContext(contextIRI);
+    }
+
+    public RDFReader(Repository repository, String graphName, String baseIri) {
+        this.repository = repository;
+        this.setContext(graphName);
+        this.setBaseIRI(baseIri);
     }
 
     /**
@@ -233,8 +237,10 @@ public class RDFReader implements Reader {
      */
     public void addFile(String triplesPath, RDFFormat rdfFormat) throws Exception {
         File file = new File(triplesPath);
-        try (RepositoryConnection con = repository.getConnection()) {
-            con.add(file, baseIRI, rdfFormat);
+        if (file.exists()) {
+            try (RepositoryConnection con = repository.getConnection()) {
+                con.add(file, baseIRI, rdfFormat);
+            }
         }
     }
 
@@ -245,9 +251,11 @@ public class RDFReader implements Reader {
      */
     public void addFile(String triplesPath) throws Exception {
         File file = new File(triplesPath);
-        RDFFormat rdfFormat = Rio.getParserFormatForFileName(triplesPath).orElse(RDFFormat.TURTLE);
-        try (RepositoryConnection con = repository.getConnection()) {
-            con.add(file, baseIRI, rdfFormat);
+        if (file.exists()) {
+            RDFFormat rdfFormat = Rio.getParserFormatForFileName(triplesPath).orElse(RDFFormat.TURTLE);
+            try (RepositoryConnection con = repository.getConnection()) {
+                con.add(file, baseIRI, rdfFormat);
+            }
         }
     }
 

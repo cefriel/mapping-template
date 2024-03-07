@@ -139,21 +139,7 @@ public class Main {
 
 	public void exec() throws Exception {
 
-		Reader reader = null;
-
-		if (validateInputFiles(inputFilesPaths, inputFormat)) {
-			if (inputFormat != null) {
-				if (inputFormat.equals("rdf")) {
-					reader = Util.createRDFReader(inputFilesPaths, dbAddress, dbId, context, baseIri);
-				} else if (inputFormat.equals("mysql") || inputFormat.equals("postgresql"))   {
-					reader = new SQLReader(inputFormat, dbAddress, dbId, username, password);
-				}
-				else {
-					String inputFilePath = inputFilesPaths.get(0);
-					reader = Util.createNonRdfReader(inputFilePath, inputFormat);
-				}
-			}
-		}
+		Reader reader = Util.createReader(inputFormat, inputFilesPaths, dbAddress, dbId, context, baseIri, username, password);
 
 		if (reader != null) {
 			reader.setVerbose(verbose);
