@@ -1,0 +1,4 @@
+test-cases
+*.class
+mappings
+!mappings/git.keep

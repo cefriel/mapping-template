@@ -4,15 +4,16 @@
 #set ( $prefixes = $reader.setPrefixes("
     prefix rml: <http://w3id.org/rml/>
     prefix dcat: <http://www.w3.org/ns/dcat#>
+    prefix d2rq: <http://www.wiwiss.fu-berlin.de/suhl/bizer/D2RQ/0.1#>
 ") )
 
 #set($d="$") 
-#set($a="#") 
+#set($h="#") 
 #set($pa="{") 
 #set($pc="}")
+#set($defaultNamespace = "http://www.cefriel.com/kt/")
 
 #set ( $mappings_content= $reader.getDataframe("
-
 SELECT DISTINCT *
 WHERE {
 
@@ -21,7 +22,12 @@ WHERE {
 			OPTIONAL{?_source rml:source ?data_source .}
 			OPTIONAL{
                 ?data_source a dcat:Distribution .
-				?data_source dcat:accessURL ?access_url . # download URL would be better
+				?data_source dcat:accessURL ?access_url . # downloadURL would be better
+			}
+            OPTIONAL{
+                ?data_source a rml:RelativePathSource .
+                ?data_source rml:root ?root_folder .
+				?data_source rml:path ?path .
 			}
 			OPTIONAL {?_source rml:referenceFormulation ?ref_form .} # missing in BC page
 			OPTIONAL { ?_source rml:iterator ?iterator . }
@@ -46,7 +52,6 @@ WHERE {
 			?triples_map_id rml:predicateObjectMap ?_predicate_object_map .
 
 			OPTIONAL {
-				?triples_map_id rml:predicateObjectMap ?_predicate_object_map .
 				?_predicate_object_map rml:predicateMap ?_predicate_map .
 				?_predicate_map rml:constant ?predicate_constant .
 			}
@@ -122,44 +127,94 @@ WHERE {
 ") )
 
 #set($lmSources = $functions.getListMap($mappings_content, "_source"))
+
 #foreach($lmSource in $lmSources.entrySet())
     #set($source = $lmSource.value.get(0))
-    #set($sourceUrl = $functions.replace($source.access_url, "file://", "")
-    #set($refForm = $source.ref_form)
-    #set($sourceHash = $functions.hash($source._source))
-    #if($refForm == "http://w3id.org/rml/CSV")
-        ${d}reader_$sourceHash = ${d}functions.getCSVReaderFromFile($sourceUrl)
-    #elseif ($tm0.iterator_tech == "http://w3id.org/rml/XPath")
-        ${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile($sourceUrl)
-    #elseif ($tm0.iterator_tech=="http://w3id.org/rml/JSONPath")
-        ${d}reader_$sourceHash = ${d}functions.getJSONReaderFromFile($sourceUrl)
-    #elseif ($refForm == "http://w3id.org/rml/RDF")
-        ${d}reader_$sourceHash = ${d}functions.getRDFReaderFromFile($sourceUrl)
-    #else
-        ## TODO Error "NO READER FOUND" 
+    #if($source.access_url)
+        #set($sourceUrl = $functions.replace($source.access_url, "file://", ""))
+    #elseif($source.path)
+        #set($sourceUrl = "./" + $source.path)
     #end
+    #set($refForm = $source.ref_form)
+    #set($sourceHash = $functions.hash($source._source).replace("-",""))
+    #if($refForm == "http://w3id.org/rml/CSV")
+        ${h}set(${d}reader_$sourceHash = ${d}functions.getCSVReaderFromFile("$sourceUrl"))
+        ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe())
+    #elseif ($refForm == "http://w3id.org/rml/XPath")
+        ${h}set(${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile("$sourceUrl"))
+    #elseif ($refForm=="http://w3id.org/rml/JSONPath")
+        ${h}set(${d}reader_$sourceHash = ${d}functions.getJSONReaderFromFile("$sourceUrl"))
+    #else
+        Error: "No compatible Reader found." 
+    #end
+    
+    #* TODO Handle iterator *#
     #set($iterator = $source.iterator)
 
-    #*
-    Get all templates and references to define the dataframe to be extracted
+    #set($lmTmSource = $functions.getListMap($lmSource.value,"triples_map_id"))
+    #foreach($lmTmSourceEntry in $lmTmSource.entrySet())
+        #* TODO Check if can be directly accesses *#
+        #set($tm = $lmTmSourceEntry.value.get(0))
 
+        #set($subject = $tm.subject_template)
+        #* TODO Check if default namespace should be added *#
+        #if($tm.subject_template)
+            #set($matches = $functions.getReferencesFromTemplate($tm.subject_template))
+            #foreach($match in $matches)
+                #set($subject = $subject.replace("{"+ $match + "}", "$i." + $match))
+            #end
+        #* 
+            TODO Handle Blank Nodes
+            #if ($tm0.subject_termtype=="http://www.w3.org/ns/r2rml#BlankNode")
+        *#  
+        #elseif($tm.subject_reference)
+            #set($subject = "$i." + $tm.subject_reference)
+        #elseif($tm.subject_constant)
+            #set($subject = $tm.subject_constant)
+        #end
+        #* TODO Handle $tm.subject_termtype *#
 
-    default_namespace http://www.cefriel.com/kt/
+        #* TODO Handle QUADS generation *#
+        
 
-    #set($lmTmSource = $functions.getListMap($tm_Source,"triples_map_id"))
-    #if($tm0.subject_template)
-    #if (($tm0.subject_termtype) && ($tm0.subject_termtype=="http://www.w3.org/ns/r2rml#BlankNode"))
-      $tm0.subject_template 
-    #else
-      $tm0.subject_template
+        #if($tm.predicate_constant)
+            #set($predicate = $tm.predicate_constant)
+        #elseif($tm.predicate_template)
+            #set($matches = $functions.getReferencesFromTemplate($tm.predicate_template))
+            #set($predicate = $tm.predicate_template)
+            #foreach($match in $matches)
+                #set($predicate = $predicate.replace("{"+ $match + "}", "$i." + $match))
+            #end
+        #elseif($tm.predicate_reference)
+            #set($predicate = "$i." + $tm.predicate_reference)
+        #elseif($tm.predicate_constant_shortcut)
+            #set($predicate = $tm.predicate_constant_shortcut)
+        #end
+
+        #if($tm.object_constant)
+            #set($object = $tm.object_constant)
+        #elseif($tm.object_template)
+            #set($matches = $functions.getReferencesFromTemplate($tm.object_template))
+            #set($object = $tm.object_template)
+            #foreach($match in $matches)
+                #set($object = $object.replace("{"+ $match + "}", "$i." + $match))
+            #end
+        #elseif($tm.object_reference)
+            #set($object = "$i." + $tm.object_reference)
+        #end
+
+        ${h}foreach(${d}i in ${d}dataframe_$sourceHash)
+            #if($tm.subject_rdf_class)
+                $subject a $tm.subject_rdf_class .
+            #end
+            <$subject> <$predicate> "$object" .
+        ${h}end
     #end
-  #elseif($tm0.subject_reference)
-      ${pa}$tm0.subject_reference${pc}
-  #elseif($tm0.subject_constant)
-      $tm0.subject_constant
-  #elseif($tm0.subject_termtype)
-      $tm0.subject_termtype
-  #end
+
+#end
+
+#*
+    
     
   <!-- GRAPH -->
   #if($tm0.subj_graph_reference)
