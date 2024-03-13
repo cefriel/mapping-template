@@ -39,13 +39,17 @@ WHERE {
 			OPTIONAL {?_subject_map rml:template ?subject_template .}
 			OPTIONAL {?_subject_map rml:reference ?subject_reference .}
 			OPTIONAL {?_subject_map rml:constant ?subject_constant}
-			OPTIONAL { ?_subject_map rml:class ?subject_rdf_class . }
+            OPTIONAL {?triples_map_id rml:subject ?subject_constant_shortcut .}
+
 			OPTIONAL { ?_subject_map rml:termType ?subject_termtype . }
-			OPTIONAL { ?_subject_map rml:graph ?graph . }
+
+			OPTIONAL { ?_subject_map rml:graph ?graph_constant_shortcut . }
 			OPTIONAL { ?_subject_map rml:graphMap ?_graph_structure .
-					   ?_graph_structure rml:constant ?graph . }
+					   ?_graph_structure rml:constant ?graph_constant . }
+            OPTIONAL { ?_subject_map rml:graphMap ?_graph_structure .
+					    ?_graph_structure rml:reference ?graph_reference . }
 			OPTIONAL { ?_subject_map rml:graphMap ?_graph_structure .
-					   ?_graph_structure rml:template ?graph . }		   
+					   ?_graph_structure rml:template ?graph_template . }		   
 
 	# Predicate -----------------------------------------------------------------------
 			OPTIONAL {
@@ -66,7 +70,6 @@ WHERE {
 			OPTIONAL {
 				?_predicate_object_map rml:predicate ?predicate_constant_shortcut .
 			 }
-
 
 	# Object --------------------------------------------------------------------------
 			OPTIONAL {
@@ -126,6 +129,14 @@ WHERE {
 		} 
 ") )
 
+#set ( $defaultSubjectClassesQuery = "
+    SELECT DISTINCT *
+    WHERE {
+        <TRIPLES_MAP> rml:subjectMap ?_subject_map .
+        ?_subject_map rml:class ?subject_rdf_class . 
+    }
+")          
+
 #set($lmSources = $functions.getListMap($mappings_content, "_source"))
 
 #foreach($lmSource in $lmSources.entrySet())
@@ -145,72 +156,108 @@ WHERE {
     #elseif ($refForm=="http://w3id.org/rml/JSONPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getJSONReaderFromFile("$sourceUrl"))
     #else
-        Error: "No compatible Reader found." 
+        ${d}error: "No compatible Reader found." 
     #end
     
     #* TODO Handle iterator *#
     #set($iterator = $source.iterator)
+    #* TODO Get all dataframes at the beginning *#
 
     #set($lmTmSource = $functions.getListMap($lmSource.value,"triples_map_id"))
     #foreach($lmTmSourceEntry in $lmTmSource.entrySet())
 
+        #* SUBJECT *#
+        #set($subject = $null)
         #set($stm = $lmTmSourceEntry.value.get(0))
-
-        #set($subject = $stm.subject_template)
         #* TODO Check if default namespace should be added *#
         #if($stm.subject_template)
-            #set($matches = $functions.getReferencesFromTemplate($stm.subject_template))
-            #foreach($match in $matches)
-                #set($subject = $subject.replace("{"+ $match + "}", "$i." + $match))
-            #end
+            #set($subject = $functions.resolveTemplate($stm.subject_template))
         #elseif($stm.subject_reference)
-            #set($subject = "$i." + $tm.subject_reference)
+            #set($subject = $functions.resolveReference($stm.subject_reference))
         #elseif($stm.subject_constant)
-            #set($subject = $tm.subject_constant)
+            #set($subject = $stm.subject_constant)
+        #elseif($stm.subject_constant_shortcut)
+            #set($subject = $stm.subject_constant_shortcut)
         #end
         
         #if ($stm.subject_termtype == "http://w3id.org/rml/BlankNode")
             #set($subject = "_:" + $subject)
+        #elseif ($stm.subject_termtype == "http://w3id.org/rml/Literal")
+            ${d}error: subject can not be of type Literal.
         #else
             #set($subject = '<' + $subject + '>')
         #end
 
-        #* TODO Handle QUADS generation *#
+        #* GRAPH *#
+        #set($graph = $null)
+        #if($stm.graph_template)
+            #set($graph = $functions.resolveTemplate($stm.graph_template))
+        #elseif($stm.graph_reference)
+            #set($graph = $functions.resolveReference($stm.graph_reference))
+        #elseif($stm.graph_constant)
+            #set($graph = $stm.graph_constant)
+        #elseif($stm.graph_constant_shortcut)
+            #set($graph = $stm.graph_constant_shortcut)
+        #end
         
+        #* Init template execution *#
         ${h}foreach(${d}i in ${d}dataframe_$sourceHash)
-        #if($stm.subject_rdf_class)
-                $subject a <$stm.subject_rdf_class> .
+
+        #set($subjectClassesQuery = $defaultSubjectClassesQuery.replace("TRIPLES_MAP",$stm.triples_map_id))
+        #set($subjectClasses = $reader.getDataframe($subjectClassesQuery))
+        #foreach($subjClass in $subjectClasses)
+            #if($graph)
+                $subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <$subjClass.subject_rdf_class> <$graph>.
+            #else
+                $subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <$subjClass.subject_rdf_class> .
+            #end
+            
         #end
 
-        #foreach($tm in $lmTmSourceEntry.value)  
-            #if($tm.predicate_constant)
-                #set($predicate = $tm.predicate_constant)
-            #elseif($tm.predicate_template)
-                #set($matches = $functions.getReferencesFromTemplate($tm.predicate_template))
-                #set($predicate = $tm.predicate_template)
-                #foreach($match in $matches)
-                    #set($predicate = $predicate.replace("{"+ $match + "}", "$i." + $match))
-                #end
+        #* PO MAPS *#
+        #foreach($tm in $lmTmSourceEntry.value)
+
+            #* PREDICATE *#
+            #set($predicate = $null)
+            #if($tm.predicate_template)
+                #set($predicate = $functions.resolveTemplate($tm.predicate_template))
             #elseif($tm.predicate_reference)
-                #set($predicate = "$i." + $tm.predicate_reference)
+                #set($predicate = $functions.resolveReference($tm.predicate_reference))
+            #elseif($tm.predicate_constant)
+                #set($predicate = $tm.predicate_constant)
             #elseif($tm.predicate_constant_shortcut)
                 #set($predicate = $tm.predicate_constant_shortcut)
             #end
 
-            #if($tm.object_constant)
-                #set($object = $tm.object_constant)
-            #elseif($tm.object_template)
-                #set($matches = $functions.getReferencesFromTemplate($tm.object_template))
-                #set($object = $tm.object_template)
-                #foreach($match in $matches)
-                    #set($object = $object.replace("{"+ $match + "}", "$i." + $match))
-                #end
+            #* OBJECT *#
+            #set($object = $null)
+            #if($tm.object_template)
+                #set($object = $functions.resolveTemplate($tm.object_template))
             #elseif($tm.object_reference)
-                #set($object = "$i." + $tm.object_reference)
+                #set($object = $functions.resolveReference($tm.object_reference))
+            #elseif($tm.object_constant)
+                #set($object = $tm.object_constant)
+            #elseif($tm.object_constant_shortcut)
+                #set($object = $tm.object_constant_shortcut)
+            #end
+
+            #* 
+                TODO Improve condition using FILTER (isLiteral(?value)) in SPARQL Query
+                and checking the object_termtype
+            *#
+            #if($object.contains("://"))
+                #set($object = '<' + $object + '>')
+            #else
+                #set($object = '"' + $object + '"')
             #end
 
             #* Generate the triple/quad . *#
-            $subject <$predicate> "$object" .
+
+            #if($graph)
+                $subject <$predicate> $object <$graph>.
+            #else
+                $subject <$predicate> $object .
+            #end
 
         #end   
         ${h}end
@@ -221,14 +268,7 @@ WHERE {
 #*
     
     
-  <!-- GRAPH -->
-  #if($tm0.subj_graph_reference)
-      ${pa}$tm0.subj_graph_reference${pc}
-  #elseif($tm0.subj_graph_constant)
-      $tm0.subj_graph_constant
-  #elseif($tm0.subj_graph_template)
-      $tm0.subj_graph_template
-  #end
+
 
   #end
 

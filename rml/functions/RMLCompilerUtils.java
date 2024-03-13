@@ -23,16 +23,28 @@ import java.util.List;
 
 public class RMLCompilerUtils extends TemplateFunctions {
 
+    final Pattern templatePattern = Pattern.compile("\\{(.*?)\\}");
+
     public List<String> getReferencesFromTemplate(String input){
 
-        Pattern pattern = Pattern.compile("\\{(.*?)\\}");
-        Matcher matcher = pattern.matcher(input);
+        Matcher matcher = templatePattern.matcher(input);
 
         List<String> matches = new ArrayList();
         while (matcher.find()) {
             matches.add(matcher.group(1));
         }
         return matches;
+    }
+
+    public String resolveTemplate(String input) {  
+        List<String> matches = getReferencesFromTemplate(input);
+        for(String m : matches)
+            input = input.replace("{" + m + "}", resolveReference(m));
+        return input;
+    }
+
+    public String resolveReference(String input) {
+        return "${i." + input + "}";
     }
 
 }
