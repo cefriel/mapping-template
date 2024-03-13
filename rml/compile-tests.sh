@@ -2,19 +2,20 @@
 
 folder_path="./test-cases"
 
-for subfolder in "$folder_path"/*-CSV; do
+for subfolder in "$folder_path"/*0002a-CSV; do
     echo $subfolder
 
     cp rml-compiler.vm $subfolder
-    cp functions/RMLCompilerUtils.java $subfolder
+    cp -R functions $subfolder
     
     cd $subfolder
-    java -jar ../../../target/mapping-template.jar -i mapping.ttl -if rdf -t rml-compiler.vm -o mapping.rml.vm -fun RMLCompilerUtils.java
 
-    java -jar ../../../target/mapping-template.jar -t mapping.rml.vm -o output.rdf -f nt --trim
+    java -jar ../../../target/mapping-template.jar -i mapping.ttl -if rdf -t rml-compiler.vm -o mapping.rml.vm -fun functions/RMLCompilerUtils.java
+
+    java -jar ../../../target/mapping-template.jar -t mapping.rml.vm -o output.rdf -f turtle --trim
 
     rm ./rml-compiler.vm
-    rm -r ./functions
+    rm -r functions
 
     cat output.rdf
     echo "**********************"

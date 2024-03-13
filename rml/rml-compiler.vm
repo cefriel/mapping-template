@@ -39,8 +39,8 @@ WHERE {
 			OPTIONAL {?_subject_map rml:template ?subject_template .}
 			OPTIONAL {?_subject_map rml:reference ?subject_reference .}
 			OPTIONAL {?_subject_map rml:constant ?subject_constant}
-			OPTIONAL { ?_subject_map rml:class ?rdf_class . }
-			OPTIONAL { ?_subject_map rml:termType ?termtype . }
+			OPTIONAL { ?_subject_map rml:class ?subject_rdf_class . }
+			OPTIONAL { ?_subject_map rml:termType ?subject_termtype . }
 			OPTIONAL { ?_subject_map rml:graph ?graph . }
 			OPTIONAL { ?_subject_map rml:graphMap ?_graph_structure .
 					   ?_graph_structure rml:constant ?graph . }
@@ -153,61 +153,66 @@ WHERE {
 
     #set($lmTmSource = $functions.getListMap($lmSource.value,"triples_map_id"))
     #foreach($lmTmSourceEntry in $lmTmSource.entrySet())
-        #* TODO Check if can be directly accesses *#
-        #set($tm = $lmTmSourceEntry.value.get(0))
 
-        #set($subject = $tm.subject_template)
+        #set($stm = $lmTmSourceEntry.value.get(0))
+
+        #set($subject = $stm.subject_template)
         #* TODO Check if default namespace should be added *#
-        #if($tm.subject_template)
-            #set($matches = $functions.getReferencesFromTemplate($tm.subject_template))
+        #if($stm.subject_template)
+            #set($matches = $functions.getReferencesFromTemplate($stm.subject_template))
             #foreach($match in $matches)
                 #set($subject = $subject.replace("{"+ $match + "}", "$i." + $match))
             #end
-        #* 
-            TODO Handle Blank Nodes
-            #if ($tm0.subject_termtype=="http://www.w3.org/ns/r2rml#BlankNode")
-        *#  
-        #elseif($tm.subject_reference)
+        #elseif($stm.subject_reference)
             #set($subject = "$i." + $tm.subject_reference)
-        #elseif($tm.subject_constant)
+        #elseif($stm.subject_constant)
             #set($subject = $tm.subject_constant)
         #end
-        #* TODO Handle $tm.subject_termtype *#
+        
+        #if ($stm.subject_termtype == "http://w3id.org/rml/BlankNode")
+            #set($subject = "_:" + $subject)
+        #else
+            #set($subject = '<' + $subject + '>')
+        #end
 
         #* TODO Handle QUADS generation *#
         
-
-        #if($tm.predicate_constant)
-            #set($predicate = $tm.predicate_constant)
-        #elseif($tm.predicate_template)
-            #set($matches = $functions.getReferencesFromTemplate($tm.predicate_template))
-            #set($predicate = $tm.predicate_template)
-            #foreach($match in $matches)
-                #set($predicate = $predicate.replace("{"+ $match + "}", "$i." + $match))
-            #end
-        #elseif($tm.predicate_reference)
-            #set($predicate = "$i." + $tm.predicate_reference)
-        #elseif($tm.predicate_constant_shortcut)
-            #set($predicate = $tm.predicate_constant_shortcut)
-        #end
-
-        #if($tm.object_constant)
-            #set($object = $tm.object_constant)
-        #elseif($tm.object_template)
-            #set($matches = $functions.getReferencesFromTemplate($tm.object_template))
-            #set($object = $tm.object_template)
-            #foreach($match in $matches)
-                #set($object = $object.replace("{"+ $match + "}", "$i." + $match))
-            #end
-        #elseif($tm.object_reference)
-            #set($object = "$i." + $tm.object_reference)
-        #end
-
         ${h}foreach(${d}i in ${d}dataframe_$sourceHash)
-            #if($tm.subject_rdf_class)
-                $subject a $tm.subject_rdf_class .
+        #if($stm.subject_rdf_class)
+                $subject a <$stm.subject_rdf_class> .
+        #end
+
+        #foreach($tm in $lmTmSourceEntry.value)  
+            #if($tm.predicate_constant)
+                #set($predicate = $tm.predicate_constant)
+            #elseif($tm.predicate_template)
+                #set($matches = $functions.getReferencesFromTemplate($tm.predicate_template))
+                #set($predicate = $tm.predicate_template)
+                #foreach($match in $matches)
+                    #set($predicate = $predicate.replace("{"+ $match + "}", "$i." + $match))
+                #end
+            #elseif($tm.predicate_reference)
+                #set($predicate = "$i." + $tm.predicate_reference)
+            #elseif($tm.predicate_constant_shortcut)
+                #set($predicate = $tm.predicate_constant_shortcut)
             #end
-            <$subject> <$predicate> "$object" .
+
+            #if($tm.object_constant)
+                #set($object = $tm.object_constant)
+            #elseif($tm.object_template)
+                #set($matches = $functions.getReferencesFromTemplate($tm.object_template))
+                #set($object = $tm.object_template)
+                #foreach($match in $matches)
+                    #set($object = $object.replace("{"+ $match + "}", "$i." + $match))
+                #end
+            #elseif($tm.object_reference)
+                #set($object = "$i." + $tm.object_reference)
+            #end
+
+            #* Generate the triple/quad . *#
+            $subject <$predicate> "$object" .
+
+        #end   
         ${h}end
     #end
 
