@@ -18,15 +18,16 @@ import com.cefriel.template.utils.TemplateFunctions;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class RMLCompilerUtils extends TemplateFunctions {
 
     final Pattern templatePattern = Pattern.compile("\\{(.*?)\\}");
+    final Pattern referencePattern = Pattern.compile("\\$\\{(.*?)\\}");
 
     public List<String> getReferencesFromTemplate(String input){
-
         Matcher matcher = templatePattern.matcher(input);
 
         List<String> matches = new ArrayList();
@@ -45,6 +46,23 @@ public class RMLCompilerUtils extends TemplateFunctions {
 
     public String resolveReference(String input) {
         return "${i." + input + "}";
+    }
+
+    public String encodeReferences(String s) {
+
+        if (s != null) {
+            Matcher matcher = referencePattern.matcher(s);
+
+            List<String> matches = new ArrayList();
+            while (matcher.find()) {
+                matches.add(matcher.group(1));
+            }
+
+            for(String m : matches)
+                s = s.replace("${" + m + "}", "$functions.encodeURI(${" + m + "})");
+        }
+
+        return s;
     }
 
 }

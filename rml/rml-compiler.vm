@@ -185,7 +185,7 @@ WHERE {
         #elseif ($stm.subject_termtype == "http://w3id.org/rml/Literal")
             ${d}error: subject can not be of type Literal.
         #else
-            #set($subject = '<' + $subject + '>')
+            #set($subject = '<' + $functions.encodeReferences($subject) + '>')
         #end
 
         #* GRAPH *#
@@ -199,6 +199,12 @@ WHERE {
         #elseif($stm.graph_constant_shortcut)
             #set($graph = $stm.graph_constant_shortcut)
         #end
+        #* rml:defaultGraph mapped to the default graph *#
+        #if($graph == "http://w3id.org/rml/defaultGraph")
+            #set($graph = $null)
+        #else
+            #set($graph = $functions.encodeReferences($graph))
+        #end
         
         #* Init template execution *#
         ${h}foreach(${d}i in ${d}dataframe_$sourceHash)
@@ -211,7 +217,6 @@ WHERE {
             #else
                 $subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <$subjClass.subject_rdf_class> .
             #end
-            
         #end
 
         #* PO MAPS *#
@@ -228,6 +233,7 @@ WHERE {
             #elseif($tm.predicate_constant_shortcut)
                 #set($predicate = $tm.predicate_constant_shortcut)
             #end
+            #set($predicate = $functions.encodeReferences($predicate))
 
             #* OBJECT *#
             #set($object = $null)
@@ -246,7 +252,7 @@ WHERE {
                 and checking the object_termtype
             *#
             #if($object.contains("://"))
-                #set($object = '<' + $object + '>')
+                #set($object = '<' + $functions.encodeReferences($object) + '>')
             #else
                 #set($object = '"' + $object + '"')
             #end
