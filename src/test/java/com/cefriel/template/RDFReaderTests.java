@@ -46,7 +46,7 @@ public class RDFReaderTests {
         TemplateExecutor executor = new TemplateExecutor();
         Path template = Paths.get(resolvePath(folder, "template.vm"));
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")));
-        String result = executor.executeMapping(reader,  template, false, false,null, null, new TemplateFunctions());
+        String result = executor.executeMapping(reader,  template, false, false, false, null, null, new TemplateFunctions());
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
         result = result.replaceAll("\\r\\n", "\n");
 
@@ -67,7 +67,7 @@ public class RDFReaderTests {
         Path template = Paths.get(resolvePath(folder, "template.vm"));
 
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")));
-        String result = executor.executeMapping(reader,  template, false, false,null, null, new TemplateFunctions());
+        String result = executor.executeMapping(reader,  template, false, false, false, null, null, new TemplateFunctions());
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
         result = result.replaceAll("\\r\\n", "\n");
@@ -86,7 +86,7 @@ public class RDFReaderTests {
         Path template = Paths.get(resolvePath(folder, "template.vm"));
 
         Path queryPath = Paths.get(resolvePath(folder, "query.txt"));
-        Map<String, String> output = executor.executeMappingParametric(reader, template, false, false, queryPath, null, null, new TemplateFunctions());
+        Map<String, String> output = executor.executeMappingParametric(reader, template, false, false, false, queryPath, null, null, new TemplateFunctions());
 
         for(String id : output.keySet()) {
             String expectedOutput = Files

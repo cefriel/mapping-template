@@ -38,32 +38,32 @@ public class TemplateExecutor {
 
 	private final org.slf4j.Logger log = LoggerFactory.getLogger(TemplateExecutor.class);
 	// methods called from cli
-	public String executeMapping(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean trimTemplate, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
+	public String executeMapping(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean failInvalidRef, boolean trimTemplate, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
 		VelocityContext velocityContext;
 		velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap,templateFunctions);
-		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder);
+		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder,failInvalidRef);
 		Path usedTemplatePath = trimTemplate ? trimTemplate(templatePath) : templatePath;
 		return applyTemplate(usedTemplatePath, velocityContext, velocityEngine, formatter);
 	}
-	public Path executeMapping(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean trimTemplate, Path outputFilePath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
+	public Path executeMapping(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean failInvalidRef, boolean trimTemplate, Path outputFilePath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
 		VelocityContext velocityContext;
 		velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder);
+		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder,failInvalidRef);
 		Path usedTemplatePath = trimTemplate ? trimTemplate(templatePath) : templatePath;
 		return applyTemplate(usedTemplatePath, velocityContext, velocityEngine, formatter, outputFilePath);
 	}
-	public Map<String,String> executeMappingParametric(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean trimTemplate, Path queryPath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
+	public Map<String,String> executeMappingParametric(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean failInvalidRef, boolean trimTemplate, Path queryPath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
 		VelocityContext velocityContext;
 		velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder);
+		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder,failInvalidRef);
 		Path usedTemplatePath = trimTemplate ? trimTemplate(templatePath) : templatePath;
 		String query = Files.readString(queryPath);
 		return applyTemplateParametric(usedTemplatePath, query, velocityContext, velocityEngine, formatter);
 	}
-	public List<Path> executeMappingParametric(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean trimTemplate, Path queryPath, Path outputFilePath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
+	public List<Path> executeMappingParametric(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean failInvalidRef, boolean trimTemplate, Path queryPath, Path outputFilePath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
 		VelocityContext velocityContext;
 		velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder);
+		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder,failInvalidRef);
 		Path usedTemplatePath = trimTemplate ? trimTemplate(templatePath) : templatePath;
 		String query = Files.readString(queryPath);
 		return applyTemplateParametric(usedTemplatePath, query, velocityContext, velocityEngine, formatter, outputFilePath);
@@ -164,7 +164,7 @@ public class TemplateExecutor {
 			java.io.Reader templateReader = new InputStreamReader(template);
 			StringWriter writer = new StringWriter();
 
-			VelocityEngine velocityEngine = Util.createVelocityEngine(false);
+			VelocityEngine velocityEngine = Util.createVelocityEngine(false,true);
 			velocityEngine.evaluate(context, writer, "TemplateExecutor", templateReader);
 
 			String result = writer.toString();
@@ -181,7 +181,7 @@ public class TemplateExecutor {
 					new FileOutputStream(outputFilePath.toString()),
 					StandardCharsets.UTF_8));
 
-			VelocityEngine velocityEngine = Util.createVelocityEngine(false);
+			VelocityEngine velocityEngine = Util.createVelocityEngine(false,true);
 			velocityEngine.evaluate(context, writer, "TemplateExecutor", templateReader);
 
 			templateReader.close();

@@ -61,6 +61,8 @@ public class Main {
 	private boolean trimTemplate;
 	@Parameter(names={"--template-resource","-trs"})
 	private boolean templateInResources;
+	@Parameter(names={"--fail-invalid-ref","-fir"})
+	private boolean failInvalidRef;
 	@Parameter(names={"--username","-us"})
 	private String username;
 	@Parameter(names={"--password","-psw"})
@@ -179,9 +181,10 @@ public class Main {
 		}
 
 		Formatter formatter = null;
-		if(reader != null && format != null) {
+		if(format != null) {
 			formatter = Util.createFormatter(format);
-			reader.setOutputFormat(format);
+			if(reader != null)
+				reader.setOutputFormat(format);
 		}
 
 		TemplateFunctions templateFunctions = new TemplateFunctions();
@@ -208,21 +211,26 @@ public class Main {
 			}
 		}
 
-		if(timePath != null)
-			try (FileWriter pw = new FileWriter(timePath, true)) {
-				long start = Instant.now().toEpochMilli();
-				if(queryPath != null)
-					tl.executeMappingParametric(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+		try {
+			if (timePath != null)
+				try (FileWriter pw = new FileWriter(timePath, true)) {
+					long start = Instant.now().toEpochMilli();
+					if (queryPath != null)
+						tl.executeMappingParametric(reader, Paths.get(templatePath), templateInResources, failInvalidRef, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+					else
+						tl.executeMapping(reader, Paths.get(templatePath), templateInResources, failInvalidRef, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+					long duration = Instant.now().toEpochMilli() - start;
+					pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
+				}
+			else {
+				if (queryPath != null)
+					tl.executeMappingParametric(reader, Paths.get(templatePath), templateInResources, failInvalidRef, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
 				else
-					tl.executeMapping(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
-				long duration = Instant.now().toEpochMilli() - start;
-				pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
+					tl.executeMapping(reader, Paths.get(templatePath), templateInResources, failInvalidRef, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
 			}
-		else{
-			if(queryPath != null)
-				tl.executeMappingParametric(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
-			else
-				tl.executeMapping(reader, Paths.get(templatePath), templateInResources, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+		} catch (Exception e) {
+			Files.deleteIfExists(Paths.get(destinationPath));
+			throw e;
 		}
 
 		if(reader != null)

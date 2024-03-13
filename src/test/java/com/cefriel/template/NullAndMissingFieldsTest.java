@@ -32,7 +32,7 @@ public class NullAndMissingFieldsTest {
         TemplateExecutor executor = new TemplateExecutor();
         Path template = Paths.get("src/test/resources/null-and-missing-fields/template.vm");
 
-        String result = executor.executeMapping(jsonReader,  template, false, false,null, null, new TemplateFunctions());
+        String result = executor.executeMapping(jsonReader,  template, false, false, false, null, null, new TemplateFunctions());
         String expectedOutput = Files.readString(Paths.get("src/test/resources/null-and-missing-fields/correct-output.txt"));
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
@@ -41,4 +41,5 @@ public class NullAndMissingFieldsTest {
         assert(expectedOutput.equals(result));
 
     }
+
 }

@@ -24,5 +24,5 @@ public class MappingTemplateConstants {
             "xml", "csv", "json", "rdf", "mysql", "postgresql"));
 
     public static final HashSet<String> FORMATTER_FORMATS = new HashSet<>(Arrays.asList(
-            "xml", "json", "turtle", "rdfxml", "nt", "jsonld"));
+            "xml", "json", "turtle", "rdfxml", "nt", "nq", "jsonld"));
 }

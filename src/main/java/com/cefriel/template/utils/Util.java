@@ -137,6 +137,8 @@ public class Util {
                     return new RDFFormatter(RDFFormat.RDFXML);
                 case "nt":
                     return new RDFFormatter(RDFFormat.NTRIPLES);
+                case "nq":
+                    return new RDFFormatter(RDFFormat.NQUADS);
                 case "jsonld":
                     return new RDFFormatter(RDFFormat.JSONLD);
                 default:
@@ -173,8 +175,10 @@ public class Util {
     public static String inputStreamToString(InputStream input) throws IOException {
         return new String(input.readAllBytes(), StandardCharsets.UTF_8);
     }
-    public static VelocityEngine createVelocityEngine(boolean templateInResources){
+    public static VelocityEngine createVelocityEngine(boolean templateInResources, boolean failInvalidRef){
         VelocityEngine velocityEngine = new VelocityEngine();
+        // Fail on variables not found
+        velocityEngine.setProperty("runtime.references.strict", failInvalidRef);
         if (templateInResources) {
             velocityEngine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
             velocityEngine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());

@@ -80,7 +80,7 @@ public class TemplateFunctionsTest {
 
         CustomTemplateFunctions customTemplateFunctions = new CustomTemplateFunctions();
 
-        String result = executor.executeMapping(null,  template, false, false,null, null, customTemplateFunctions);
+        String result = executor.executeMapping(null,  template, false, false, false, null, null, customTemplateFunctions);
         Assertions.assertEquals(result, customTemplateFunctions.printMessage());
     }
 
