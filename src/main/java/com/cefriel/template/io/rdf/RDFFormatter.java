@@ -17,6 +17,7 @@
 package com.cefriel.template.io.rdf;
 
 import com.cefriel.template.io.Formatter;
+import org.apache.xpath.operations.Bool;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -90,9 +91,11 @@ public class RDFFormatter implements Formatter {
         try (RepositoryConnection conn = repo.getConnection()) {
             // inline blank nodes where possible
             writer.getWriterConfig()
-                    .set(BasicWriterSettings.INLINE_BLANK_NODES, true);
+                    .set(BasicWriterSettings.INLINE_BLANK_NODES, Boolean.TRUE);
             writer.getWriterConfig()
-                    .set(TurtleWriterSettings.ABBREVIATE_NUMBERS, false);
+                    .set(BasicWriterSettings.PRETTY_PRINT, Boolean.TRUE);
+            writer.getWriterConfig()
+                    .set(TurtleWriterSettings.ABBREVIATE_NUMBERS, Boolean.FALSE);
             conn.export(writer);
         }
     }
