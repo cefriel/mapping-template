@@ -28,6 +28,8 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -389,5 +391,26 @@ public class TemplateFunctions {
         } else if(checkList(otherResults))
             return otherResults;
         else return new ArrayList<>();
+    }
+
+    /**
+     * Encode URIs using URLEncoder and replacing + with %20 and * with %2A.
+     * @param url
+     * @return Encoded URI
+     */
+    public static String encodeURI(String url) {
+        final StringBuilder builder = new StringBuilder();
+        final String encoded = URLEncoder.encode(url, StandardCharsets.UTF_8);
+
+        for (char c: encoded.toCharArray()) {
+            if (c == '+')
+                builder.append("%20");
+            else if (c == '*')
+                builder.append("%2A");
+            else
+                builder.append(c);
+        }
+
+        return builder.toString();
     }
 }
