@@ -60,6 +60,10 @@ A `$reader` is initialized based on the specified `-if` option. Additional `Read
 
 If `-url` and `-id` options are set a remote database/repository is used for queries and the `-i`  option is ignored. If they are not set the `-i` option is mandatory. Assumptions to use a remote database/repository are: (i) it is up and running, and (ii) data are already in there.
 
+### Evaluation
+
+A preliminary evaluation of the tool is available in the repository [mapping-template-eval](https://github.com/cefriel/mapping-template-eval).
+
 ### Commercial Support
 
 If you need commercial support for the `mapping-template` contact us at [chimera-dev@cefriel.com](mailto:chimera-dev@cefriel.com).
