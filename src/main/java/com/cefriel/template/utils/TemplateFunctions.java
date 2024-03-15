@@ -22,7 +22,6 @@ import com.cefriel.template.io.rdf.RDFReader;
 import com.cefriel.template.io.sql.SQLReader;
 import com.cefriel.template.io.xml.XMLReader;
 import org.eclipse.rdf4j.repository.Repository;
-import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
@@ -314,7 +313,10 @@ public class TemplateFunctions {
      * @throws Exception
      */
     public RDFReader getRDFReaderForRepository(String address, String repositoryId, String context) throws Exception {
-        return new RDFReader(address, repositoryId, context);
+        if (context != null)
+            return new RDFReader(address, repositoryId, context);
+        else
+            return new RDFReader(address, repositoryId);
     }
 
     /**
