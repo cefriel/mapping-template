@@ -70,7 +70,7 @@ If you need commercial support for the `mapping-template` contact us at [chimera
 
 ### License
 
-_Copyright (c) 2019-2023 Cefriel._
+_Copyright (c) 2019-2024 Cefriel._
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
