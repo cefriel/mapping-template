@@ -18,6 +18,9 @@ package com.cefriel.template.io.json;
 
 import com.cefriel.template.io.Formatter;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.jayway.jsonpath.InvalidJsonException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -44,9 +47,22 @@ public class JSONFormatter implements Formatter {
 
     public String formatJSON(String json) throws IOException {
         // Parse the JSON string
-        JSONObject jsonObject = new JSONObject(json);
+        json = json.trim(); // Trim leading and trailing whitespace
 
-        // Pretty print the JSON
-        return jsonObject.toString(4);
+        // If it's a JSON Object
+        if (json.startsWith("{")) {
+            JSONObject jsonObject = new JSONObject(json);
+            return jsonObject.toString(4); // Indent with 4 spaces
+        }
+        // If it's a JSON Array
+        else if (json.startsWith("[")) {
+            JSONArray jsonArray = new JSONArray(json);
+            return jsonArray.toString(4); // Indent with 4 spaces
+        }
+
+        else {
+            throw new InvalidJsonException();
+        }
+
     }
 }
