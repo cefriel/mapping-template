@@ -19,6 +19,7 @@ import com.cefriel.template.io.Reader;
 import com.cefriel.template.io.csv.CSVReader;
 import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.io.rdf.RDFReader;
+import com.cefriel.template.io.sql.SQLReader;
 import com.cefriel.template.io.xml.XMLReader;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -304,6 +305,21 @@ public class TemplateFunctions {
     }
 
     /**
+     * Get a RDFReader to query the RDF content of a remote triplestore.
+     * @param address Address of the triplestore
+     * @param repositoryId Repository Id for the triplestore
+     * @param context Optional named graph to be considered
+     * @return An RDFReader
+     * @throws Exception
+     */
+    public RDFReader getRDFReaderForRepository(String address, String repositoryId, String context) throws Exception {
+        if (context != null)
+            return new RDFReader(address, repositoryId, context);
+        else
+            return new RDFReader(address, repositoryId);
+    }
+
+    /**
      * Get a XMLReader to query the XML content of the provided file.
      * @param fileName The file path for the XML file.
      * @return An XMLReader
@@ -373,6 +389,20 @@ public class TemplateFunctions {
             return new CSVReader(s);
         }
         return new CSVReader("");
+    }
+
+    /**
+     * Get a SQLReader for a remote database.
+     * @param driver Driver id in JDBC for the database considered
+     * @param url URL to access the database
+     * @param databaseName Name of the database
+     * @param username Username for the database
+     * @param password Password for the database
+     * @return An SQLReader
+     * @throws Exception
+     */
+    public SQLReader getSQLReaderFromDatabase(String driver,  String url, String databaseName, String username, String password) throws Exception {
+        return new SQLReader(driver, url, databaseName, username, password);
     }
 
     /**
