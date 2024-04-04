@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.*;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -129,9 +131,9 @@ public class SQLReader implements Reader {
      * @param destinationPath File to save the results of the SQL query
      * @throws IOException If an error occurs in handling the files
      */
-    public void debugQuery(String query, String destinationPath) throws IOException {
+    public void debugQuery(String query, Path destinationPath) throws IOException {
         try (ResultSet resultSet = executeQuery(query)) {
-            try (FileWriter writer = new FileWriter(destinationPath)) {
+            try (BufferedWriter writer = new BufferedWriter(Files.newBufferedWriter(destinationPath))) {
                 int columnCount = resultSet.getMetaData().getColumnCount();
 
                 for (int i = 1; i <= columnCount; i++) {

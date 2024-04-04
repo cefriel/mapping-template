@@ -35,9 +35,8 @@ import java.util.stream.Stream;
 
 public class TemplateMap extends HashMap<String, String> {
     private static final Logger log = LoggerFactory.getLogger(TemplateMap.class);
-    public TemplateMap(String filePath, boolean isCsv) throws IOException {
-        Path path = FileSystems.getDefault().getPath(filePath);
-        Stream<String> lines = Files.lines(path);
+    public TemplateMap(Path filePath, boolean isCsv) throws IOException {
+        Stream<String> lines = Files.lines(filePath);
         if (isCsv)
             putAll(parseCsvMap(lines));
         else

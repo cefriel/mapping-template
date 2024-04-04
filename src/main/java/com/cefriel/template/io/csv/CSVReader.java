@@ -17,8 +17,6 @@
 package com.cefriel.template.io.csv;
 
 import com.cefriel.template.io.Reader;
-import de.siegmar.fastcsv.reader.CsvReader;
-import de.siegmar.fastcsv.reader.CsvRow;
 import de.siegmar.fastcsv.reader.NamedCsvReader;
 import de.siegmar.fastcsv.reader.NamedCsvRow;
 
@@ -70,7 +68,7 @@ public class CSVReader implements Reader {
     }
 
     @Override
-    public void debugQuery(String query, String destinationPath) throws Exception {
+    public void debugQuery(String query, Path destinationPath) throws Exception {
 
     }
 
