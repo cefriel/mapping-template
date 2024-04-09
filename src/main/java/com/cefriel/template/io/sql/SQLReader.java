@@ -94,27 +94,49 @@ public class SQLReader implements Reader {
      * @return Result of the SQL query
      */
     public List<Map<String, String>> getDataframe(String query) {
-
         List<Map<String, String>> dataframe = new ArrayList<>();
+        String queryCheck = query.toLowerCase();
 
-        try (ResultSet resultSet = executeQuery(query)) {
-            int columnCount = resultSet.getMetaData().getColumnCount();
+        if(queryCheck.contains("select")) {
+            try (ResultSet resultSet = executeQuery(query)) {
+                int columnCount = resultSet.getMetaData().getColumnCount();
 
-            while (resultSet.next()) {
-                Map<String, String> row = new HashMap<>();
-                for (int i = 1; i <= columnCount; i++) {
-                    String columnName = resultSet.getMetaData().getColumnName(i);
-                    String columnValue = resultSet.getString(i);
-                    row.put(columnName, columnValue);
+                while (resultSet.next()) {
+                    Map<String, String> row = new HashMap<>();
+                    for (int i = 1; i <= columnCount; i++) {
+                        String columnName = resultSet.getMetaData().getColumnName(i);
+                        String columnValue = resultSet.getString(i);
+                        row.put(columnName, columnValue);
+                    }
+                    dataframe.add(row);
                 }
-                dataframe.add(row);
+            } catch (SQLException e) {
+                log.error(e.getMessage(), e);
             }
-        } catch (SQLException e) {
-            log.error(e.getMessage(), e);
         }
 
-        return dataframe;
+        else {
+            String q = "SELECT * FROM " + query;
+            try {
+                PreparedStatement preparedStatement = conn.prepareStatement(q);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                int columnCount = resultSet.getMetaData().getColumnCount();
 
+                while (resultSet.next()) {
+                    Map<String, String> row = new HashMap<>();
+                    for (int i = 1; i <= columnCount; i++) {
+                        String columnName = resultSet.getMetaData().getColumnName(i);
+                        String columnValue = resultSet.getString(i);
+                        row.put(columnName, columnValue);
+                    }
+                    dataframe.add(row);
+                }
+            }
+            catch (SQLException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+        return dataframe;
     }
 
     @Override
@@ -130,33 +152,69 @@ public class SQLReader implements Reader {
      * @throws IOException If an error occurs in handling the files
      */
     public void debugQuery(String query, String destinationPath) throws IOException {
-        try (ResultSet resultSet = executeQuery(query)) {
-            try (FileWriter writer = new FileWriter(destinationPath)) {
-                int columnCount = resultSet.getMetaData().getColumnCount();
 
-                for (int i = 1; i <= columnCount; i++) {
-                    writer.append(resultSet.getMetaData().getColumnName(i));
-                    if (i < columnCount) {
-                        writer.append(',');
-                    }
-                }
-                writer.append('\n');
+        String queryCheck = query.toLowerCase();
+        if(queryCheck.contains("select")) {
+            try (ResultSet resultSet = executeQuery(query)) {
+                try (FileWriter writer = new FileWriter(destinationPath)) {
+                    int columnCount = resultSet.getMetaData().getColumnCount();
 
-                // Write data rows
-                while (resultSet.next()) {
                     for (int i = 1; i <= columnCount; i++) {
-                        writer.append(resultSet.getString(i));
+                        writer.append(resultSet.getMetaData().getColumnName(i));
                         if (i < columnCount) {
                             writer.append(',');
                         }
                     }
                     writer.append('\n');
+
+                    // Write data rows
+                    while (resultSet.next()) {
+                        for (int i = 1; i <= columnCount; i++) {
+                            writer.append(resultSet.getString(i));
+                            if (i < columnCount) {
+                                writer.append(',');
+                            }
+                        }
+                        writer.append('\n');
+                    }
+                }
+            } catch (SQLException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+        else {
+            String q = "SELECT * FROM " + query;
+            try {
+                PreparedStatement preparedStatement = conn.prepareStatement(q);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                int columnCount = resultSet.getMetaData().getColumnCount();
+                try (FileWriter writer = new FileWriter(destinationPath)) {
+
+                    for (int i = 1; i <= columnCount; i++) {
+                        writer.append(resultSet.getMetaData().getColumnName(i));
+                        if (i < columnCount) {
+                            writer.append(',');
+                        }
+                    }
+                    writer.append('\n');
+
+                    // Write data rows
+                    while (resultSet.next()) {
+                        for (int i = 1; i <= columnCount; i++) {
+                            writer.append(resultSet.getString(i));
+                            if (i < columnCount) {
+                                writer.append(',');
+                            }
+                        }
+                        writer.append('\n');
+                    }
                 }
             }
-        } catch (SQLException e) {
-            log.error(e.getMessage(), e);
+            catch (SQLException e) {
+                log.error(e.getMessage(), e);
+            }
         }
-    }
+	}
 
     public void shutDown() {
         try {
