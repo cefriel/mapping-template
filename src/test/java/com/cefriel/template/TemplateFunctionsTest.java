@@ -16,15 +16,12 @@
 
 package com.cefriel.template;
 
-import com.cefriel.template.io.csv.CSVReader;
 import com.cefriel.template.utils.TemplateFunctions;
-import org.eclipse.rdf4j.query.algebra.Str;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -162,8 +159,8 @@ public class TemplateFunctionsTest {
         table2.add(Map.of("b", "4", "d", "33"));
         table2.add(Map.of("b", "5", "d", "99"));
 
-        table1 = templateFunctions.renameDataFrameColumn(table1, "d", "newName");
-        table2 = templateFunctions.renameDataFrameColumn(table2, "b", "otherNewName");
+        table1 = templateFunctions.renameDataframeColumn(table1, "d", "newName");
+        table2 = templateFunctions.renameDataframeColumn(table2, "b", "otherNewName");
 
         var result = templateFunctions.innerJoin(table1, table2, "b", "d");
         assert(result.size() == 1);
@@ -236,8 +233,8 @@ public class TemplateFunctionsTest {
         table2.add(Map.of("b", "4", "d", "33"));
         table2.add(Map.of("b", "5", "d", "99"));
 
-        table1 = templateFunctions.renameDataFrameColumn(table1, "d", "newName");
-        table2 = templateFunctions.renameDataFrameColumn(table2, "b", "otherNewName");
+        table1 = templateFunctions.renameDataframeColumn(table1, "d", "newName");
+        table2 = templateFunctions.renameDataframeColumn(table2, "b", "otherNewName");
 
         var result = templateFunctions.innerJoin(table1, table2, "b", "d");
         assert(result.size() == 1);

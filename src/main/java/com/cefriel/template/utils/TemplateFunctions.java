@@ -565,7 +565,7 @@ public class TemplateFunctions {
         }
     }
 
-    public List<Map<String, String>> renameDataFrameColumn(List<Map<String, String>> dataFrame, String oldColumn, String newColumn) {
+    public List<Map<String, String>> renameDataframeColumn(List<Map<String, String>> dataFrame, String oldColumn, String newColumn) {
         if (dataFrame != null) {
             if (!dataFrame.isEmpty()) {
                 Set<String> columnNames = dataFrame.get(0).keySet();
