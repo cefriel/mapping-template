@@ -100,8 +100,7 @@ public class Main {
 
 	public void updateBasePath(){
 		if (basePath != null) {
-			basePath = basePath.endsWith("/") ? basePath : basePath.resolve("/");
-			templatePath = basePath.resolve(templatePath);
+		    templatePath = basePath.resolve(templatePath);
 			if (inputFilesPaths != null)
 				for (int i = 0; i < inputFilesPaths.size(); i++)
 					if(inputFilesPaths.get(i) != null)
