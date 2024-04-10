@@ -18,10 +18,12 @@ package com.cefriel.template.io.sql;
 
 import com.cefriel.template.io.Reader;
 
+import org.eclipse.rdf4j.query.algebra.Str;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.security.InvalidParameterException;
 import java.sql.*;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -35,20 +37,39 @@ public class SQLReader implements Reader {
 
     private Connection conn;
 
+    private List<String> tables = new ArrayList<>();
+
     private String queryHeader;
     private boolean verbose;
     private static final Object lock = new Object();
 
 
-    public SQLReader(String driver,  String url, String database, String username, String password) {
+    public SQLReader(String driver, String url, String database, String username, String password) {
         if (!url.contains("jdbc:"))
             url = "jdbc:" + driver + "://" + url + "/" + database;
         log.info("Connection to database with URL: " + url);
 
         try {
             conn = DriverManager.getConnection(url, username, password);
+            PreparedStatement tablesQueryStatement;
+
+            // Prepare and execute table query based on the database driver
+            if (driver.equals("mysql")) {
+                tablesQueryStatement = conn.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = ?;");
+                tablesQueryStatement.setString(1, database);
+            } else if (driver.equals("postgresql")) {
+                tablesQueryStatement = conn.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'");
+            } else {
+                throw new IllegalArgumentException("SQLReader does not support " + driver);
+            }
+
+            ResultSet resultSet = tablesQueryStatement.executeQuery();
+            while (resultSet.next()) {
+                String tableName = resultSet.getString("table_name");
+                this.tables.add(tableName);
+            }
         } catch (SQLException e) {
-            log.error(e.getMessage(), e);
+            log.error("Error connecting to the database: " + e.getMessage(), e);
         }
     }
 
@@ -58,6 +79,7 @@ public class SQLReader implements Reader {
 
     /**
      * Executes a SQL query returning a {@code ResultSet}.
+     *
      * @param query SQL query to be executed
      * @return ResultSet for the SQL query executed
      */
@@ -88,8 +110,24 @@ public class SQLReader implements Reader {
 
     }
 
+    private List<Map<String, String>> populateDataframe(List<Map<String, String>> dataframe, ResultSet resultSet) throws SQLException {
+        int columnCount = resultSet.getMetaData().getColumnCount();
+
+        while (resultSet.next()) {
+            Map<String, String> row = new HashMap<>();
+            for (int i = 1; i <= columnCount; i++) {
+                String columnName = resultSet.getMetaData().getColumnName(i);
+                String columnValue = resultSet.getString(i);
+                row.put(columnName, columnValue);
+            }
+            dataframe.add(row);
+        }
+        return dataframe;
+    }
+
     /**
      * Executes a SQL query returning a list of rows as {@code List<Map<String,String>>}.
+     *
      * @param query SQL query to be executed
      * @return Result of the SQL query
      */
@@ -97,43 +135,25 @@ public class SQLReader implements Reader {
         List<Map<String, String>> dataframe = new ArrayList<>();
         String queryCheck = query.toLowerCase();
 
-        if(queryCheck.contains("select")) {
+        if (queryCheck.contains("select")) {
             try (ResultSet resultSet = executeQuery(query)) {
-                int columnCount = resultSet.getMetaData().getColumnCount();
-
-                while (resultSet.next()) {
-                    Map<String, String> row = new HashMap<>();
-                    for (int i = 1; i <= columnCount; i++) {
-                        String columnName = resultSet.getMetaData().getColumnName(i);
-                        String columnValue = resultSet.getString(i);
-                        row.put(columnName, columnValue);
-                    }
-                    dataframe.add(row);
-                }
+                dataframe = populateDataframe(dataframe, resultSet);
             } catch (SQLException e) {
                 log.error(e.getMessage(), e);
             }
-        }
-
-        else {
-            String q = "SELECT * FROM " + query;
-            try {
-                PreparedStatement preparedStatement = conn.prepareStatement(q);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                int columnCount = resultSet.getMetaData().getColumnCount();
-
-                while (resultSet.next()) {
-                    Map<String, String> row = new HashMap<>();
-                    for (int i = 1; i <= columnCount; i++) {
-                        String columnName = resultSet.getMetaData().getColumnName(i);
-                        String columnValue = resultSet.getString(i);
-                        row.put(columnName, columnValue);
-                    }
-                    dataframe.add(row);
+        } else {
+            // case-sensitive, user has to supply table name exactly like it is in the db
+            if (tables.contains(query)) {
+                String q = "SELECT * FROM " + query;
+                try {
+                    PreparedStatement preparedStatement = conn.prepareStatement(q);
+                    ResultSet resultSet = preparedStatement.executeQuery();
+                    dataframe = populateDataframe(dataframe, resultSet);
+                } catch (SQLException e) {
+                    log.error(e.getMessage(), e);
                 }
-            }
-            catch (SQLException e) {
-                log.error(e.getMessage(), e);
+            } else {
+                throw new InvalidParameterException("Table " + query + " does not exist.");
             }
         }
         return dataframe;
@@ -144,77 +164,65 @@ public class SQLReader implements Reader {
         return null;
     }
 
+    private void queryResultToWriter(Writer writer, ResultSet resultSet) throws SQLException, IOException {
+        int columnCount = resultSet.getMetaData().getColumnCount();
+
+        for (int i = 1; i <= columnCount; i++) {
+            writer.append(resultSet.getMetaData().getColumnName(i));
+            if (i < columnCount) {
+                writer.append(',');
+            }
+        }
+        writer.append('\n');
+
+        // Write data rows
+        while (resultSet.next()) {
+            for (int i = 1; i <= columnCount; i++) {
+                writer.append(resultSet.getString(i));
+                if (i < columnCount) {
+                    writer.append(',');
+                }
+            }
+            writer.append('\n');
+        }
+    }
+
     /**
      * Executes the SQL query in the {@code query} file writing the results in the CSV
      * format in {@code destinationPath}.
-     * @param query SQL query to be executed
+     *
+     * @param query           SQL query to be executed
      * @param destinationPath File to save the results of the SQL query
      * @throws IOException If an error occurs in handling the files
      */
     public void debugQuery(String query, String destinationPath) throws IOException {
 
         String queryCheck = query.toLowerCase();
-        if(queryCheck.contains("select")) {
+        if (queryCheck.contains("select")) {
             try (ResultSet resultSet = executeQuery(query)) {
                 try (FileWriter writer = new FileWriter(destinationPath)) {
-                    int columnCount = resultSet.getMetaData().getColumnCount();
-
-                    for (int i = 1; i <= columnCount; i++) {
-                        writer.append(resultSet.getMetaData().getColumnName(i));
-                        if (i < columnCount) {
-                            writer.append(',');
-                        }
-                    }
-                    writer.append('\n');
-
-                    // Write data rows
-                    while (resultSet.next()) {
-                        for (int i = 1; i <= columnCount; i++) {
-                            writer.append(resultSet.getString(i));
-                            if (i < columnCount) {
-                                writer.append(',');
-                            }
-                        }
-                        writer.append('\n');
-                    }
+                    queryResultToWriter(writer, resultSet);
                 }
             } catch (SQLException e) {
                 log.error(e.getMessage(), e);
             }
-        }
-        else {
-            String q = "SELECT * FROM " + query;
-            try {
-                PreparedStatement preparedStatement = conn.prepareStatement(q);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                int columnCount = resultSet.getMetaData().getColumnCount();
-                try (FileWriter writer = new FileWriter(destinationPath)) {
-
-                    for (int i = 1; i <= columnCount; i++) {
-                        writer.append(resultSet.getMetaData().getColumnName(i));
-                        if (i < columnCount) {
-                            writer.append(',');
-                        }
+        } else {
+            if (tables.contains(query)) {
+                String q = "SELECT * FROM " + query;
+                try {
+                    PreparedStatement preparedStatement = conn.prepareStatement(q);
+                    ResultSet resultSet = preparedStatement.executeQuery();
+                    try (FileWriter writer = new FileWriter(destinationPath)) {
+                        queryResultToWriter(writer, resultSet);
                     }
-                    writer.append('\n');
-
-                    // Write data rows
-                    while (resultSet.next()) {
-                        for (int i = 1; i <= columnCount; i++) {
-                            writer.append(resultSet.getString(i));
-                            if (i < columnCount) {
-                                writer.append(',');
-                            }
-                        }
-                        writer.append('\n');
-                    }
+                } catch (SQLException e) {
+                    log.error(e.getMessage(), e);
                 }
-            }
-            catch (SQLException e) {
-                log.error(e.getMessage(), e);
+            } else {
+                throw new InvalidParameterException("Table " + query + " does not exist.");
             }
         }
-	}
+    }
 
     public void shutDown() {
         try {
@@ -244,9 +252,11 @@ public class SQLReader implements Reader {
 
     /**
      * Not implemented for JSONReader yet.
+     *
      * @param outputFormat String identifying the output format
      */
     @Override
-    public void setOutputFormat(String outputFormat) { return;}
+    public void setOutputFormat(String outputFormat) {
+    }
 
 }
