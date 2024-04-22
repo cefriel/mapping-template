@@ -538,13 +538,15 @@ public class TemplateFunctions {
             throw new RuntimeException("Cannot perform inner join on tables due to duplicate column names: " + commonKeys + ". Column names can be renamed using the 'renameDataFrameColumn' function");
         } else {
             Map<String, List<Map<String, String>>> leftTableMap = new HashMap<>();
-            for (Map<String, String> leftMapEntry : leftTable) {
-                String key = leftMapEntry.get(leftKey);
+
+            // support data structure that associates all values (these values are the key) for the column 'leftkey' with their corresponding row, or multiple rows if values are not unique
+            for (Map<String, String> leftTableEntry : leftTable) {
+                String key = leftTableEntry.get(leftKey);
                 if (!leftTableMap.containsKey(key)) {
-                    leftTableMap.put(key, List.of(leftMapEntry));
+                    leftTableMap.put(key, List.of(leftTableEntry));
                 } else {
                     List<Map<String, String>> value = new ArrayList<>(leftTableMap.get(key));
-                    value.add(leftMapEntry);
+                    value.add(leftTableEntry);
                     leftTableMap.put(key, value);
                 }
             }
