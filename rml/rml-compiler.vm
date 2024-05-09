@@ -129,6 +129,7 @@ WHERE {
 		} 
 ") )
 
+#* Needed because there can be more than one class *#
 #set ( $defaultSubjectClassesQuery = "
     SELECT DISTINCT *
     WHERE {
@@ -137,6 +138,7 @@ WHERE {
     }
 ")          
 
+#* Get map of lists ordered by Logical Source *#
 #set($lmSources = $functions.getListMap($mappings_content, "_source"))
 
 #foreach($lmSource in $lmSources.entrySet())
@@ -147,25 +149,142 @@ WHERE {
         #set($sourceUrl = "./" + $source.path)
     #end
     #set($refForm = $source.ref_form)
-    #set($sourceHash = $functions.hash($source._source).replace("-",""))
+    #set($sourceHash = $functions.hash($source._source))
+
+    #* TODO Handle iterator *#
+    #set($iterator = $source.iterator)
+    
+    #* Get a single dataframe for each logical source considering referenced "fields" *#
+    #* TODO Check if can be optimized to get a single dataframe also for different
+    logical sources accessing the same "input" *#
+
+    #set($lmTmSource = $functions.getListMap($lmSource.value,"triples_map_id"))
+
+    #set($lmSourceReferences = [])
+
+    #foreach($lmTmSourceEntry in $lmTmSource.entrySet())
+        #* Same subject/graph for the entire triple map *#
+        #set($stm = $lmTmSourceEntry.value.get(0))
+        #* SUBJECT *#
+        #if($stm.subject_template)
+            #set($foo = $lmSourceReferences.addAll($functions.getReferencesFromTemplate($stm.subject_template)))
+        #elseif($stm.subject_reference)
+            #set($foo = $lmSourceReferences.add($stm.subject_reference))
+        #end
+        #* GRAPH *#
+        #if($stm.graph_template)
+            #set($foo = $lmSourceReferences.addAll($functions.getReferencesFromTemplate($stm.graph_template)))
+        #elseif($stm.graph_reference)
+            #set($foo = $lmSourceReferences.add($stm.graph_reference))
+        #end
+
+        #* PO MAPS *#
+        #foreach($tm in $lmTmSourceEntry.value)
+            #* PREDICATE *#
+            #if($tm.predicate_template)
+                #set($foo = $lmSourceReferences.addAll($functions.getReferencesFromTemplate($tm.predicate_template)))
+            #elseif($tm.predicate_reference)
+                #set($foo = $lmSourceReferences.add($tm.predicate_reference))
+            #end
+
+            #* OBJECT *#
+            #if($tm.object_template)
+                #set($foo = $lmSourceReferences.addAll($functions.getReferencesFromTemplate($tm.object_template)))
+            #elseif($tm.object_reference)
+                #set($foo = $lmSourceReferences.add($tm.object_reference))
+            #* JOIN *#
+            #elseif($tm.object_parent_triples_map)
+                #set($foo = $lmSourceReferences.add($tm.child_value))
+                #set($foo = $lmSourceReferences.add($tm.parent_value))
+            #end
+        #end
+    #end
+
+    #set($lmSourceReferences = $functions.getDistinct($lmSourceReferences))
+    #* Default value to false *#
+    #set($hashVariable = false)
+
     #if($refForm == "http://w3id.org/rml/CSV")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getCSVReaderFromFile("$sourceUrl"))
+        #* TODO Get dataframe for CSV considering only referenced columns *#
         ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe())
     #elseif ($refForm == "http://w3id.org/rml/XPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile("$sourceUrl"))
+        #set($hashVariable = true)
+
+        #* 
+            Access the XML input to extract the dataframe considering references 
+            in the triplemaps associated with the same logical source 
+        *#
+        #if($functions.checkList($lmSourceReferences))
+            #set($xmlQuery = '
+                for $i in ITERATOR
+                return map {
+            ')
+            #set($xmlQuery = $xmlQuery.replace("ITERATOR", $iterator))
+            #foreach($ref in $lmSourceReferences) 
+                #set($refHash = $functions.hash($ref))
+                #* Check if text() should be added *#
+                #set ($parts = $ref.split("/"))
+                #if(!$parts.get($parts.size() - 1).contains("@"))
+                    #set($ref = "${ref}/text()")
+                #end
+                #set($referenceQuery = '"VARIABLE": $i/REFERENCE,
+                ')
+                #set($referenceQuery = $referenceQuery.replace("VARIABLE", $refHash))
+                #set($referenceQuery = $referenceQuery.replace("REFERENCE", $ref))
+                #set($xmlQuery = "${xmlQuery}${referenceQuery}")
+            #end
+            #* Remove last comma *#
+            #set($xmlQuery = $xmlQuery.trim())
+            #set($xmlQuery = $xmlQuery.substring(0, $xmlQuery.length() - 1))
+            #set($xmlQuery = "${xmlQuery} }")
+
+            ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$xmlQuery'))
+        #else
+            #* CONSTANT values, iterate once *#
+            ${h}set(${d}dataframe_$sourceHash = {"ITERATOR" : "ONCE"})
+        #end
+
     #elseif ($refForm=="http://w3id.org/rml/JSONPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getJSONReaderFromFile("$sourceUrl"))
+        #set($hashVariable = true)
+
+        #* 
+            Access the JSON input to extract the dataframe considering references 
+            in the triplemaps associated with the same logical source 
+        *#
+        #if($functions.checkList($lmSourceReferences))
+            #set($jsonQuery = '{
+                "iterator": "ITERATOR_PATH",
+                "paths": {
+            ')
+            #set($jsonQuery = $jsonQuery.replace("ITERATOR_PATH", $iterator))
+            #foreach($ref in $lmSourceReferences) 
+                #set($refHash = $functions.hash($ref))
+                #set($referenceQuery = '"VARIABLE": "REFERENCE",
+                ')
+                #set($referenceQuery = $referenceQuery.replace("VARIABLE", $refHash))
+                #set($referenceQuery = $referenceQuery.replace("REFERENCE", $ref))
+                #set($jsonQuery = "${jsonQuery}${referenceQuery}")
+            #end
+            #* Remove last comma *#
+            #set($jsonQuery = $jsonQuery.trim())
+            #set($jsonQuery = $jsonQuery.substring(0, $jsonQuery.length() - 1))
+            #set($jsonQuery = "${jsonQuery} }}")
+
+            ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$jsonQuery'))
+        #else
+            #* CONSTANT values, iterate once *#
+            ${h}set(${d}dataframe_$sourceHash = {"ITERATOR" : "ONCE"})
+        #end
     #else
         ${d}error: "No compatible Reader found." 
     #end
     
-    #* TODO Handle iterator *#
-    #set($iterator = $source.iterator)
-    #* TODO Get all dataframes at the beginning *#
-
-    #set($lmTmSource = $functions.getListMap($lmSource.value,"triples_map_id"))
+    #* ########## GENERATE TRIPLES ########## *#
+    
     #foreach($lmTmSourceEntry in $lmTmSource.entrySet())
-
         #* SUBJECT *#
         #set($subject = $null)
         #set($stm = $lmTmSourceEntry.value.get(0))
@@ -180,16 +299,19 @@ WHERE {
             #set($subject = $stm.subject_constant_shortcut)
         #end
         
+        #set($subject = $functions.encodeReferencesIRI($subject, $hashVariable))
+
         #if ($stm.subject_termtype == "http://w3id.org/rml/BlankNode")
             #set($subject = "_:" + $subject)
         #elseif ($stm.subject_termtype == "http://w3id.org/rml/Literal")
             ${d}error: subject can not be of type Literal.
         #else
-            #set($subject = '<' + $functions.encodeReferences($subject) + '>')
+            #set($subject = '<' + $subject + '>')
         #end
 
         #* GRAPH *#
         #set($graph = $null)
+        #* TODO Check if only one graph can be defined for each triplemap *#
         #if($stm.graph_template)
             #set($graph = $functions.resolveTemplate($stm.graph_template))
         #elseif($stm.graph_reference)
@@ -203,7 +325,7 @@ WHERE {
         #if($graph == "http://w3id.org/rml/defaultGraph")
             #set($graph = $null)
         #else
-            #set($graph = $functions.encodeReferences($graph))
+            #set($graph = $functions.encodeReferencesIRI($graph, $hashVariable))
         #end
         
         #* Init template execution *#
@@ -233,36 +355,42 @@ WHERE {
             #elseif($tm.predicate_constant_shortcut)
                 #set($predicate = $tm.predicate_constant_shortcut)
             #end
-            #set($predicate = $functions.encodeReferences($predicate))
+            #set($predicate = $functions.encodeReferencesIRI($predicate, $hashVariable))
 
             #* OBJECT *#
-            #set($object = $null)
+            #set($objects = [])
             #if($tm.object_template)
-                #set($object = $functions.resolveTemplate($tm.object_template))
+                #set($foo = $objects.add($functions.resolveTemplate($tm.object_template)))
             #elseif($tm.object_reference)
-                #set($object = $functions.resolveReference($tm.object_reference))
+                #set($foo = $objects.add($functions.resolveReference($tm.object_reference)))
             #elseif($tm.object_constant)
-                #set($object = $tm.object_constant)
+                #set($foo = $objects.add($tm.object_constant))
             #elseif($tm.object_constant_shortcut)
-                #set($object = $tm.object_constant_shortcut)
-            #end
-
-            #* 
-                TODO Improve condition using FILTER (isLiteral(?value)) in SPARQL Query
-                and checking the object_termtype
+                #set($foo = $objects.add($tm.object_constant_shortcut))
+            #* TODO Implement
+            #elseif($tm.object_parent_triples_map)
+                #set($joinedDataFrame = $functions.join($thisDataFame, $functions.getDataFrame($tm.object_parent_triples_map))
+                #set($objects = $functions.getRelevantObjects($joinedDataFrame)
             *#
-            #if($object.contains("://"))
-                #set($object = '<' + $functions.encodeReferences($object) + '>')
-            #else
-                #set($object = '"' + $object + '"')
             #end
 
-            #* Generate the triple/quad . *#
+            #foreach($object in $objects) 
+                #* 
+                    TODO Improve condition using FILTER (isLiteral(?value)) in SPARQL Query
+                    and checking the object_termtype OR implementing a $functions.isIRI($object)
+                *#
+                #if($object.contains("://"))
+                    #set($object = '<' + $functions.encodeReferencesIRI($object, $hashVariable) + '>')
+                #else
+                    #set($object = '"' + $functions.encodeReferencesLiteral($object, $hashVariable) + '"')
+                #end
 
-            #if($graph)
-                $subject <$predicate> $object <$graph>.
-            #else
-                $subject <$predicate> $object .
+                #* Generate the triple/quad . *#
+                #if($graph)
+                    $subject <$predicate> $object <$graph>.
+                #else
+                    $subject <$predicate> $object .
+                #end
             #end
 
         #end   
@@ -273,9 +401,6 @@ WHERE {
 
 #*
     
-    
-
-
   #end
 
   #foreach($tm in $ltm_content.entrySet())
@@ -354,4 +479,4 @@ WHERE {
         GROUP BY ?iterator ?data_format
 ") )
 
-    *#
+*#

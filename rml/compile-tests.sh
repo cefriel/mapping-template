@@ -2,7 +2,7 @@
 
 folder_path="./rml-test-cases"
 
-for subfolder in "$folder_path"/*-CSV; do
+for subfolder in "$folder_path"/*-XML; do
     echo $subfolder
 
     cp rml-compiler.vm $subfolder

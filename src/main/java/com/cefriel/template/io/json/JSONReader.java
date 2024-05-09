@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -80,7 +79,7 @@ public class JSONReader implements Reader {
                 Object objects = JsonPath.read(document, iterator + "." + path);
 
                 // objects can either be a list of objects or a single object(string)
-                // if it is a single object then in the output list i have only one item
+                // if it is a single object then in the output list I have only one item
 
                 if (!(objects instanceof JSONArray)) {
                     String value = objects == null ? "null" : objects.toString();
