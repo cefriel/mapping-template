@@ -118,13 +118,14 @@ public class JSONReader implements Reader {
                 }
             }
         } catch (Exception e) {
+            log.error("ERROR ACCESSING JSON:");
             Map<String, String> map = new HashMap<>();
             for(String key : keys) {
                 String path = JsonPath.read(queryDoc, "$.paths." + key);
                 Object object = JsonPath.read(document, iterator + "." + path);
-                map.put(key, object.toString());
+                log.error(key + "\t" + object.toString());
             }
-            output.add(map);
+            throw e;
         }
         return output;
     }
