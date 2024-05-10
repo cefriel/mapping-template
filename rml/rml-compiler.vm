@@ -24,6 +24,7 @@ WHERE {
                 ?data_source a dcat:Distribution .
 				?data_source dcat:accessURL ?access_url . # downloadURL would be better
 			}
+            # TODO Handle relative paths
             OPTIONAL{
                 ?data_source a rml:RelativePathSource .
                 ?data_source rml:root ?root_folder .
@@ -31,8 +32,8 @@ WHERE {
 			}
 			OPTIONAL {?_source rml:referenceFormulation ?ref_form .} # missing in BC page
 			OPTIONAL { ?_source rml:iterator ?iterator . }
-			# replaced with rml:source OPTIONAL { ?_source rr:tableName ?tablename .}
-			# removed rml:query OPTIONAL { ?_source rml:query ?query .}
+			OPTIONAL { ?_source rr:tableName ?tablename .}
+			OPTIONAL { ?_source rml:query ?query .}
             # TODO Handle rml:null
 
 			?triples_map_id rml:subjectMap ?_subject_map .
@@ -208,6 +209,14 @@ WHERE {
         ${h}set(${d}reader_$sourceHash = ${d}functions.getCSVReaderFromFile("$sourceUrl"))
         #* TODO Get dataframe for CSV considering only referenced columns *#
         ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe())
+    #elseif($refForm == "http://w3id.org/rml/SQL2008Table")
+        ${h}set(${d}reader_$sourceHash = ${d}functions.getSQLReaderFromDatabase($stm.jdbcDSN, $stm.user, $stm.password))
+        #if($stm.query)
+            #set($iterator = $stm.query)
+        #elseif($stm.tablename)
+            #set($iterator = $stm.tablename)
+        #end
+        ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe($iterator))
     #elseif ($refForm == "http://w3id.org/rml/XPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile("$sourceUrl"))
         #set($hashVariable = true)
@@ -281,9 +290,6 @@ WHERE {
     #else
         ${d}error: "No compatible Reader found." 
     #end
-
-    #* DEBUG: TODO Remove *#
-    ${d}dataframe_$sourceHash
     
     #* ########## GENERATE TRIPLES ########## *#
     
