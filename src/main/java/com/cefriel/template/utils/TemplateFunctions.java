@@ -19,6 +19,7 @@ import com.cefriel.template.io.Reader;
 import com.cefriel.template.io.csv.CSVReader;
 import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.io.rdf.RDFReader;
+import com.cefriel.template.io.sql.SQLReader;
 import com.cefriel.template.io.xml.XMLReader;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
