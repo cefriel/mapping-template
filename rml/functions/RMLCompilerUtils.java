@@ -22,13 +22,42 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RMLCompilerUtils extends TemplateFunctions {
 
     final Pattern templatePattern = Pattern.compile("\\{(.*?)\\}");
     final Pattern referencePattern = Pattern.compile("\\$\\{(.*?)\\}");
+
+    public List<String> getReferencesFromTriple(String subject, String predicate, String object, String graph){
+        List<String> matches = new ArrayList<>();
+        matches.addAll(getReferencesFromString(subject));
+        matches.addAll(getReferencesFromString(predicate));
+        matches.addAll(getReferencesFromString(object));
+        matches.addAll(getReferencesFromString(graph));
+        Set<String> distinctMatches = new HashSet(matches);
+        
+        return distinctMatches.stream()
+            .map(x -> "$" + x)
+            .collect(Collectors.toList());
+    }
+
+    private List<String> getReferencesFromString(String s){
+        if (s != null) {
+            Matcher matcher = referencePattern.matcher(s);
+
+            List<String> matches = new ArrayList();
+            while (matcher.find()) {
+                matches.add(matcher.group(1));
+            }
+            return matches;
+        }
+        else
+            return new ArrayList<>();
+    }
 
     public List<String> getReferencesFromTemplate(String input){
         Matcher matcher = templatePattern.matcher(input);

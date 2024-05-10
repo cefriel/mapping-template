@@ -281,6 +281,9 @@ WHERE {
     #else
         ${d}error: "No compatible Reader found." 
     #end
+
+    #* DEBUG: TODO Remove *#
+    ${d}dataframe_$sourceHash
     
     #* ########## GENERATE TRIPLES ########## *#
     
@@ -385,12 +388,18 @@ WHERE {
                     #set($object = '"' + $functions.encodeReferencesLiteral($object, $hashVariable) + '"')
                 #end
 
+                #set($refs = $functions.getReferencesFromTriple($subject, $predicate, $object, $graph))
+                
+                ${h}set(${d}refs = $refs)
+
                 #* Generate the triple/quad . *#
+                ${h}if(${d}functions.checkStrings(${d}refs))
                 #if($graph)
                     $subject <$predicate> $object <$graph>.
                 #else
                     $subject <$predicate> $object .
                 #end
+                ${h}end
             #end
 
         #end   
