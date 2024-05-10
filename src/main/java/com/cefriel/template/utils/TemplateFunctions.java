@@ -431,6 +431,19 @@ public class TemplateFunctions {
     }
 
     /**
+     * Get a SQLReader for a remote database.
+     *
+     * @param jdbcDSN      JDBC DSN for the database considered
+     * @param username     Username for the database
+     * @param password     Password for the database
+     * @return An SQLReader
+     * @throws Exception
+     */
+    public SQLReader getSQLReaderFromDatabase(String jdbcDSN, String username, String password) throws Exception {
+        return new SQLReader(jdbcDSN, username, password);
+    }
+
+    /**
      * Merge two lists of results from queries on a {@link Reader}.
      *
      * @param results      Results of a query

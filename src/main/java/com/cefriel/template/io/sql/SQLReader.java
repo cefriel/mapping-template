@@ -44,23 +44,26 @@ public class SQLReader implements Reader {
     private static final Object lock = new Object();
 
 
-    public SQLReader(String driver, String url, String database, String username, String password) {
-        if (!url.contains("jdbc:"))
-            url = "jdbc:" + driver + "://" + url + "/" + database;
-        log.info("Connection to database with URL: " + url);
+    public SQLReader(String jdbcDSN, String username, String password) {
+        if (!jdbcDSN.contains("jdbc:"))
+            jdbcDSN = "jdbc:" + jdbcDSN;
+        log.info("Connection to database: " + jdbcDSN);
 
         try {
-            conn = DriverManager.getConnection(url, username, password);
+            conn = DriverManager.getConnection(jdbcDSN, username, password);
             PreparedStatement tablesQueryStatement;
 
             // Prepare and execute table query based on the database driver
-            if (driver.equals("mysql")) {
+            if (jdbcDSN.contains("mysql")) {
                 tablesQueryStatement = conn.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = ?;");
+                // TODO Check if it is a correct assumption to extract the database. For sure it is true if the other Constructor is used.
+                String[] parts = jdbcDSN.split("/");
+                String database = parts[parts.length - 1];
                 tablesQueryStatement.setString(1, database);
-            } else if (driver.equals("postgresql")) {
+            } else if (jdbcDSN.contains("postgresql")) {
                 tablesQueryStatement = conn.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'");
             } else {
-                throw new IllegalArgumentException("SQLReader does not support " + driver);
+                throw new IllegalArgumentException("SQLReader does not support the driver indicated " + jdbcDSN);
             }
 
             ResultSet resultSet = tablesQueryStatement.executeQuery();
@@ -71,6 +74,10 @@ public class SQLReader implements Reader {
         } catch (SQLException e) {
             log.error("Error connecting to the database: " + e.getMessage(), e);
         }
+    }
+
+    public SQLReader(String driver, String url, String database, String username, String password) {
+        this("jdbc:" + driver + "://" + url + "/" + database, username, password);
     }
 
     public SQLReader(Connection conn) {
