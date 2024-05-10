@@ -129,8 +129,17 @@ public class TemplateFunctions {
      * @param s String to be checked
      * @return boolean
      */
-    public boolean checkString(String s){
+    public static boolean checkString(String s){
         return s != null && !s.trim().isEmpty();
+    }
+
+    /**
+     * Returns {@code true} if all the strings in the list are not null and not an empty string.
+     * @param s List of string to be checked
+     * @return boolean
+     */
+    public static boolean checkStrings(List<String> s){
+        return s != null && s.stream().allMatch(TemplateFunctions::checkString);
     }
 
     /**
@@ -398,19 +407,22 @@ public class TemplateFunctions {
      * @param url
      * @return Encoded URI
      */
-    public static String encodeURI(String url) {
-        final StringBuilder builder = new StringBuilder();
-        final String encoded = URLEncoder.encode(url, StandardCharsets.UTF_8);
+    public String encodeURI(String url) {
+        if (url != null && !url.isEmpty()) {
+            final StringBuilder builder = new StringBuilder();
+            final String encoded = URLEncoder.encode(url, StandardCharsets.UTF_8);
 
-        for (char c: encoded.toCharArray()) {
-            if (c == '+')
-                builder.append("%20");
-            else if (c == '*')
-                builder.append("%2A");
-            else
-                builder.append(c);
+            for (char c: encoded.toCharArray()) {
+                if (c == '+')
+                    builder.append("%20");
+                else if (c == '*')
+                    builder.append("%2A");
+                else
+                    builder.append(c);
+            }
+
+            return builder.toString();
         }
-
-        return builder.toString();
+        return url;
     }
 }
