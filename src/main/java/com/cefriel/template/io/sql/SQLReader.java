@@ -118,7 +118,9 @@ public class SQLReader implements Reader {
     }
 
     private List<Map<String, String>> populateDataframe(List<Map<String, String>> dataframe, ResultSet resultSet) throws SQLException {
-        int columnCount = resultSet.getMetaData().getColumnCount();
+
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
 
         while (resultSet.next()) {
             Map<String, String> row = new HashMap<>();
@@ -130,6 +132,52 @@ public class SQLReader implements Reader {
             dataframe.add(row);
         }
         return dataframe;
+    }
+
+    private Map<String, String> populateColumnTypes(ResultSet resultSet) throws SQLException {
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+
+        Map<String, String> columnTypeName = new HashMap<>();
+        for (int i = 1; i <= columnCount; i++) {
+            columnTypeName.put(metaData.getColumnName(i),metaData.getColumnTypeName(i));
+        }
+
+        return columnTypeName;
+    }
+
+    /**
+     * Executes a SQL query returning the types of the columns in the result as {@code Map<String,String>}.
+     *
+     * @param query SQL query to be executed
+     * @return Types of the columns in the result
+     */
+    public Map<String, String> getColumnTypes(String query) {
+        Map<String, String> columnTypes = new HashMap<>();
+        String queryCheck = query.toLowerCase();
+
+        if (queryCheck.contains("select")) {
+            try (ResultSet resultSet = executeQuery(query)) {
+                columnTypes = populateColumnTypes(resultSet);
+            } catch (SQLException e) {
+                log.error(e.getMessage(), e);
+            }
+        } else {
+            // case-sensitive, user has to supply table name exactly like it is in the db
+            if (tables.contains(query)) {
+                String q = "SELECT * FROM " + query;
+                try {
+                    PreparedStatement preparedStatement = conn.prepareStatement(q);
+                    ResultSet resultSet = preparedStatement.executeQuery();
+                    columnTypes = populateColumnTypes(resultSet);
+                } catch (SQLException e) {
+                    log.error(e.getMessage(), e);
+                }
+            } else {
+                throw new InvalidParameterException("Table " + query + " does not exist.");
+            }
+        }
+        return columnTypes;
     }
 
     /**

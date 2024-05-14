@@ -635,4 +635,31 @@ public class TemplateFunctions {
             throw new IllegalArgumentException("dataframe cannot be null");
         }
     }
+
+    /**
+     * Return XSD datatype from input SQL datatype
+     * @param sqlDatatype SQL datatype
+     * @return XSD datatype corresponding to the input SQL datatype
+     */
+    public static String getXsdFromSqlDatatypes(String sqlDatatype) {
+        Map<String, String> map = new HashMap<>() {{
+            put("DOUBLE", "http://www.w3.org/2001/XMLSchema#double");
+            put("FLOAT", "http://www.w3.org/2001/XMLSchema#double");
+            put("VARBINARY", "http://www.w3.org/2001/XMLSchema#hexBinary");
+            put("DECIMAL", "http://www.w3.org/2001/XMLSchema#decimal");
+            put("INTEGER", "http://www.w3.org/2001/XMLSchema#integer");
+            put("INT", "http://www.w3.org/2001/XMLSchema#integer");
+            put("BOOLEAN", "http://www.w3.org/2001/XMLSchema#boolean");
+            put("DATE", "http://www.w3.org/2001/XMLSchema#date");
+            put("TIME", "http://www.w3.org/2001/XMLSchema#time");
+            put("DATETIME", "http://www.w3.org/2001/XMLSchema#dateTime");
+        }};
+
+        if(sqlDatatype != null)
+            for(String datatype : map.keySet())
+                if(sqlDatatype.toUpperCase().contains(datatype))
+                    return map.get(datatype);
+
+        return null;
+    }
 }
