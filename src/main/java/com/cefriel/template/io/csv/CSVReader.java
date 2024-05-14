@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.InvalidParameterException;
 import java.util.*;
 
 public class CSVReader implements Reader {
@@ -52,17 +53,27 @@ public class CSVReader implements Reader {
 
     }
 
-    public List<Map<String, String>> getDataframe() {
-        return getDataframe("");
+    public List<Map<String, String>> getDataframe() throws Exception {
+        Set<String> headers = this.document.getHeader();
+        String[] columns = headers.toArray(new String[0]);
+        return getDataframe(columns);
     }
     @Override
-    public List<Map<String, String>> getDataframe(String query) {
+    public List<Map<String, String>> getDataframe(String query) throws Exception {
+        String[] columns = query.split(",");
+        return getDataframe(columns);
+    }
+
+    public List<Map<String, String>> getDataframe(String... columns) throws Exception {
         Set<String> headers = this.document.getHeader();
+        for(String c : columns)
+            if (!headers.contains(c))
+                throw new IllegalArgumentException("Column " + c + " not found");
         List<Map<String, String>> output = new ArrayList<>();
         for (NamedCsvRow row : this.document) {
             HashMap<String, String> map = new HashMap<>();
-            for (String header : headers) {
-                map.put(header, row.getField(header));
+            for (String c : columns) {
+                map.put(c, row.getField(c));
             }
             output.add(map);
         }
