@@ -59,6 +59,17 @@ public class RMLCompilerUtils extends TemplateFunctions {
             return new ArrayList<>();
     }
 
+    public String getIteratorFromString(String s){
+        if (s != null) {
+            Matcher matcher = referencePattern.matcher(s);
+
+            while (matcher.find()) {
+                return matcher.group(1);
+            }
+        }
+        return null;
+    }
+
     public List<String> getReferencesFromTemplate(String input){
         Matcher matcher = templatePattern.matcher(input);
 
@@ -118,6 +129,14 @@ public class RMLCompilerUtils extends TemplateFunctions {
                    .collect(Collectors.toList());
     }
 
+    public String getAsCommaSeparatedString(List<String> list) {
+        return String.join(",", list);
+    }
+
+    public String getAsStringArray(List<String> list) {
+        return "[\"" + String.join("\",\"", list) + "\"]";
+    }
+
     /**
      * Simple hash function that generates a hash composed only of letters (a-z).
      * @param input
@@ -135,6 +154,14 @@ public class RMLCompilerUtils extends TemplateFunctions {
             stringBuilder.append((char) (baseChar + (hash + i) % 26));
         }
         return stringBuilder.toString();
+    }
+
+    public String appendHash(String... inputs) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String i : inputs)
+            if(i != null)
+                stringBuilder.append(i);
+        return hash(stringBuilder.toString());
     }
 
 }

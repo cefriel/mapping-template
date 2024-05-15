@@ -13,7 +13,7 @@
 #set($pc="}")
 #set($defaultNamespace = "http://www.cefriel.com/kt/")
 
-#set ( $mappings_content= $reader.getDataframe("
+#set ( $mappings_content = $reader.getDataframe("
 SELECT DISTINCT *
 WHERE {
 
@@ -32,7 +32,6 @@ WHERE {
 			}
 			OPTIONAL {?_source rml:referenceFormulation ?ref_form .} # missing in BC page
 			OPTIONAL { ?_source rml:iterator ?iterator . }
-			OPTIONAL { ?_source rr:tableName ?tablename .}
 			OPTIONAL { ?_source rml:query ?query .}
             # TODO Handle rml:null
 
@@ -70,37 +69,59 @@ WHERE {
 			}
 			OPTIONAL {
 				?_predicate_object_map rml:predicate ?predicate_constant_shortcut .
-			 }
+			}
 
 	# Object --------------------------------------------------------------------------
 			OPTIONAL {
 				?_predicate_object_map rml:objectMap ?_object_map .
 				?_object_map rml:constant ?object_constant .
-				OPTIONAL {
-					?_object_map rml:datatype ?object_datatype .
-				}
 			}
 			OPTIONAL {
 				?_predicate_object_map rml:objectMap ?_object_map .
 				?_object_map rml:template ?object_template .
-				OPTIONAL {?_object_map rml:termType ?term .}
-				OPTIONAL {?_object_map rml:languageMap ?language_map.
-						  ?language_map rml:reference ?language_value.}
-				OPTIONAL {
-					?_object_map rml:datatype ?object_datatype .
-				}
 			}
 			OPTIONAL {
 				?_predicate_object_map rml:objectMap ?_object_map .
 				?_object_map rml:reference ?object_reference .
-				OPTIONAL { ?_object_map rml:language ?language .}
-				OPTIONAL {?_object_map rml:languageMap ?language_map.
-						  ?language_map rml:reference ?language_value.}
-				OPTIONAL {?_object_map rml:termType ?term .}
-				OPTIONAL {
-					?_object_map rml:datatype ?object_datatype .
-				}
 			}
+            OPTIONAL {
+                ?_predicate_object_map rml:objectMap ?_object_map .
+                ?_object_map rml:languageMap ?_language_map .
+                ?_language_map rml:constant ?language_constant .
+            }
+            OPTIONAL {
+                ?_predicate_object_map rml:objectMap ?_object_map .
+                ?_object_map rml:languageMap ?_language_map .
+                ?_language_map rml:template ?language_template .
+            }
+            OPTIONAL {
+                ?_predicate_object_map rml:objectMap ?_object_map .
+                ?_object_map rml:languageMap ?_language_map .
+                ?_language_map rml:reference ?language_reference .
+            }
+            OPTIONAL {
+                ?_predicate_object_map rml:objectMap ?_object_map .
+                ?_object_map rml:language ?language_constant_shortcut .
+            }
+            OPTIONAL {
+                ?_predicate_object_map rml:objectMap ?_object_map .
+                ?_object_map rml:datatypeMap ?_datatype_map .
+                ?_datatype_map rml:constant ?datatype_constant .
+            }
+            OPTIONAL {
+                ?_predicate_object_map rml:objectMap ?_object_map .
+                ?_object_map rml:datatypeMap ?_datatype_map .
+                ?_datatype_map rml:template ?datatype_template .
+            }
+            OPTIONAL {
+                ?_predicate_object_map rml:objectMap ?_object_map .
+                ?_object_map rml:datatypeMap ?_datatype_map .
+                ?_datatype_map rml:reference ?datatype_reference .
+            }
+            OPTIONAL {
+                ?_predicate_object_map rml:objectMap ?_object_map .
+                ?_object_map rml:datatype ?datatype_constant_shortcut .
+            }
 			OPTIONAL {
 				?_predicate_object_map rml:objectMap ?_object_map .
 				?_object_map rml:parentTriplesMap ?object_parent_triples_map .
@@ -121,7 +142,7 @@ WHERE {
 					   ?_graph_structure rml:template ?predicate_object_graph  . }	
 			}
 			OPTIONAL {
-				?_source a d2rq:Database;
+				?data_source a d2rq:Database;
   				d2rq:jdbcDSN ?jdbcDSN; 
   				d2rq:jdbcDriver ?jdbcDriver; 
 			    d2rq:username ?user;
@@ -131,107 +152,173 @@ WHERE {
 ") )
 
 #* Needed because there can be more than one class *#
-#set ( $defaultSubjectClassesQuery = "
+#set ( $subjectClassesQuery = "
     SELECT DISTINCT *
     WHERE {
         <TRIPLES_MAP> rml:subjectMap ?_subject_map .
         ?_subject_map rml:class ?subject_rdf_class . 
     }
-")          
+")
 
-#* Get map of lists ordered by Logical Source *#
-#set($lmSources = $functions.getListMap($mappings_content, "_source"))
+#* 
+Get map ordered by TriplesMap, only one row is kept for each triples_map_id
+to access commond information (e.g., logical source) and add additional 
+useful information (e.g., sourceHash)
+*#
+#set($lTriplesMaps = $functions.getMap($mappings_content, "triples_map_id"))
 
-#foreach($lmSource in $lmSources.entrySet())
-    #set($source = $lmSource.value.get(0))
-    #if($source.access_url)
-        #set($sourceUrl = $functions.replace($source.access_url, "file://", ""))
-    #elseif($source.path)
-        #set($sourceUrl = "./" + $source.path)
+#foreach($tm in $lTriplesMaps.keySet())
+    #set($refs = [])
+    #set($foo = $lTriplesMaps.get($tm).put("_REFS_", $refs))
+#end
+
+#* Get all references for each row extracted *#
+#foreach($row in $mappings_content)
+
+    #set($lReferences = [])
+
+    #* SUBJECT *#
+    #if($row.subject_template)
+        #set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($row.subject_template)))
+    #elseif($row.subject_reference)
+        #set($foo = $lReferences.add($row.subject_reference))
     #end
-    #set($refForm = $source.ref_form)
-    #set($sourceHash = $functions.hash($source._source))
 
-    #* TODO Handle iterator *#
-    #set($iterator = $source.iterator)
-    
-    #* Get a single dataframe for each logical source considering referenced "fields" *#
-    #* TODO Check if can be optimized to get a single dataframe also for different
-    logical sources accessing the same "input" *#
+    #* GRAPH *#
+    #if($row.graph_template)
+        #set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($row.graph_template)))
+    #elseif($row.graph_reference)
+        #set($foo = $lReferences.add($row.graph_reference))
+    #end
 
-    #set($lmTmSource = $functions.getListMap($lmSource.value,"triples_map_id"))
+    #* PREDICATE *#
+    #if($row.predicate_template)
+        #set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($row.predicate_template)))
+    #elseif($row.predicate_reference)
+        #set($foo = $lReferences.add($row.predicate_reference))
+    #end
 
-    #set($lmSourceReferences = [])
-
-    #foreach($lmTmSourceEntry in $lmTmSource.entrySet())
-        #* Same subject/graph for the entire triple map *#
-        #set($stm = $lmTmSourceEntry.value.get(0))
-        #* SUBJECT *#
-        #if($stm.subject_template)
-            #set($foo = $lmSourceReferences.addAll($functions.getReferencesFromTemplate($stm.subject_template)))
-        #elseif($stm.subject_reference)
-            #set($foo = $lmSourceReferences.add($stm.subject_reference))
+    #* OBJECT *#
+    #if($row.object_template)
+        #set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($row.object_template)))
+    #elseif($row.object_reference)
+        #set($foo = $lReferences.add($row.object_reference))
+    #* JOIN *#
+    #elseif($row.object_parent_triples_map)
+        #if($row.child_value)
+            #set($foo = $lReferences.add($row.child_value))
         #end
-        #* GRAPH *#
-        #if($stm.graph_template)
-            #set($foo = $lmSourceReferences.addAll($functions.getReferencesFromTemplate($stm.graph_template)))
-        #elseif($stm.graph_reference)
-            #set($foo = $lmSourceReferences.add($stm.graph_reference))
-        #end
-
-        #* PO MAPS *#
-        #foreach($tm in $lmTmSourceEntry.value)
-            #* PREDICATE *#
-            #if($tm.predicate_template)
-                #set($foo = $lmSourceReferences.addAll($functions.getReferencesFromTemplate($tm.predicate_template)))
-            #elseif($tm.predicate_reference)
-                #set($foo = $lmSourceReferences.add($tm.predicate_reference))
-            #end
-
-            #* OBJECT *#
-            #if($tm.object_template)
-                #set($foo = $lmSourceReferences.addAll($functions.getReferencesFromTemplate($tm.object_template)))
-            #elseif($tm.object_reference)
-                #set($foo = $lmSourceReferences.add($tm.object_reference))
-            #* JOIN *#
-            #elseif($tm.object_parent_triples_map)
-                #set($foo = $lmSourceReferences.add($tm.child_value))
-                #set($foo = $lmSourceReferences.add($tm.parent_value))
-            #end
+        #if($row.parent_value)
+            #set($parentTriplesMap = $row.object_parent_triples_map)
+            #set($foo = $lTriplesMaps.get($row.parentTriplesMap).get("_REFS_").add($row.parent_value))
         #end
     #end
 
-    #set($lmSourceReferences = $functions.getDistinct($lmSourceReferences))
+    #* LANGUAGE *#
+    #if($row.language_template)
+        #set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($row.language_template)))
+    #elseif($row.language_reference)
+        #set($foo = $lReferences.add($row.language_reference))
+    #end
+
+    #* DATATYPE *#
+    #if($row.datatype_template)
+        #set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($row.datatype_template)))
+    #elseif($row.datatype_reference)
+        #set($foo = $lReferences.add($row.datatype_reference))
+    #end
+
+    #* Add ALL extracted REFERENCES *#
+    #set($foo = $lTriplesMaps.get($row.triples_map_id).get("_REFS_").addAll($lReferences))
+#end
+
+#* Get only distinct REFS for each TriplesMap *#
+#foreach($tm in $lTriplesMaps.keySet())
+    #set($refs = $lTriplesMaps.get($tm).get("_REFS_"))
+    #set($foo = $lTriplesMaps.get($tm).put("_REFS_", $functions.getDistinct($refs)))
+#end
+
+#* Get only distinct REFS for each Logical Source *#
+#set($lLogicalSources = $functions.getMap($mappings_content, "_source"))
+#foreach($ls in $lLogicalSources.keySet())
+    #if(!$lLogicalSources.get($ls).get("_REFS_"))
+        #set($refs = [])
+        #set($foo = $lLogicalSources.get($ls).put("_REFS_", $refs))
+    #end
+#end
+#foreach($tm in $lTriplesMaps.keySet())
+    #set($refs = $lTriplesMaps.get($tm).get("_REFS_"))
+    #set($foo = $lLogicalSources.get($tm._source).get("_REFS_").addAll($refs))
+#end
+#foreach($ls in $lLogicalSources.keySet())
+    #set($refs = $lLogicalSources.get($ls).get("_REFS_"))
+    #set($foo = $lLogicalSources.get($ls).put("_REFS_", $functions.getDistinct($refs)))
+#end
+
+#* 
+    TODO Check if can be optimized to get a single dataframe also for different
+    logical sources accessing the same "input" 
+*#
+#foreach($lsEntry in $lLogicalSources.entrySet())
+    #set($ls = $lsEntry.value)
+
+    #if($ls.access_url)
+        #set($sourceUrl = $functions.replace($ls.access_url, "file://", ""))
+    #elseif($ls.path)
+        #set($sourceUrl = "/data/shared/" + $ls.path)
+    #end
+
+    #set($refForm = $ls.ref_form)
+    #set($sourceHash = $functions.hash($ls._source))
+    #set($foo = $ls.put("_SOURCE_HASH_", $sourceHash))
+
+    #* Get References for the source *#
+    #set($lsReferences = $ls.get("_REFS_"))
+
+    #* ITERATOR *#
+    #set($iterator = $ls.iterator)
+
     #* Default value to false *#
-    #set($hashVariable = false)
+    #set($foo = $ls.put("_HASH_VARIABLE_", false))
 
     #if($refForm == "http://w3id.org/rml/CSV")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getCSVReaderFromFile("$sourceUrl"))
-        #* TODO Get dataframe for CSV considering only referenced columns *#
-        ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe())
-    #elseif($refForm == "http://w3id.org/rml/SQL2008Table")
-        ${h}set(${d}reader_$sourceHash = ${d}functions.getSQLReaderFromDatabase($stm.jdbcDSN, $stm.user, $stm.password))
-        #if($stm.query)
-            #set($iterator = $stm.query)
-        #elseif($stm.tablename)
-            #set($iterator = $stm.tablename)
+        ${h}set(${d}columns = "$functions.getAsCommaSeparatedString($lsReferences)")
+        ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe(${d}columns))
+    #elseif($refForm == "http://w3id.org/rml/SQL2008Table" || $refForm == "http://w3id.org/rml/SQL2008Query")
+        ${h}set(${d}reader_$sourceHash = ${d}functions.getSQLReaderFromDatabase("$ls.jdbcDSN", "$ls.user", "$ls.password"))
+        #* TODO Check with RML-io *#
+        #if($ls.query)
+            #set($iterator = $ls.query)
         #end
-        ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe($iterator))
+        #* Postgres keeps table name lowercase, cf. Issue #123 rml-core *#
+        #if($refForm == "http://w3id.org/rml/SQL2008Table" && $ls.jdbcDSN.contains("postgres"))
+            #set($iterator = $iterator.toLowerCase())
+        #end
+        ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe("$iterator"))
+        ${h}set(${d}types_$sourceHash = ${d}reader_${sourceHash}.getColumnTypes("$iterator"))
+        ${h}set(${d}columns = $functions.getAsStringArray($lsReferences))
+        ${h}foreach(${d}column in ${d}types_${sourceHash}.keySet())
+            ${h}if(!${d}columns.contains(${d}column))
+                ${d}error: "${d}column not found in ${d}dataframe_$sourceHash." 
+            ${h}end
+        ${h}end
+        #set($sqlTypes = true)
     #elseif ($refForm == "http://w3id.org/rml/XPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile("$sourceUrl"))
-        #set($hashVariable = true)
+        #set($foo = $ls.put("_HASH_VARIABLE_", true))
 
         #* 
             Access the XML input to extract the dataframe considering references 
             in the triplemaps associated with the same logical source 
         *#
-        #if($functions.checkList($lmSourceReferences))
+        #if($functions.checkList($lsReferences))
             #set($xmlQuery = '
                 for $i in ITERATOR
                 return map {
             ')
             #set($xmlQuery = $xmlQuery.replace("ITERATOR", $iterator))
-            #foreach($ref in $lmSourceReferences) 
+            #foreach($ref in $lsReferences) 
                 #set($refHash = $functions.hash($ref))
                 #* Check if text() should be added *#
                 #set ($parts = $ref.split("/"))
@@ -257,19 +344,19 @@ WHERE {
 
     #elseif ($refForm=="http://w3id.org/rml/JSONPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getJSONReaderFromFile("$sourceUrl"))
-        #set($hashVariable = true)
+        #set($foo = $ls.put("_HASH_VARIABLE_", true))
 
         #* 
             Access the JSON input to extract the dataframe considering references 
             in the triplemaps associated with the same logical source 
         *#
-        #if($functions.checkList($lmSourceReferences))
+        #if($functions.checkList($lsReferences))
             #set($jsonQuery = '{
                 "iterator": "ITERATOR_PATH",
                 "paths": {
             ')
             #set($jsonQuery = $jsonQuery.replace("ITERATOR_PATH", $iterator))
-            #foreach($ref in $lmSourceReferences) 
+            #foreach($ref in $lsReferences) 
                 #set($refHash = $functions.hash($ref))
                 #set($referenceQuery = '"VARIABLE": "REFERENCE",
                 ')
@@ -290,45 +377,93 @@ WHERE {
     #else
         ${d}error: "No compatible Reader found." 
     #end
-    
-    #* ########## GENERATE TRIPLES ########## *#
-    
+#end
+
+#* ########## GENERATE DATAFRAMES FOR JOINS ########## *#
+#foreach($row in $mappings_content)
+    #set($sourceHash = $functions.hash($row._source))
+
+    #if($row.object_parent_triples_map)
+        #set($tmParent = $lTriplesMaps.get($row.object_parent_triples_map))
+
+        #set($join_hash = $functions.appendHash($row.triples_map_id, $row.object_parent_triples_map, $row.child_value, $row.parent_value))
+        
+        #set($child_df = "$dataframe_" + $sourceHash)
+        #set($parentHash = $functions.hash($tmParent._source))
+        #set($parent_df = "$dataframe_" + $parentHash)
+        
+        ${h}if(!${d}dataframe_join_$join_hash)
+            #if($row.join_condition)
+                #set($join_variable = $row.parent_value)
+                #if($hashVariable)
+                    #set($join_variable = $functions.hash($row.parent_value))
+                #end
+                ${h}set(${d}dataframe_join_$join_hash = ${d}functions.getListMap($parent_df, "$join_variable"))
+            #else
+                ${h}set(${d}dataframe_join_$join_hash = $parent_df)
+            #end
+        ${h}end  
+    #end
+#end
+
+#* ########## MACRO SUBJECT ########## *#
+
+#macro(subjectRender $stm $hv)
+    #set($subject = $null)
+    #* TODO Check if default namespace should be added *#
+    #if($stm.subject_template)
+        #set($subject = $functions.resolveTemplate($stm.subject_template))
+    #elseif($stm.subject_reference)
+        #set($subject = $functions.resolveReference($stm.subject_reference))
+    #elseif($stm.subject_constant)
+        #set($subject = $stm.subject_constant)
+    #elseif($stm.subject_constant_shortcut)
+        #set($subject = $stm.subject_constant_shortcut)
+    #end
+
+    #set($subject = $functions.encodeReferencesIRI($subject, $hashVariable))
+
+    #if ($tm.subject_termtype == "http://w3id.org/rml/BlankNode")
+        #set($subject = "_:" + $subject)
+    #elseif ($tm.subject_termtype == "http://w3id.org/rml/Literal")
+        ${d}error: subject can not be of type Literal.
+    #else
+        #set($subject = '<' + $subject + '>')
+    #end
+
+    $subject
+#end
+
+#* ########## GENERATE TRIPLES ########## *#
+
+#* Get map of lists ordered by Logical Source *#
+#set($lmSources = $functions.getListMap($mappings_content, "_source"))
+
+#foreach($lmSource in $lmSources.entrySet())
+    #set($ls = $lLogicalSources.get($lmSource.key))
+    #set($sourceHash = $functions.hash($ls._source))
+    #set($hashVariable = $ls.get("_HASH_VARIABLE_"))
+
+    #set($lmTmSource = $functions.getListMap($lmSource.value,"triples_map_id"))
+
     #foreach($lmTmSourceEntry in $lmTmSource.entrySet())
         #* SUBJECT *#
-        #set($subject = $null)
-        #set($stm = $lmTmSourceEntry.value.get(0))
-        #* TODO Check if default namespace should be added *#
-        #if($stm.subject_template)
-            #set($subject = $functions.resolveTemplate($stm.subject_template))
-        #elseif($stm.subject_reference)
-            #set($subject = $functions.resolveReference($stm.subject_reference))
-        #elseif($stm.subject_constant)
-            #set($subject = $stm.subject_constant)
-        #elseif($stm.subject_constant_shortcut)
-            #set($subject = $stm.subject_constant_shortcut)
-        #end
         
-        #set($subject = $functions.encodeReferencesIRI($subject, $hashVariable))
-
-        #if ($stm.subject_termtype == "http://w3id.org/rml/BlankNode")
-            #set($subject = "_:" + $subject)
-        #elseif ($stm.subject_termtype == "http://w3id.org/rml/Literal")
-            ${d}error: subject can not be of type Literal.
-        #else
-            #set($subject = '<' + $subject + '>')
-        #end
+        #set($tm = $lmTmSourceEntry.value.get(0))
+        #set($subject = "#subjectRender($tm $hashVariable)")
+        #set($subject = $subject.trim())
 
         #* GRAPH *#
         #set($graph = $null)
         #* TODO Check if only one graph can be defined for each triplemap *#
-        #if($stm.graph_template)
-            #set($graph = $functions.resolveTemplate($stm.graph_template))
-        #elseif($stm.graph_reference)
-            #set($graph = $functions.resolveReference($stm.graph_reference))
-        #elseif($stm.graph_constant)
-            #set($graph = $stm.graph_constant)
-        #elseif($stm.graph_constant_shortcut)
-            #set($graph = $stm.graph_constant_shortcut)
+        #if($tm.graph_template)
+            #set($graph = $functions.resolveTemplate($tm.graph_template))
+        #elseif($tm.graph_reference)
+            #set($graph = $functions.resolveReference($tm.graph_reference))
+        #elseif($tm.graph_constant)
+            #set($graph = $tm.graph_constant)
+        #elseif($tm.graph_constant_shortcut)
+            #set($graph = $tm.graph_constant_shortcut)
         #end
         #* rml:defaultGraph mapped to the default graph *#
         #if($graph == "http://w3id.org/rml/defaultGraph")
@@ -340,7 +475,7 @@ WHERE {
         #* Init template execution *#
         ${h}foreach(${d}i in ${d}dataframe_$sourceHash)
 
-        #set($subjectClassesQuery = $defaultSubjectClassesQuery.replace("TRIPLES_MAP",$stm.triples_map_id))
+        #set($subjectClassesQuery = $subjectClassesQuery.replace("TRIPLES_MAP",$tm.triples_map_id))
         #set($subjectClasses = $reader.getDataframe($subjectClassesQuery))
         #foreach($subjClass in $subjectClasses)
             #if($graph)
@@ -351,64 +486,109 @@ WHERE {
         #end
 
         #* PO MAPS *#
-        #foreach($tm in $lmTmSourceEntry.value)
+        #foreach($pom in $lmTmSourceEntry.value)
 
             #* PREDICATE *#
             #set($predicate = $null)
-            #if($tm.predicate_template)
-                #set($predicate = $functions.resolveTemplate($tm.predicate_template))
-            #elseif($tm.predicate_reference)
-                #set($predicate = $functions.resolveReference($tm.predicate_reference))
-            #elseif($tm.predicate_constant)
-                #set($predicate = $tm.predicate_constant)
-            #elseif($tm.predicate_constant_shortcut)
-                #set($predicate = $tm.predicate_constant_shortcut)
+            #if($pom.predicate_template)
+                #set($predicate = $functions.resolveTemplate($pom.predicate_template))
+            #elseif($pom.predicate_reference)
+                #set($predicate = $functions.resolveReference($pom.predicate_reference))
+            #elseif($pom.predicate_constant)
+                #set($predicate = $pom.predicate_constant)
+            #elseif($pom.predicate_constant_shortcut)
+                #set($predicate = $pom.predicate_constant_shortcut)
             #end
             #set($predicate = $functions.encodeReferencesIRI($predicate, $hashVariable))
 
             #* OBJECT *#
+            #* TODO Gestire Language Tags and Data types *#
             #set($objects = [])
-            #if($tm.object_template)
-                #set($foo = $objects.add($functions.resolveTemplate($tm.object_template)))
-            #elseif($tm.object_reference)
-                #set($foo = $objects.add($functions.resolveReference($tm.object_reference)))
-            #elseif($tm.object_constant)
-                #set($foo = $objects.add($tm.object_constant))
-            #elseif($tm.object_constant_shortcut)
-                #set($foo = $objects.add($tm.object_constant_shortcut))
-            #* TODO Implement
-            #elseif($tm.object_parent_triples_map)
-                #set($joinedDataFrame = $functions.join($thisDataFame, $functions.getDataFrame($tm.object_parent_triples_map))
-                #set($objects = $functions.getRelevantObjects($joinedDataFrame)
-            *#
+            #if($pom.object_template)
+                #set($foo = $objects.add($functions.resolveTemplate($pom.object_template)))
+            #elseif($pom.object_reference)
+                #set($foo = $objects.add($functions.resolveReference($pom.object_reference)))
+            #elseif($pom.object_constant)
+                #set($foo = $objects.add($pom.object_constant))
+            #elseif($pom.object_constant_shortcut)
+                #set($foo = $objects.add($pom.object_constant_shortcut))
+            #elseif($pom.object_parent_triples_map)
+                #set($join_hash = $functions.appendHash($pom.triples_map_id, $pom.object_parent_triples_map, $pom.child_value, $pom.parent_value))
+                #set($ptm = $lTriplesMaps.get($pom.object_parent_triples_map))
+
+                #* TODO Define a MACRO to define it once *#
+                #set($parent_subject = $null)
+                #set($parent_subject = "#subjectRender($ptm $hashVariable)")
+                #set($parent_subject = $parent_subject.trim())
+                #set($foo = $objects.add("_REFERENCING_OBJECT_MAP_"))
             #end
 
-            #foreach($object in $objects) 
+            #foreach($object in $objects)
                 #* 
                     TODO Improve condition using FILTER (isLiteral(?value)) in SPARQL Query
                     and checking the object_termtype OR implementing a $functions.isIRI($object)
                 *#
-                #if($object.contains("://"))
-                    #set($object = '<' + $functions.encodeReferencesIRI($object, $hashVariable) + '>')
-                #else
-                    #set($object = '"' + $functions.encodeReferencesLiteral($object, $hashVariable) + '"')
-                #end
 
-                #set($refs = $functions.getReferencesFromTriple($subject, $predicate, $object, $graph))
-                
-                ${h}set(${d}refs = $refs)
+                #if($object.equals("_REFERENCING_OBJECT_MAP_"))
+                    #if($pom.child_value)
+                        #set($join_variable = $pom.child_value)
+                        #if($hashVariable)
+                            #set($join_variable = $functions.hash($pom.child_value))
+                        #end
+                        ${h}if(${d}functions.checkString(${d}i.$join_variable))
+                        ${h}foreach(${d}j in ${d}dataframe_join_${join_hash}.get(${d}i.$join_variable))
+                    #else
+                        #* No Join condition: iterate on the same dataframe *#
+                        ${h}foreach(${d}j in ${d}dataframe_join_$join_hash)
+                    #end  
+                            #set($parent_subject = $parent_subject.replaceAll("\{i.","\{j."))
 
-                #* Generate the triple/quad . *#
-                ${h}if(${d}functions.checkStrings(${d}refs))
-                #if($graph)
-                    $subject <$predicate> $object <$graph>.
+                            #set($refs = $functions.getReferencesFromTriple($subject, $predicate, $parent_subject, $graph))
+                    
+                            ${h}set(${d}refs = $refs)
+
+                            #* Generate the triple/quad . *#
+                            ${h}if(${d}functions.checkStrings(${d}refs))
+                            #if($graph)
+                                $subject <$predicate> $parent_subject <$graph>.
+                            #else
+                                $subject <$predicate> $parent_subject .
+                            #end
+                            ${h}end
+
+                        ${h}end
+                    #if($pom.child_value)
+                        ${h}end
+                    #end
                 #else
-                    $subject <$predicate> $object .
+                    #if($object.contains("://"))
+                        #set($object = '<' + $functions.encodeReferencesIRI($object, $hashVariable) + '>')
+                    #else
+                        #set($raw_object = $object)
+                        #set($object = '"' + $functions.encodeReferencesLiteral($object, $hashVariable) + '"')
+
+                        #if($sqlTypes && $raw_object.startsWith('$'))
+                            #set($column = $functions.getIteratorFromString($raw_object))
+                            #set($object = $object + '#if($types_' + $sourceHash + ')#set($type = $types_' + $sourceHash + '.get("' + $column + '"))#set($rdfType = $functions.getXsdFromSqlDatatypes($type))#if($rdfType)^^<$rdfType>#end#end')
+                        #end
+                    #end
+
+                    #set($refs = $functions.getReferencesFromTriple($subject, $predicate, $object, $graph))
+                    
+                    ${h}set(${d}refs = $refs)
+
+                    #* Generate the triple/quad . *#
+                    ${h}if(${d}functions.checkStrings(${d}refs))
+                    #if($graph)
+                        $subject <$predicate> $object <$graph>.
+                    #else
+                        $subject <$predicate> $object .
+                    #end
+                    ${h}end
                 #end
-                ${h}end
             #end
 
-        #end   
+        #end
         ${h}end
     #end
 
