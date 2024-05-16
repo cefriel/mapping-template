@@ -85,16 +85,16 @@ public class JSONReader implements Reader {
                     // if it is a single object then in the output list I have only one item
 
                     if (!(objects instanceof JSONArray)) {
-                        String value = objects == null ? "null" : objects.toString();
-                        output.get(0).put(key, value);
+                        if(objects != null)
+                            output.get(0).put(key, objects.toString());
                     } else {
                         JSONArray objectsList = (JSONArray) objects;
                         // CASE 1, all the nodes identified by the iterator have the key (sub field)
                         // A single query to extract all values for the key
                         if (objectsList.size() == results.size()) {
                             for (int i = 0; i < objectsList.size(); i++) {
-                                String value = objectsList.get(i) == null ? "null" : objectsList.get(i).toString();
-                                output.get(i).put(key, value);
+                                if(objectsList.get(i) != null)
+                                    output.get(i).put(key, objectsList.get(i).toString());
                             }
                         }
                         // CASE 2, not all nodes have the key (sub field)
@@ -105,8 +105,8 @@ public class JSONReader implements Reader {
                                 String topPath = results.get(i);
                                 try {
                                     var x = JsonPath.read(document, topPath + "." + path);
-                                    var value = x == null ? "null" : x.toString();
-                                    output.get(i).put(key, value);
+                                    if (x != null)
+                                        output.get(i).put(key, x.toString());
                                 } catch (PathNotFoundException pe) {
                                     // what happens when the path is not found? i.e. the item does not have the field the jsonPath is pointing to
                                     // for now we do not put the key in the map
