@@ -21,6 +21,7 @@ import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.io.rdf.RDFReader;
 import com.cefriel.template.io.sql.SQLReader;
 import com.cefriel.template.io.xml.XMLReader;
+import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
@@ -29,11 +30,16 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TemplateFunctions {
 
@@ -195,7 +201,7 @@ public class TemplateFunctions {
     }
 
     /**
-     * Returns {@code true} if {@code l} is not null and not an empty string.
+     * Returns {@code true} if {@code l} is not null and not an empty list.
      *
      * @param l   List to be checked
      * @param <T> Type of objects contained in the list
@@ -465,19 +471,22 @@ public class TemplateFunctions {
      */
     public String encodeURI(String url) {
         if (url != null && !url.isEmpty()) {
-            final StringBuilder builder = new StringBuilder();
-            final String encoded = URLEncoder.encode(url, StandardCharsets.UTF_8);
+            //TODO Improve validation of URL, objective is not to encode first part of URLs
+            if (!url.contains("://")) {
+                final StringBuilder builder = new StringBuilder();
+                final String encoded = URLEncoder.encode(url, StandardCharsets.UTF_8);
 
-            for (char c: encoded.toCharArray()) {
-                if (c == '+')
-                    builder.append("%20");
-                else if (c == '*')
-                    builder.append("%2A");
-                else
-                    builder.append(c);
+                for (char c : encoded.toCharArray()) {
+                    if (c == '+')
+                        builder.append("%20");
+                    else if (c == '*')
+                        builder.append("%2A");
+                    else
+                        builder.append(c);
+                }
+
+                return builder.toString();
             }
-
-            return builder.toString();
         }
         return url;
     }
@@ -636,8 +645,9 @@ public class TemplateFunctions {
         }
     }
 
+    // TODO Move as setOutputFormat("rdf") in SQL Reader
     /**
-     * Return XSD datatype from input SQL datatype
+     * Return XSD datatype from SQL datatype
      * @param sqlDatatype SQL datatype
      * @return XSD datatype corresponding to the input SQL datatype
      */
@@ -649,9 +659,11 @@ public class TemplateFunctions {
             put("DECIMAL", "http://www.w3.org/2001/XMLSchema#decimal");
             put("INTEGER", "http://www.w3.org/2001/XMLSchema#integer");
             put("INT", "http://www.w3.org/2001/XMLSchema#integer");
-            put("BOOLEAN", "http://www.w3.org/2001/XMLSchema#boolean");
+            put("BIT", "http://www.w3.org/2001/XMLSchema#boolean");
+            put("BOOL", "http://www.w3.org/2001/XMLSchema#boolean");
             put("DATE", "http://www.w3.org/2001/XMLSchema#date");
             put("TIME", "http://www.w3.org/2001/XMLSchema#time");
+            put("TIMESTAMP", "http://www.w3.org/2001/XMLSchema#dateTime");
             put("DATETIME", "http://www.w3.org/2001/XMLSchema#dateTime");
         }};
 
@@ -662,4 +674,80 @@ public class TemplateFunctions {
 
         return null;
     }
+
+    // From rmlmapper https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L661
+    public static String transformDatatypeString(String input, String datatype) {
+        switch (datatype) {
+            case "http://www.w3.org/2001/XMLSchema#hexBinary":
+                return input;
+            case "http://www.w3.org/2001/XMLSchema#decimal":
+                return "" + Double.parseDouble(input);
+            case "http://www.w3.org/2001/XMLSchema#integer":
+                return "" + Integer.parseInt(input);
+            case "http://www.w3.org/2001/XMLSchema#double":
+                return formatToScientific(Double.parseDouble(input));
+            case "http://www.w3.org/2001/XMLSchema#boolean":
+                switch (input) {
+                    case "t":
+                    case "true":
+                    case "TRUE":
+                    case "1":
+                        return "true";
+                    default:
+                        return "false";
+                }
+            case "http://www.w3.org/2001/XMLSchema#date":
+                return input;
+            case "http://www.w3.org/2001/XMLSchema#time":
+                return input;
+            case "http://www.w3.org/2001/XMLSchema#dateTime":
+                return input.replace(" ", "T");
+            default:
+                return input;
+        }
+
+    }
+
+    // From rmlmapper https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L704
+    private static String formatToScientific(Double d) {
+        BigDecimal input = BigDecimal.valueOf(d).stripTrailingZeros();
+        int precision = input.scale() < 0
+                ? input.precision() - input.scale()
+                : input.precision();
+        StringBuilder s = new StringBuilder("0.0");
+        for (int i = 2; i < precision; i++) {
+            s.append("#");
+        }
+        s.append("E0");
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+        DecimalFormat df = (DecimalFormat) nf;
+        df.applyPattern(s.toString());
+        return df.format(d);
+    }
+
+    public static String checkTriple(String rdf, String base){
+        final Pattern iriPattern = Pattern.compile("<([^<>}]+)>");
+
+        Matcher matcher = iriPattern.matcher(rdf);
+
+        List<String> matches = new ArrayList();
+        while (matcher.find()) {
+            String potentialIRI = matcher.group(1);
+            //TODO Change to check if valid IRI
+            if (!potentialIRI.contains("://"))
+                potentialIRI = base + potentialIRI;
+            rdf = rdf.replace(matcher.group(1), potentialIRI);
+        }
+        return rdf;
+    }
+
+    /**
+     * From rmlmapper https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L385
+     */
+    public static boolean isValidrrLanguage(String s) {
+        Pattern regexPatternLanguageTag = Pattern.compile("^((?:(en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux|i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-FR|sgn-BE-NL|sgn-CH-DE)|(art-lojban|cel-gaulish|no-bok|no-nyn|zh-guoyu|zh-hakka|zh-min|zh-min-nan|zh-xiang))|((?:([A-Za-z]{2,3}(-(?:[A-Za-z]{3}(-[A-Za-z]{3}){0,2}))?)|[A-Za-z]{4})(-(?:[A-Za-z]{4}))?(-(?:[A-Za-z]{2}|[0-9]{3}))?(-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(-(?:[0-9A-WY-Za-wy-z](-[A-Za-z0-9]{2,8})+))*(-(?:x(-[A-Za-z0-9]{1,8})+))?)|(?:x(-[A-Za-z0-9]{1,8})+))$");
+        return regexPatternLanguageTag.matcher(s).matches();
+    }
+
+
 }
