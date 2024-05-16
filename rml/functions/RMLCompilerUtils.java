@@ -24,12 +24,13 @@ import java.util.regex.Pattern;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RMLCompilerUtils extends TemplateFunctions {
 
-    final Pattern templatePattern = Pattern.compile("\\{(.*?)\\}");
+    final Pattern templatePattern = Pattern.compile("\\{([^{}]+)\\}");
     final Pattern referencePattern = Pattern.compile("\\$\\{(.*?)\\}");
 
     public List<String> getReferencesFromTriple(String subject, String predicate, String object, String graph){
@@ -41,7 +42,7 @@ public class RMLCompilerUtils extends TemplateFunctions {
         Set<String> distinctMatches = new HashSet(matches);
         
         return distinctMatches.stream()
-            .map(x -> "$" + x)
+            .map(x -> "${" + x + "}")
             .collect(Collectors.toList());
     }
 
@@ -91,7 +92,7 @@ public class RMLCompilerUtils extends TemplateFunctions {
         return "${" + input + "}";
     }
 
-    private String encodeReferences(String s, boolean isURI, boolean hashVariable) {
+    private String encodeReferences(String s, boolean isURI) {
         if (s != null) {
             Matcher matcher = referencePattern.matcher(s);
 
@@ -102,10 +103,7 @@ public class RMLCompilerUtils extends TemplateFunctions {
             
             for(String m : matches) {
                 String replace = m;
-                if (hashVariable)
-                    replace = "${i." + hash(m) + "}";
-                else
-                    replace = "${i." + m + "}";
+                replace = "${i." + hash(m) + "}";
                 if(isURI)
                     s = s.replace("${" + m + "}", "$functions.encodeURI(" + replace + ")");
                 else
@@ -115,12 +113,12 @@ public class RMLCompilerUtils extends TemplateFunctions {
         return s;
     }
 
-    public String encodeReferencesIRI(String s, boolean hashVariable) {
-        return encodeReferences(s, true, hashVariable);
+    public String encodeReferencesIRI(String s) {
+        return encodeReferences(s, true);
     }
 
-    public String encodeReferencesLiteral(String s, boolean hashVariable) {
-        return encodeReferences(s, false, hashVariable);
+    public String encodeReferencesLiteral(String s) {
+        return encodeReferences(s, false);
     }
 
     public List<String> getDistinct(List<String> list) {
@@ -129,12 +127,32 @@ public class RMLCompilerUtils extends TemplateFunctions {
                    .collect(Collectors.toList());
     }
 
+    public String sanitizeJSON(String ref) {
+        return ref.replaceAll("'", "\\\\\"");
+    }
+
     public String getAsCommaSeparatedString(List<String> list) {
         return String.join(",", list);
     }
 
     public String getAsStringArray(List<String> list) {
-        return "[\"" + String.join("\",\"", list) + "\"]";
+        if (list.size() >= 1 && !list.contains(""))
+            return "[\"" + String.join("\",\"", list) + "\"]";
+        return "[]";
+    }
+
+    public List<Map<String,String>> hashVariablesDataFrame(List<Map<String,String>> dataframe) {
+        return dataframe.stream().map(
+            e -> e.entrySet().stream()
+            .collect(Collectors.toMap(x -> hash(x.getKey()), Map.Entry::getValue)))
+            .collect(Collectors.toList());
+    }
+
+    public boolean checkReference(String s){
+        if(s.startsWith("$"))
+            if(s.length() - s.replace("$", "").length() == 1)
+                return true;
+        return false;                     
     }
 
     /**
