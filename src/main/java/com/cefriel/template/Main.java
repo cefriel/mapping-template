@@ -57,6 +57,8 @@ public class Main {
 	private String keyValueCsvPath;
 	@Parameter(names={"--format","-f"})
 	private String format;
+	@Parameter(names={"--compile-rml","-rml"})
+	private boolean compileRML;
 	@Parameter(names={"--trim","-tr"})
 	private boolean trimTemplate;
 	@Parameter(names={"--template-resource","-trs"})
@@ -209,6 +211,16 @@ public class Main {
 					}
 				}
 			}
+		}
+
+		// TODO Read rml-compiler.vm from resources
+		if(compileRML) {
+			List<String> compileTemplates = new ArrayList<>();
+			compileTemplates.add(templatePath);
+			String compiledTemplatePath = "./template.rml.vm";
+			Reader compilerReader = Util.createRDFReader(compileTemplates, null, null, null, null);
+			tl.executeMapping(compilerReader, Paths.get("./rml-compiler.vm"), false, false, false, Paths.get(compiledTemplatePath), null, null, new RMLCompilerUtils());
+			templatePath = compiledTemplatePath;
 		}
 
 		try {
