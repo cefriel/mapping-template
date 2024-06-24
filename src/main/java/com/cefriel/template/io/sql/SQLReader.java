@@ -34,45 +34,48 @@ import java.util.Map;
 public class SQLReader implements Reader {
 
     private final Logger log = LoggerFactory.getLogger(SQLReader.class);
-
     private Connection conn;
-
-    private List<String> tables = new ArrayList<>();
-
     private String queryHeader;
     private boolean verbose;
+
     private static final Object lock = new Object();
 
-
-    public SQLReader(String driver, String url, String database, String username, String password) {
-        if (!url.contains("jdbc:"))
-            url = "jdbc:" + driver + "://" + url + "/" + database;
-        log.info("Connection to database with URL: " + url);
-
+    public boolean checkTableExists(String table, Connection connection) {
+        List<String> tables = new ArrayList<>();
         try {
-            conn = DriverManager.getConnection(url, username, password);
             PreparedStatement tablesQueryStatement;
-
+            String dbDriver = connection.getMetaData().getDatabaseProductName();
+            String databaseName = connection.getCatalog();
             // Prepare and execute table query based on the database driver
-            if (driver.equals("mysql")) {
-                tablesQueryStatement = conn.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = ?;");
-                tablesQueryStatement.setString(1, database);
-            } else if (driver.equals("postgresql")) {
-                tablesQueryStatement = conn.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'");
+            if (dbDriver.equalsIgnoreCase("mysql")) {
+                tablesQueryStatement = connection.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = ?;");
+                tablesQueryStatement.setString(1, databaseName);
+            } else if (dbDriver.equalsIgnoreCase("postgresql")) {
+                tablesQueryStatement = connection.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'");
             } else {
-                throw new IllegalArgumentException("SQLReader does not support " + driver);
+                throw new IllegalArgumentException("SQLReader does not support " + dbDriver);
             }
 
             ResultSet resultSet = tablesQueryStatement.executeQuery();
             while (resultSet.next()) {
                 String tableName = resultSet.getString("table_name");
-                this.tables.add(tableName);
+                tables.add(tableName);
             }
+
         } catch (SQLException e) {
             log.error("Error connecting to the database: " + e.getMessage(), e);
         }
+        return tables.contains(table);
+    }
+    public SQLReader(String driver, String url, String database, String username, String password) throws SQLException {
+        if (!url.contains("jdbc:"))
+            url = "jdbc:" + driver + "://" + url + "/" + database;
+        log.info("Connection to database with URL: " + url);
+        conn = DriverManager.getConnection(url, username, password);
     }
 
+    // to later check if a specific table exists i need the driver, database and table name
+    // when is this constructor actually used? At minimum need to add driver and database name
     public SQLReader(Connection conn) {
         this.conn = conn;
     }
@@ -143,7 +146,7 @@ public class SQLReader implements Reader {
             }
         } else {
             // case-sensitive, user has to supply table name exactly like it is in the db
-            if (tables.contains(query)) {
+            if (checkTableExists(query, conn)) {
                 String q = "SELECT * FROM " + query;
                 try {
                     PreparedStatement preparedStatement = conn.prepareStatement(q);
@@ -207,7 +210,7 @@ public class SQLReader implements Reader {
                 log.error(e.getMessage(), e);
             }
         } else {
-            if (tables.contains(query)) {
+            if (checkTableExists(query, conn)) {
                 String q = "SELECT * FROM " + query;
                 try {
                     PreparedStatement preparedStatement = conn.prepareStatement(q);
