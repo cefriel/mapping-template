@@ -50,6 +50,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidParameterException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -58,7 +59,7 @@ public class Util {
     public static boolean validInputFormat(String format) {
         return MappingTemplateConstants.INPUT_FORMATS.contains(format);
     }
-    public static Reader createRemoteReader(String inputFormat, String dbUrl, String dbId, String username, String password,String graphName, String baseIri) {
+    public static Reader createRemoteReader(String inputFormat, String dbUrl, String dbId, String username, String password,String graphName, String baseIri) throws SQLException {
         if (!validInputFormat(inputFormat))
             throw new UnsupportedOperationException("Unsupported Reader format: " + inputFormat);
 
