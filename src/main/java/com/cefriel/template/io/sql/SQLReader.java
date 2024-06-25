@@ -74,8 +74,6 @@ public class SQLReader implements Reader {
         conn = DriverManager.getConnection(url, username, password);
     }
 
-    // to later check if a specific table exists i need the driver, database and table name
-    // when is this constructor actually used? At minimum need to add driver and database name
     public SQLReader(Connection conn) {
         this.conn = conn;
     }
