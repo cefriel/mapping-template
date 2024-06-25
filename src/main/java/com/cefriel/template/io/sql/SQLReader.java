@@ -203,9 +203,8 @@ public class SQLReader implements Reader {
         String queryCheck = query.toLowerCase();
         if (queryCheck.contains("select")) {
             try (ResultSet resultSet = executeQuery(query)) {
-               try (BufferedWriter writer = new BufferedWriter(Files.newBufferedWriter(destinationPath))) {
+                try (BufferedWriter writer = new BufferedWriter(Files.newBufferedWriter(destinationPath))) {
                     queryResultToWriter(writer, resultSet);
-
                 }
             } catch (SQLException e) {
                 log.error(e.getMessage(), e);
