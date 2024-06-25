@@ -26,12 +26,13 @@ import java.util.Map;
 public class CSVReaderTest {
 
     private static CSVReader csvReader;
-    private static String filePath = "src/test/resources/testCSVWithHeaders.csv";
+
     @Test
     public void testCSVReadFile() throws Exception {
+        String filePath = "src/test/resources/testCSVWithHeaders.csv";
         File f = new File(filePath);
         csvReader = new CSVReader(f);
-        List<Map<String, String>> results = csvReader.getDataframe();
+        List<Map<String, String>> results = csvReader.getDataframe("id", "stop", "latitude", "longitude");
         assert (!results.isEmpty());
         assert (results.size() == 1);
         Map<String, String> row = results.get(0);
