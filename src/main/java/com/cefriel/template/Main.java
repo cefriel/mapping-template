@@ -19,9 +19,8 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
-import com.cefriel.template.io.json.JSONReader;
-import com.cefriel.template.io.sql.SQLReader;
-import com.cefriel.template.utils.*;
+import com.cefriel.template.utils.TemplateFunctions;
+import com.cefriel.template.utils.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,15 +28,15 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.*;
-
-import static com.cefriel.template.utils.Util.validInputFormat;
+import java.util.List;
 
 public class Main {
 	@Parameter(names={"--template","-t"})
@@ -50,13 +49,13 @@ public class Main {
 	@Parameter(names={"--baseiri","-iri"})
 	private String baseIri = "http://www.cefriel.com/data/";
 	@Parameter(names={"--basepath","-b"})
-	private String basePath;
+	private Path basePath;
 	@Parameter(names={"--output","-o"})
-	private String destinationPath = "output.txt";
+	private Path destinationPath = Path.of("output.txt");
 	@Parameter(names={"--key-value","-kv"})
-	private String keyValuePairsPath;
+	private Path keyValuePairsPath;
 	@Parameter(names={"--key-value-csv","-kvc"})
-	private String keyValueCsvPath;
+	private Path keyValueCsvPath;
 	@Parameter(names={"--format","-f"})
 	private String format;
 	@Parameter(names={"--trim","-tr"})
@@ -74,18 +73,17 @@ public class Main {
 	@Parameter(names={"--contextIRI","-c"})
 	private String context;
 	@Parameter(names={"--query","-q"})
-	private String queryPath;
+	private Path queryPath;
 	@Parameter(names={"--debug-query","-dq"})
 	private boolean debugQuery;
 	@Parameter(names={"--verbose","-v"})
 	private boolean verbose;
 	@Parameter(names={"--time","-tm"})
-	private String timePath;
+	private Path timePath;
 	@Parameter(names={"--functions","-fun"})
-	private String functionsPath;
+	private Path functionsPath;
 
-    private final Logger log = LoggerFactory.getLogger(Main.class);
-
+	private final Logger log = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String ... argv) throws Exception {
 
@@ -102,21 +100,22 @@ public class Main {
 
 	public void updateBasePath(){
 		if (basePath != null) {
-			basePath = basePath.endsWith("/") ? basePath : basePath + "/";
-			templatePath = Path.of(basePath + templatePath.toString());
+		    templatePath = basePath.resolve(templatePath);
 			if (inputFilesPaths != null)
 				for (int i = 0; i < inputFilesPaths.size(); i++)
 					if(inputFilesPaths.get(i) != null)
-						inputFilesPaths.set(i, Path.of(basePath.toString() + inputFilesPaths.get(i)));
-			destinationPath = basePath + destinationPath;
+						inputFilesPaths.set(i, basePath.resolve(inputFilesPaths.get(i)));
+			destinationPath = basePath.resolve(destinationPath);
 			if (queryPath != null)
-				queryPath = basePath + queryPath;
+				queryPath = basePath.resolve(queryPath);
 			if (keyValueCsvPath != null)
-				keyValueCsvPath = basePath + keyValueCsvPath;
+				keyValueCsvPath = basePath.resolve(keyValueCsvPath);
 			if (keyValuePairsPath != null)
-				keyValuePairsPath = basePath + keyValuePairsPath;
+				keyValuePairsPath = basePath.resolve(keyValuePairsPath);
 			if (timePath != null)
-				timePath = basePath + timePath;
+				timePath = basePath.resolve(timePath);
+			if (functionsPath != null)
+				functionsPath = basePath.resolve(functionsPath);
 		}
 	}
 
@@ -130,7 +129,7 @@ public class Main {
 				if (queryPath == null)
 					log.error("Provide a query using the --query option");
 				else {
-					String debugQueryFromFile = Files.readString(Paths.get(queryPath));
+					String debugQueryFromFile = Files.readString(queryPath);
 					reader.debugQuery(debugQueryFromFile, destinationPath);
 				}
 			}
@@ -149,17 +148,18 @@ public class Main {
 		Formatter formatter = null;
 		if(format != null) {
 			formatter = Util.createFormatter(format);
-			if(reader != null) 
+			if(reader != null)
 				reader.setOutputFormat(format);
 		}
+
 
 		TemplateFunctions templateFunctions = new TemplateFunctions();
 		if (functionsPath != null) {
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-			File utilsFile = new File(functionsPath);
+			File utilsFile = functionsPath.toFile();
 			compiler.run(null, null, null, utilsFile.getPath());
-
-			File classDir = new File(utilsFile.getParent());
+			File classDir = functionsPath.getParent() != null ?
+					functionsPath.getParent().toFile() : Path.of("./").resolve(functionsPath).toFile();
 			URLClassLoader classLoader = URLClassLoader.newInstance(new URL[]{(classDir).toURI().toURL()});
 
 			// List all the files in the directory and identify the class file
@@ -178,20 +178,20 @@ public class Main {
 		}
 
 		if(timePath != null)
-			try (FileWriter pw = new FileWriter(timePath, true)) {
+			try (FileWriter pw = new FileWriter(timePath.toFile(), true)) {
 				long start = Instant.now().toEpochMilli();
 				if(queryPath != null)
-					tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+					tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
 				else
-					tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+					tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
 				long duration = Instant.now().toEpochMilli() - start;
 				pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
 			}
 		else{
 			if(queryPath != null)
-				tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+				tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
 			else
-				tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+				tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
 		}
 
 		if(reader != null)

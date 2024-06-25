@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.InvalidParameterException;
 import java.sql.*;
 import java.sql.Statement;
@@ -196,13 +198,14 @@ public class SQLReader implements Reader {
      * @param destinationPath File to save the results of the SQL query
      * @throws IOException If an error occurs in handling the files
      */
-    public void debugQuery(String query, String destinationPath) throws IOException {
 
+    public void debugQuery(String query, Path destinationPath) throws IOException {        
         String queryCheck = query.toLowerCase();
         if (queryCheck.contains("select")) {
             try (ResultSet resultSet = executeQuery(query)) {
-                try (FileWriter writer = new FileWriter(destinationPath)) {
+               try (BufferedWriter writer = new BufferedWriter(Files.newBufferedWriter(destinationPath))) {
                     queryResultToWriter(writer, resultSet);
+
                 }
             } catch (SQLException e) {
                 log.error(e.getMessage(), e);
@@ -213,7 +216,7 @@ public class SQLReader implements Reader {
                 try {
                     PreparedStatement preparedStatement = conn.prepareStatement(q);
                     ResultSet resultSet = preparedStatement.executeQuery();
-                    try (FileWriter writer = new FileWriter(destinationPath)) {
+                    try (BufferedWriter writer = new BufferedWriter(Files.newBufferedWriter(destinationPath))) {
                         queryResultToWriter(writer, resultSet);
                     }
                 } catch (SQLException e) {

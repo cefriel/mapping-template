@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -163,7 +164,7 @@ public class XMLReader implements Reader {
     }
 
     @Override
-    public void debugQuery(String query, String destinationPath) throws Exception {
+    public void debugQuery(String query, Path destinationPath) throws Exception {
         List<Map<String, String>> result = getDataframe(query);
         StringBuilder sb = new StringBuilder();
 
@@ -186,7 +187,7 @@ public class XMLReader implements Reader {
             }
             sb.setLength(sb.length() - 1);
 
-            try (PrintWriter out = new PrintWriter(destinationPath)) {
+            try (PrintWriter out = new PrintWriter(destinationPath.toString())) {
                 out.println(sb);
             }
         }
