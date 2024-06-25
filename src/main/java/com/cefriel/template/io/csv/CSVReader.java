@@ -23,8 +23,8 @@ import de.siegmar.fastcsv.reader.NamedCsvRow;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CSVReader implements Reader {
 
@@ -34,10 +34,10 @@ public class CSVReader implements Reader {
         if (Files.exists(file.toPath()))
             this.document = NamedCsvReader.builder().build(file.toPath());
         else
-            throw new IllegalArgumentException("FILE: " + file.getPath() + " FOR CSVREADER DOES NOT EXIST");
+            throw new IllegalArgumentException("File does not exist: " + file.getPath());
     }
 
-    public CSVReader(String csv) throws IOException {
+    public CSVReader(String csv) {
         this.document = NamedCsvReader.builder().build(csv);
     }
     @Override
@@ -50,18 +50,36 @@ public class CSVReader implements Reader {
 
     }
 
-    public List<Map<String, String>> getDataframe() {
-        return getDataframe("");
-    }
     @Override
-    public List<Map<String, String>> getDataframe(String query) {
-        Set<String> headers = this.document.getHeader();
+    public List<Map<String, String>> getDataframe(String query) throws Exception {
+        String[] headers = query.split(",");
+        return getDataframe(headers);
+    }
+
+    @Override
+    public List<Map<String, String>> getDataframe() throws Exception {
+        return getDataframe(new String[0]);
+    }
+
+    public List<Map<String, String>> getDataframe(String... columns) {
+        Set<String> columnsToKeep;
+        Set<String> fileColumns = this.document.getHeader();
+        if (columns == null || columns.length == 0)
+            columnsToKeep = fileColumns;
+        else {
+            columnsToKeep = new HashSet<>(Arrays.asList(columns));
+            for (String column : columnsToKeep) {
+                if(!fileColumns.contains(column))
+                    throw new IllegalArgumentException("Header not found in document: " + column);
+            }
+        }
+
         List<Map<String, String>> output = new ArrayList<>();
         for (NamedCsvRow row : this.document) {
-            HashMap<String, String> map = new HashMap<>();
-            for (String header : headers) {
-                map.put(header, row.getField(header));
-            }
+            Map<String, String> map = columnsToKeep.stream().collect(Collectors.toMap(
+                    header -> header,
+                    row::getField
+            ));
             output.add(map);
         }
         return output;
