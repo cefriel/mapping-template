@@ -22,6 +22,7 @@ import nu.xom.Document;
 import nu.xom.Serializer;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class XMLFormatter implements Formatter {
 
@@ -38,11 +39,11 @@ public class XMLFormatter implements Formatter {
     @Override
     public String formatString(String s) throws Exception {
         Builder builder = new Builder();
-        InputStream ins = new BufferedInputStream(new ByteArrayInputStream(s.getBytes()));
+        InputStream ins = new BufferedInputStream(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)));
         Document doc = builder.build(ins);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         formatXML(doc, baos);
-        String formatted = baos.toString();
+        String formatted = baos.toString(StandardCharsets.UTF_8);
         baos.close();
         return formatted;
     }
