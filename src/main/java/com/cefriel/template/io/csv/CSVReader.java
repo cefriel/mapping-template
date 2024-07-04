@@ -23,6 +23,7 @@ import de.siegmar.fastcsv.reader.NamedCsvRow;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,6 +62,11 @@ public class CSVReader implements Reader {
         return getDataframe(new String[0]);
     }
 
+    @Override
+    public void debugQuery(String query, Path destinationPath) throws Exception {
+
+    }
+
     public List<Map<String, String>> getDataframe(String... columns) {
         Set<String> columnsToKeep;
         Set<String> fileColumns = this.document.getHeader();
@@ -84,12 +90,6 @@ public class CSVReader implements Reader {
         }
         return output;
     }
-
-    @Override
-    public void debugQuery(String query, Path destinationPath) throws Exception {
-
-    }
-
     @Override
     public void setVerbose(boolean verbose) {
 
