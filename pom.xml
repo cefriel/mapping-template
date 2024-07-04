@@ -18,7 +18,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.cefriel</groupId>
   <artifactId>mapping-template</artifactId>
-  <version>2.5.1-SNAPSHOT</version>
+  <version>2.4.2-SNAPSHOT</version>
 
   <name>com.cefriel:mapping-template</name>
   <description>A template-based component exploiting Apache Velocity to define
