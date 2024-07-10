@@ -137,7 +137,8 @@ public class RDFReader implements Reader {
             for (BindingSet bindingSet : resultList) {
                 Map<String,Value> result = new HashMap<String,Value>();
                 for (String bindingName : bindingSet.getBindingNames()) {
-                    result.put(bindingName, bindingSet.getValue(bindingName));
+                    if (bindingSet.getValue(bindingName) != null)
+                        result.put(bindingName, bindingSet.getValue(bindingName));
                 }
                 results.add(result);
             }
