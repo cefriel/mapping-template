@@ -125,7 +125,7 @@ public class SQLReader implements Reader {
         while (resultSet.next()) {
             Map<String, String> row = new HashMap<>();
             for (int i = 1; i <= columnCount; i++) {
-                String columnName = resultSet.getMetaData().getColumnName(i);
+                String columnName = resultSet.getMetaData().getColumnLabel(i);
                 String columnValue = resultSet.getString(i);
                 row.put(columnName, columnValue);
             }
@@ -140,7 +140,7 @@ public class SQLReader implements Reader {
 
         Map<String, String> columnTypeName = new HashMap<>();
         for (int i = 1; i <= columnCount; i++) {
-            columnTypeName.put(metaData.getColumnName(i),metaData.getColumnTypeName(i));
+            columnTypeName.put(metaData.getColumnLabel(i),metaData.getColumnTypeName(i));
         }
 
         return columnTypeName;
@@ -223,7 +223,7 @@ public class SQLReader implements Reader {
         int columnCount = resultSet.getMetaData().getColumnCount();
 
         for (int i = 1; i <= columnCount; i++) {
-            writer.append(resultSet.getMetaData().getColumnName(i));
+            writer.append(resultSet.getMetaData().getColumnLabel(i));
             if (i < columnCount) {
                 writer.append(',');
             }
