@@ -18,11 +18,11 @@ package com.cefriel.template.io.sql;
 
 import com.cefriel.template.io.Reader;
 
-import org.eclipse.rdf4j.query.algebra.Str;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidParameterException;
 import java.sql.*;
 import java.sql.Statement;
@@ -126,12 +126,26 @@ public class SQLReader implements Reader {
             Map<String, String> row = new HashMap<>();
             for (int i = 1; i <= columnCount; i++) {
                 String columnName = resultSet.getMetaData().getColumnLabel(i);
-                String columnValue = resultSet.getString(i);
+                int columnType = resultSet.getMetaData().getColumnType(i);
+                String columnValue;
+                if (columnType == Types.BINARY || columnType == Types.VARBINARY) {
+                    byte[] binaryData = resultSet.getBytes(i);
+                    columnValue = bytesToHex(binaryData);
+                } else {
+                    columnValue = resultSet.getString(i);
+                }
                 row.put(columnName, columnValue);
             }
             dataframe.add(row);
         }
         return dataframe;
+    }
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            hexString.append(String.format("%02X", b));
+        }
+        return hexString.toString();
     }
 
     private Map<String, String> populateColumnTypes(ResultSet resultSet) throws SQLException {
