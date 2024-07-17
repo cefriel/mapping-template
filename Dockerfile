@@ -7,10 +7,6 @@ RUN mkdir mapping-template
 
 COPY ./target/mapping-template-${MAPPING_TEMPLATE_VERSION}.jar /mapping-template/mapping-template.jar
 
-RUN mkdir /opt/rml
-COPY ./rml/rml-compiler.vm /opt/rml/rml-compiler.vm
-COPY ./rml/functions/RMLCompilerUtils.java /opt/rml/RMLCompilerUtils.java
-
 RUN mkdir /data
 
 # Silent
