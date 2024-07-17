@@ -26,27 +26,29 @@ import com.cefriel.template.io.rdf.RDFFormatter;
 import com.cefriel.template.io.rdf.RDFReader;
 import com.cefriel.template.io.xml.XMLFormatter;
 import com.cefriel.template.io.xml.XMLReader;
-import org.apache.lucene.analysis.util.ClasspathResourceLoader;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.runtime.RuntimeConstants;
-import org.apache.velocity.tools.generic.DateTool;
-import org.apache.velocity.tools.generic.EscapeTool;
-import org.apache.velocity.tools.generic.MathTool;
-import org.apache.velocity.tools.generic.NumberTool;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.apache.velocity.tools.generic.*;
+import org.eclipse.rdf4j.common.exception.ValidationException;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.vocabulary.RDF4J;
+import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
+import org.eclipse.rdf4j.sail.shacl.ShaclSail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -179,10 +181,11 @@ public class Util {
     public static VelocityEngine createVelocityEngine(boolean templateInResources, boolean failInvalidRef){
         VelocityEngine velocityEngine = new VelocityEngine();
         // Fail on variables not found
-        velocityEngine.setProperty("runtime.references.strict", failInvalidRef);
+        velocityEngine.setProperty("runtime.strict_mode.enable", failInvalidRef);
         if (templateInResources) {
-            velocityEngine.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
-            velocityEngine.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+            velocityEngine.setProperty("resource.loaders", "class");
+            velocityEngine.setProperty("resource.loader.class.class",
+                    ClasspathResourceLoader.class.getName());
         }
         velocityEngine.init();
         return velocityEngine;
@@ -211,4 +214,44 @@ public class Util {
     }
 
 
+    public static void validateRML(Path templatePath) {
+
+        ShaclSail shaclSail = new ShaclSail(new MemoryStore());
+        SailRepository repository = new SailRepository(shaclSail);
+        repository.init();
+
+        try (RepositoryConnection connection = repository.getConnection()) {
+            try (InputStream shapesStream = Util.class.getResourceAsStream("/rml/core.ttl")) {
+                Model rules = Rio.parse(shapesStream, RDFFormat.TURTLE);
+                // cf. https://github.com/eclipse-rdf4j/rdf4j/discussions/4287
+                rules.remove(null, SHACL.NAME, null);
+                rules.remove(null, SHACL.DESCRIPTION, null);
+
+                connection.begin();
+                connection.add(rules, RDF4J.SHACL_SHAPE_GRAPH);
+                connection.commit();
+            }
+
+            // Load RML
+            try (InputStream dataStream = Files.newInputStream(templatePath)) {
+                connection.begin();
+                connection.add(dataStream, "", org.eclipse.rdf4j.rio.RDFFormat.TURTLE);
+
+                try {
+                    connection.commit();
+                    log.info("RML validated correctly");
+                } catch (RepositoryException exception) {
+                    Throwable cause = exception.getCause();
+                    log.error("RML not valid");
+                    if (cause instanceof ValidationException) {
+                        Model validationReportModel = ((ValidationException) cause).validationReportAsModel();
+                        Rio.write(validationReportModel, System.out, RDFFormat.TURTLE);
+                    }
+                    throw exception;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

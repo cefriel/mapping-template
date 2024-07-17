@@ -28,7 +28,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +36,7 @@ import java.util.Map;
 public class TemplateExecutor {
 
 	private final org.slf4j.Logger log = LoggerFactory.getLogger(TemplateExecutor.class);
+
 	// methods called from cli
 	public String executeMapping(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean failInvalidRef, boolean trimTemplate, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
 		VelocityContext velocityContext;
@@ -145,7 +145,7 @@ public class TemplateExecutor {
 		}
 		public Path executeMapping(Reader reader, InputStream template, Path outputFilePath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
 		    VelocityContext velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-		    return applyTemplate(template, velocityContext,  formatter, outputFilePath);
+		    return applyTemplate(template, velocityContext, formatter, outputFilePath);
 		}
 		public Map<String,String> executeMappingParametric(Reader reader, InputStream template, InputStream query, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
 			VelocityContext velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
@@ -176,16 +176,13 @@ public class TemplateExecutor {
 
 		// non-parametric - write to file and return filePath
 		private Path applyTemplate(InputStream template, VelocityContext context, Formatter formatter, Path outputFilePath) throws Exception {
+
 			java.io.Reader templateReader = new InputStreamReader(template);
-			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(outputFilePath.toString()),
-					StandardCharsets.UTF_8));
-
-			VelocityEngine velocityEngine = Util.createVelocityEngine(false,true);
-			velocityEngine.evaluate(context, writer, "TemplateExecutor", templateReader);
-
-			templateReader.close();
-			writer.close();
+			try (BufferedWriter writer = Files.newBufferedWriter(outputFilePath, StandardCharsets.UTF_8)) {
+				VelocityEngine velocityEngine = Util.createVelocityEngine(false, true);
+				velocityEngine.evaluate(context, writer, "TemplateExecutor", templateReader);
+				templateReader.close();
+			}
 
 			if (formatter != null)
 				formatter.formatFile(outputFilePath.toString());
