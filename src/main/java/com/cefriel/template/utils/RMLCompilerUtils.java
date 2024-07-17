@@ -15,8 +15,14 @@
  */
 package com.cefriel.template.utils;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
 import java.lang.StringBuilder;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -179,6 +185,31 @@ public class RMLCompilerUtils extends TemplateFunctions {
             if(i != null)
                 stringBuilder.append(i);
         return hash(stringBuilder.toString());
+    }
+
+    /**
+     * From rmlmapper <a href="https://github.com/RMLio/rmlmapper-java/blob/6492743f9c81523b6e9142c929d3aaecc78d67eb/src/main/java/be/ugent/rml/Utils.java#L634">...</a>
+     *
+     * Get the base directive from a turtle file if provided
+     * @param rmlPath - input stream of the turtle file
+     * @return - base directive or null
+     */
+    public String getBaseIRI(Path rmlPath) {
+        String turtle;
+        try {
+            turtle = IOUtils.toString(Files.newInputStream(rmlPath), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            turtle = "";
+        }
+
+        Pattern p = Pattern.compile("@base <([^<>]*)>");
+        Matcher m = p.matcher(turtle);
+
+        if (m.find()) {
+            return m.group(1);
+        } else {
+            return null;
+        }
     }
 
 }
