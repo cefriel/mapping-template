@@ -12,8 +12,12 @@
 #set($pa="{") 
 #set($pc="}")
 
-#* TODO Get from base prefix *#
+## TODO Set base IRI every time a IRI is generated
+#if($map.baseIRI)
+${h}set(${d}base = "$map.baseIRI")
+#else
 ${h}set(${d}base = "http://example.com/base/")
+#end
 
 #set ( $mappings_content = $reader.getDataframe("
 SELECT DISTINCT *
@@ -51,7 +55,7 @@ WHERE {
             OPTIONAL { ?_subject_map rml:graphMap ?_graph_structure .
 					    ?_graph_structure rml:reference ?graph_reference . }
 			OPTIONAL { ?_subject_map rml:graphMap ?_graph_structure .
-					   ?_graph_structure rml:template ?graph_template . }		   
+					   ?_graph_structure rml:template ?graph_template . }
 
 	# Predicate -----------------------------------------------------------------------
 			OPTIONAL {
@@ -140,25 +144,25 @@ WHERE {
 			OPTIONAL {?_predicate_object_map rml:graph ?predicate_object_graph .}
 			OPTIONAL { ?_predicate_object_map  rml:graphMap ?_graph_structure .
 				?_graph_structure rml:constant ?predicate_object_graph  .
-                OPTIONAL {?_graph_structure rml:termType ?graph_termtype .} 
+                OPTIONAL {?_graph_structure rml:termType ?graph_termtype .}
             }
             OPTIONAL { ?_predicate_object_map  rml:graphMap ?_graph_structure .
-				?_graph_structure rml:reference ?predicate_object_graph  . 
-                OPTIONAL {?_graph_structure rml:termType ?graph_termtype .} 
+				?_graph_structure rml:reference ?predicate_object_graph  .
+                OPTIONAL {?_graph_structure rml:termType ?graph_termtype .}
             }
 			OPTIONAL { ?_predicate_object_map  rml:graphMap ?_graph_structure .
-				?_graph_structure rml:template ?predicate_object_graph  . 
-                OPTIONAL {?_graph_structure rml:termType ?graph_termtype .} 
+				?_graph_structure rml:template ?predicate_object_graph  .
+                OPTIONAL {?_graph_structure rml:termType ?graph_termtype .}
             }
             }
 			OPTIONAL {
 				?data_source a d2rq:Database;
-  				d2rq:jdbcDSN ?jdbcDSN; 
-  				d2rq:jdbcDriver ?jdbcDriver; 
+  				d2rq:jdbcDSN ?jdbcDSN;
+  				d2rq:jdbcDriver ?jdbcDriver;
 			    d2rq:username ?user;
 			    d2rq:password ?password .
 			}
-		} 
+		}
 ") )
 
 #* TODO Check if both subject graph and object graph are handled correctly *#
@@ -168,7 +172,7 @@ WHERE {
     SELECT DISTINCT *
     WHERE {
         <TRIPLES_MAP> rml:subjectMap ?_subject_map .
-        ?_subject_map rml:class ?subject_rdf_class . 
+        ?_subject_map rml:class ?subject_rdf_class .
     }
 ")
 
@@ -176,9 +180,9 @@ WHERE {
     ${d}error: "No valid TriplesMap found!"
 #end
 
-#* 
+#*
 Get map ordered by TriplesMap, only one row is kept for each triples_map_id
-to access commond information (e.g., logical source) and add additional 
+to access commond information (e.g., logical source) and add additional
 useful information (e.g., sourceHash)
 *#
 #set($lTriplesMaps = $functions.getMap($mappings_content, "triples_map_id"))
@@ -271,9 +275,9 @@ useful information (e.g., sourceHash)
     #set($foo = $lLogicalSources.get($ls).put("_REFS_", $functions.getDistinct($refs)))
 #end
 
-#* 
+#*
     TODO Check if can be optimized to get a single dataframe also for different
-    logical sources accessing the same "input" 
+    logical sources accessing the same "input"
 *#
 #foreach($lsEntry in $lLogicalSources.entrySet())
     #set($ls = $lsEntry.value)
@@ -281,7 +285,11 @@ useful information (e.g., sourceHash)
     #if($ls.access_url)
         #set($sourceUrl = $functions.replace($ls.access_url, "file://", ""))
     #elseif($ls.path)
-        #set($sourceUrl = "/data/shared/" + $ls.path)
+        #if($map.basePath)
+            #set($sourceUrl = $map.basePath + $ls.path)
+        #else
+            #set($sourceUrl = "./" + $ls.path)
+        #end
     #end
 
     #set($refForm = $ls.ref_form)
@@ -302,10 +310,10 @@ useful information (e.g., sourceHash)
             ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe(${d}columns))
         #else
             ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe())
-        #end 
+        #end
         #foreach($column in $lsReferences)
             ${h}set(${d}dataframe_$sourceHash = ${d}functions.renameDataframeColumn(${d}dataframe_$sourceHash, "$column", "$functions.hash($column)"))
-        #end  
+        #end
     #elseif($refForm == "http://w3id.org/rml/SQL2008Table" || $refForm == "http://w3id.org/rml/SQL2008Query")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getSQLReaderFromDatabase("$ls.jdbcDSN", "$ls.user", "$ls.password"))
         #* TODO Check with RML-io *#
@@ -323,19 +331,19 @@ useful information (e.g., sourceHash)
 
         ${h}foreach(${d}column in ${d}refColumns)
             ${h}if(!${d}columns.contains(${d}column))
-                ${d}error: "${d}column not found in ${d}dataframe_$sourceHash." 
+                ${d}error: "${d}column not found in ${d}dataframe_$sourceHash."
             ${h}end
         ${h}end
         #foreach($column in $lsReferences)
             ${h}set(${d}dataframe_$sourceHash = ${d}functions.renameDataframeColumn(${d}dataframe_$sourceHash, "$column", "$functions.hash($column)"))
-        #end 
+        #end
         #set($sqlTypes = true)
     #elseif ($refForm == "http://w3id.org/rml/XPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile("$sourceUrl"))
 
-        #* 
-            Access the XML input to extract the dataframe considering references 
-            in the triplemaps associated with the same logical source 
+        #*
+            Access the XML input to extract the dataframe considering references
+            in the triplemaps associated with the same logical source
         *#
         #if($functions.checkList($lsReferences))
             #set($xmlQuery = '
@@ -343,7 +351,7 @@ useful information (e.g., sourceHash)
                 return map {
             ')
             #set($xmlQuery = $xmlQuery.replace("ITERATOR", $iterator))
-            #foreach($ref in $lsReferences) 
+            #foreach($ref in $lsReferences)
                 #set($refHash = $functions.hash($ref))
                 #* Check if text() should be added *#
                 #set ($parts = $ref.split("/"))
@@ -370,9 +378,9 @@ useful information (e.g., sourceHash)
     #elseif ($refForm=="http://w3id.org/rml/JSONPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getJSONReaderFromFile("$sourceUrl"))
 
-        #* 
-            Access the JSON input to extract the dataframe considering references 
-            in the triplemaps associated with the same logical source 
+        #*
+            Access the JSON input to extract the dataframe considering references
+            in the triplemaps associated with the same logical source
         *#
         #if($functions.checkList($lsReferences))
             #set($jsonQuery = '{
@@ -380,7 +388,7 @@ useful information (e.g., sourceHash)
                 "paths": {
             ')
             #set($jsonQuery = $jsonQuery.replace("ITERATOR_PATH", $iterator))
-            #foreach($ref in $lsReferences) 
+            #foreach($ref in $lsReferences)
                 #set($refHash = $functions.hash($ref))
                 #set($referenceQuery = '"VARIABLE": "REFERENCE",
                 ')
@@ -402,7 +410,7 @@ useful information (e.g., sourceHash)
             ${h}set(${d}dataframe_$sourceHash = {"ITERATOR" : "ONCE"})
         #end
     #else
-        ${d}error: "No compatible Reader found." 
+        ${d}error: "No compatible Reader found."
     #end
 #end
 
@@ -414,17 +422,17 @@ useful information (e.g., sourceHash)
         #set($tmParent = $lTriplesMaps.get($row.object_parent_triples_map))
 
         #set($join_hash = $functions.appendHash($row.triples_map_id, $row.object_parent_triples_map, $row.child_value, $row.parent_value))
-        
+
         #set($child_df = "$dataframe_" + $sourceHash)
         #set($parentHash = $functions.hash($tmParent._source))
         #set($parent_df = "$dataframe_" + $parentHash)
-        
+
         #if($row.join_condition)
             #set($join_variable = $functions.hash($row.parent_value))
             ${h}set(${d}dataframe_join_$join_hash = ${d}functions.getListMap($parent_df, "$join_variable"))
         #else
             ${h}set(${d}dataframe_join_$join_hash = $parent_df)
-        #end  
+        #end
     #end
 #end
 
@@ -454,7 +462,7 @@ useful information (e.g., sourceHash)
 
     $s
 #end
- 
+
 #* ########## MACRO renderCheckIRI ##########
 TODO Currently done via option -f nq that validates the entire RDF
 
@@ -479,7 +487,7 @@ TODO Currently done via option -f nq that validates the entire RDF
 
     #foreach($lmTmSourceEntry in $lmTmSource.entrySet())
         #* SUBJECT *#
-        
+
         #set($tm = $lmTmSourceEntry.value.get(0))
         #set($subject = "#subjectRender($tm)")
         #set($subject = $subject.trim())
@@ -506,7 +514,7 @@ TODO Currently done via option -f nq that validates the entire RDF
         #if($tm.graph_termtype.equals("http://w3id.org/rml/Literal"))
             ${d}error: graph can not be of type Literal.
         #end
-        
+
         #* Init template execution *#
         ${h}foreach(${d}i in ${d}dataframe_$sourceHash)
 
@@ -585,7 +593,7 @@ TODO Currently done via option -f nq that validates the entire RDF
             #set($datatype = $functions.encodeReferencesIRI($datatype))
 
             #foreach($object in $objects)
-                #* 
+                #*
                     TODO Improve condition using FILTER (isLiteral(?value)) in SPARQL Query
                     and checking the object_termtype OR implementing a $functions.isIRI($object)
                 *#
@@ -597,11 +605,11 @@ TODO Currently done via option -f nq that validates the entire RDF
                     #else
                         #* No Join condition: iterate on the same dataframe *#
                         ${h}foreach(${d}j in ${d}dataframe_join_$join_hash)
-                    #end  
+                    #end
                             #set($parent_subject = $parent_subject.replaceAll("\{i.","\{j."))
 
                             #set($refs = $functions.getReferencesFromTriple($subject, $predicate, $parent_subject, $graph))
-                    
+
                             ${h}set(${d}refs = $refs)
 
                             #* Generate the triple/quad . *#
@@ -619,7 +627,7 @@ TODO Currently done via option -f nq that validates the entire RDF
                     #end
                 #else
                     #if($object.contains("://"))
-                        #set($object = '<' + $functions.encodeReferencesIRI($object) + '>')     
+                        #set($object = '<' + $functions.encodeReferencesIRI($object) + '>')
                     #else
                         #set($raw_object = $object)
                         #* TODO Check why not escaped automatically 10c-CSV *#
@@ -628,45 +636,45 @@ TODO Currently done via option -f nq that validates the entire RDF
 
                         #if($datatype)
                             #set($object = '"$functions.transformDatatypeString(' + $object + ',"' + $datatype + '")"^^<' + $datatype + '>')
-                        #* TODO Define a function to perform the check *#
-                        #elseif($sqlTypes && $functions.checkReference($raw_object)) 
+                        #* Check if the object is a reference and not a template, i.e., if the value is directly extracted from the SQL query result *#
+                        #elseif($sqlTypes && $functions.checkReference($raw_object))
                             #set($column = $functions.getIteratorFromString($raw_object))
 
-                            #*
-                            ${h}if(${d}types_$sourceHash)
-                                ${h}set(${d}type = ${d}types_${sourceHash}.get($column))
-                                ${h}set(${d}rdfType = ${d}functions.getXsdFromSqlDatatype(${d}type))
-                                ${h}if(${d}rdfType)
-                                    ${d}functions.transformDatatypeString(' + $object + ',$rdfType)"^^<$rdfType>
-                                ${h}else
-                                    $object
-                                ${h}end
-                            ${h}end
-                            *#
-
                             #set($object = '#if($types_' + $sourceHash + ')#set($type = $types_' + $sourceHash + '.get("' + $column + '"))#set($rdfType = $functions.getXsdFromSqlDatatypes($type))#if($rdfType)"$functions.transformDatatypeString(' + $object + ',$rdfType)"^^<$rdfType>#else"' + $object + '"#end#end')
+                        #* TODO Check what is the right condition to be checked, cf. 16e-* *#
+                        #elseif($raw_object.startsWith("data:"))
+                            #set($object = '<' + $object + '>')
                         #else
                             #set($object = '"' + $object + '"')
                         #end
-                        
+
                         #if($language)
                             #set($object = $object + '@#if($functions.isValidrrLanguage(' + $language + '))' + $language + '#end')
                         #end
                     #end
-                    
+
                     #set($refs = $functions.getReferencesFromTriple($subject, $predicate, $object, $graph))
-                    
+
                     ${h}set(${d}refs = $refs)
 
                     #* Generate the triple/quad . *#
                     ${h}if(${d}functions.checkStrings(${d}refs))
-                    #if($graph)
+                        #if($graph)
                         $subject <$predicate> $object <$graph> .
-                        #* TODO ${d}functions.checkTriple($triple,$base) *#
-                    #else
+                        #else
                         $subject <$predicate> $object .
-                        #* TODO ${d}functions.checkTriple($triple,$base) *#
-                    #end
+                        #end
+                        #*
+                        ${h}set(${d}subject = $subject)
+                        ${h}set(${d}predicate = <$predicate>)
+                        ${h}set(${d}object = <$object>)
+                        #if($graph)
+                            ${h}set(${d}graph = <$graph>)
+                        #else
+                            ${h}set(${d}graph = ${d}null)
+                        #end
+                        ${d}functions.materialize(${d}subject, ${d}predicate, ${d}object, ${d}graph, ${d}base)
+                        *#
                     ${h}end
                 #end
             #end
@@ -676,85 +684,3 @@ TODO Currently done via option -f nq that validates the entire RDF
     #end
 
 #end
-
-#*
-    
-  #end
-
-  #foreach($tm in $ltm_content.entrySet())
-  #set($tm_id = $functions.hash($tm.key.toString()))
-  #if ($tm.value.get(0).iterator_tech=="http://semweb.mmlab.be/ns/ql#XPath")
-  tripleMaker_$tm_id
-  #elseif ($tm.value.get(0).iterator_tech=="http://semweb.mmlab.be/ns/ql#JSONPath")
-  tripleMaker_$tm_id
-  #else
-  tripleMaker_$tm_id
-  #end
-
-      http://www.w3.org/1999/02/22-rdf-syntax-ns#type
-      
-    #foreach($tmp in $tm.value)
-        ## <!-- P-O $tmp -->
-        #if($tmp.predicate_constant)
-            $tmp.predicate_constant
-        #elseif($tmp.predicate_template)
-            $tmp.predicate_template
-        #elseif($tmp.predicate_reference)
-            ${pa}$tmp.predicate_reference${pc}
-        #end
-    #end
-    
-    #foreach($tmp in $tm.value)
-        #if($tmp.subject_rdf_class)<value>$tmp.subject_rdf_class</value>#end
-    #end      
-    #foreach($tmp in $tm.value)
-        #if($tmp.object_constant)$tmp.object_constant
-        #elseif($tmp.object_template)$tmp.object_template
-        #elseif($tmp.object_reference)${pa}$tmp.object_reference${pc}
-        #end
-    #end
-
-    #foreach($tmp in $tm.value)
-        #if($tmp.subject_rdf_class)
-        http://www.w3.org/ns/r2rml#IRI
-        #end
-    #end
-      
-      #foreach($tmp in $tm.value)
-        ## <!-- Object type $tmp -->
-        #if($tmp.object_constant)
-            #if($tmp.object_constant.toString().contains("://"))
-            http://www.w3.org/ns/r2rml#IRI
-            #else
-                #if($tmp.object_language)
-                http://www.w3.org/ns/r2rml#Literal@$tmp.object_language
-                #else
-                http://www.w3.org/ns/r2rml#Literal
-                #end
-            #end
-        #elseif($tmp.object_reference)
-                #if($tmp.object_language)
-                http://www.w3.org/ns/r2rml#Literal@$tmp.object_language
-                #else
-                http://www.w3.org/ns/r2rml#Literal
-                #end
-        #else
-            $tmp.object_termtype
-        #end
-      #end
-  #end
-
-#foreach($source in $sources)
-#set ( $source_descr = $reader.executeQueryStringValue("SELECT DISTINCT ?data_format ?iterator
-		WHERE {
-            ?tm a rr:TriplesMap;
-                rml:logicalSource [
-                    rml:source ""$source.data_source"";
-                    rml:referenceFormulation ?data_format;
-                    rml:iterator ?iterator
-                ].
-        }
-        GROUP BY ?iterator ?data_format
-") )
-
-*#
