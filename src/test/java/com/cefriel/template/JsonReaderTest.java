@@ -22,7 +22,6 @@ import com.cefriel.template.utils.Util;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,11 +31,11 @@ public class JsonReaderTest {
 
     @Test
     public void jsonTest() throws Exception {
-        JSONReader reader = (JSONReader) Util.createReader("json", List.of(Paths.get("src/test/resources/json/example.json")), null, null, null, null, null, null);
-        TemplateExecutor executor = new TemplateExecutor();
+        JSONReader reader = new JSONReader(new File("src/test/resources/json/example.json"));
+        TemplateExecutor executor = new TemplateExecutor(reader, new TemplateFunctions(), true, false, false,null ,null);
         Path template = Paths.get("src/test/resources/json/template.vm");
 
-        String result = executor.executeMapping(reader, template, false, false,null, null, new TemplateFunctions());
+        String result = executor.executeMapping(template);
         String expectedOutput = Files.readString(Paths.get("src/test/resources/json/correct-output.ttl"));
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");

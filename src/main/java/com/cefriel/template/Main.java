@@ -62,6 +62,8 @@ public class Main {
 	private boolean trimTemplate;
 	@Parameter(names={"--template-resource","-trs"})
 	private boolean templateInResources;
+    	@Parameter(names={"--fail-invalid-ref","-fir"})
+	private boolean failInvalidRef;
 	@Parameter(names={"--username","-us"})
 	private String username;
 	@Parameter(names={"--password","-psw"})
@@ -135,8 +137,6 @@ public class Main {
 			}
 		}
 
-		TemplateExecutor tl = new TemplateExecutor();
-
 		TemplateMap templateMap = null;
 		if (keyValueCsvPath != null) {
 			templateMap = new TemplateMap(keyValueCsvPath, true);
@@ -177,21 +177,23 @@ public class Main {
 			}
 		}
 
+		TemplateExecutor templateExecutor = new TemplateExecutor(reader, templateFunctions, failInvalidRef, trimTemplate, templateInResources, templateMap, formatter);
+
 		if(timePath != null)
 			try (FileWriter pw = new FileWriter(timePath.toFile(), true)) {
 				long start = Instant.now().toEpochMilli();
 				if(queryPath != null)
-					tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
+					templateExecutor.executeMappingParametric(templatePath, queryPath);
 				else
-					tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
+					templateExecutor.executeMapping(templatePath, destinationPath);
 				long duration = Instant.now().toEpochMilli() - start;
 				pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
 			}
 		else{
 			if(queryPath != null)
-				tl.executeMappingParametric(reader, templatePath, templateInResources, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
+				templateExecutor.executeMappingParametric(templatePath, queryPath, destinationPath);
 			else
-				tl.executeMapping(reader, templatePath, templateInResources, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
+				templateExecutor.executeMapping(templatePath, destinationPath);
 		}
 
 		if(reader != null)
