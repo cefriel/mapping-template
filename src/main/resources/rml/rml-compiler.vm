@@ -12,12 +12,13 @@
 #set($pa="{") 
 #set($pc="}")
 
-## TODO Set base IRI every time a IRI is generated
 #if($map.baseIRI)
-${h}set(${d}base = "$map.baseIRI")
+#set($base = "$map.baseIRI")
 #else
-${h}set(${d}base = "http://example.com/base/")
+#set($base = "http://example.com/base/")
 #end
+#set($foo = $functions.setBaseIRI($base))
+${h}set(${d}foo = ${d}functions.setBaseIRI("$base"))
 
 #set ( $mappings_content = $reader.getDataframe("
 SELECT DISTINCT *
@@ -450,14 +451,12 @@ useful information (e.g., sourceHash)
         #set($s = $stm.subject_constant_shortcut)
     #end
 
-    #set($s = $functions.encodeReferencesIRI($s))
-
     #if ($stm.subject_termtype == "http://w3id.org/rml/BlankNode")
-        #set($s = "_:" + $s)
+        #set($s = $functions.encodeBlankNode($s))
     #elseif ($stm.subject_termtype == "http://w3id.org/rml/Literal")
         ${d}error: subject can not be of type Literal.
     #else
-        #set($s = '<' + $s + '>')
+        #set($s = $functions.encodeReferencesIRI($s))
     #end
 
     $s
@@ -522,7 +521,7 @@ TODO Currently done via option -f nq that validates the entire RDF
         #set($subjectClasses = $reader.getDataframe($rSubjectClassesQuery))
         #foreach($subjClass in $subjectClasses)
             #if($graph)
-                $subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <$subjClass.subject_rdf_class> <$graph>.
+                $subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <$subjClass.subject_rdf_class> $graph.
             #else
                 $subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <$subjClass.subject_rdf_class> .
             #end
@@ -627,7 +626,7 @@ TODO Currently done via option -f nq that validates the entire RDF
                     #end
                 #else
                     #if($object.contains("://"))
-                        #set($object = '<' + $functions.encodeReferencesIRI($object) + '>')
+                        #set($object = $functions.encodeReferencesIRI($object))
                     #else
                         #set($raw_object = $object)
                         #* TODO Check why not escaped automatically 10c-CSV *#
@@ -639,7 +638,6 @@ TODO Currently done via option -f nq that validates the entire RDF
                         #* Check if the object is a reference and not a template, i.e., if the value is directly extracted from the SQL query result *#
                         #elseif($sqlTypes && $functions.checkReference($raw_object))
                             #set($column = $functions.getIteratorFromString($raw_object))
-
                             #set($object = '#if($types_' + $sourceHash + ')#set($type = $types_' + $sourceHash + '.get("' + $column + '"))#set($rdfType = $functions.getXsdFromSqlDatatypes($type))#if($rdfType)"$functions.transformDatatypeString(' + $object + ',$rdfType)"^^<$rdfType>#else"' + $object + '"#end#end')
                         #* TODO Check what is the right condition to be checked, cf. 16e-* *#
                         #elseif($raw_object.startsWith("data:"))
@@ -659,22 +657,12 @@ TODO Currently done via option -f nq that validates the entire RDF
 
                     #* Generate the triple/quad . *#
                     ${h}if(${d}functions.checkStrings(${d}refs))
+                        #* TODO Test function to remove duplicates agains hash hashset and check impact on performances *#                
                         #if($graph)
-                        $subject <$predicate> $object <$graph> .
+                        $subject $predicate $object $graph .
                         #else
-                        $subject <$predicate> $object .
+                        $subject $predicate $object .
                         #end
-                        #*
-                        ${h}set(${d}subject = $subject)
-                        ${h}set(${d}predicate = <$predicate>)
-                        ${h}set(${d}object = <$object>)
-                        #if($graph)
-                            ${h}set(${d}graph = <$graph>)
-                        #else
-                            ${h}set(${d}graph = ${d}null)
-                        #end
-                        ${d}functions.materialize(${d}subject, ${d}predicate, ${d}object, ${d}graph, ${d}base)
-                        *#
                     ${h}end
                 #end
             #end

@@ -34,9 +34,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RMLCompilerUtils extends TemplateFunctions {
-
     final Pattern templatePattern = Pattern.compile("\\{([^{}]+)\\}");
     final Pattern referencePattern = Pattern.compile("\\$\\{(.*?)\\}");
+
+    private String baseIRI;
+
+    public void setBaseIRI(String baseIRI) {
+        this.baseIRI = baseIRI;
+    }
 
     public List<String> getReferencesFromTriple(String subject, String predicate, String object, String graph){
         List<String> matches = new ArrayList<>();
@@ -97,11 +102,11 @@ public class RMLCompilerUtils extends TemplateFunctions {
         return "${" + input + "}";
     }
 
-    private String encodeReferences(String s, boolean isURI) {
+    private String encodeReferences(String s, boolean isIRI) {
         if (s != null) {
             Matcher matcher = referencePattern.matcher(s);
 
-            List<String> matches = new ArrayList();
+            List<String> matches = new ArrayList<>();
             while (matcher.find()) {
                 matches.add(matcher.group(1));
             }
@@ -109,11 +114,26 @@ public class RMLCompilerUtils extends TemplateFunctions {
             for(String m : matches) {
                 String replace = m;
                 replace = "${i." + hash(m) + "}";
-                if(isURI)
-                    s = s.replace("${" + m + "}", "$functions.encodeURI(" + replace + ")");
-                else
-                    s = s.replace("${" + m + "}", replace);
+                s = s.replace("${" + m + "}", replace);
             }
+
+            if(isIRI) {
+                // TODO Check if it should be done here or only when the value is extracted, cf. 20a
+                if(!isAbsoluteURI(s))
+                    return "<" + baseIRI + "$functions.encodeURIComponent(\"" + s + "\")>";
+                else
+                    return "<$functions.resolveIRI(\"" + s + "\")>";
+            }
+            else
+                return s;
+        }
+        return null;
+    }
+
+    public String encodeBlankNode(String s){
+        if (s != null){
+            s = encodeReferences(s, false);
+            return "_:$functions.encodeURIComponent(" + s + ")";
         }
         return s;
     }

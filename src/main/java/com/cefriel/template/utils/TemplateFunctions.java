@@ -618,4 +618,20 @@ public class TemplateFunctions {
         }
     }
 
+    /**
+     * Checks if the given string is an absolute URI based on string pattern.
+     *
+     * @param str the string to check
+     * @return true if the string is an absolute URI, false otherwise
+     */
+    public boolean isAbsoluteURI(String str) {
+        if (str == null) {
+            return false;
+        }
+
+        // Regex to match schemes like http, https, ftp, file, etc.
+        String regex = "^[a-zA-Z][a-zA-Z0-9+.-]*:.*$";
+        return str.matches(regex);
+    }
+
 }
