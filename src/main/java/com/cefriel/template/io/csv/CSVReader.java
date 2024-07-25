@@ -70,7 +70,7 @@ public class CSVReader implements Reader {
     public List<Map<String, String>> getDataframe(String... columns) {
         Set<String> columnsToKeep;
         Set<String> fileColumns = this.document.getHeader();
-        if (columns == null || columns.length == 0)
+        if ((columns == null || columns.length == 0) || (columns.length == 1 && columns[0].isEmpty()))
             columnsToKeep = fileColumns;
         else {
             columnsToKeep = new HashSet<>(Arrays.asList(columns));
