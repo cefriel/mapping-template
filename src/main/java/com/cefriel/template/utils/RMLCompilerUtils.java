@@ -102,48 +102,72 @@ public class RMLCompilerUtils extends TemplateFunctions {
         return "${" + input + "}";
     }
 
-    private String encodeReferences(String s, boolean isIRI) {
+    private String matchAndReplaceReference(String s) {
+        Matcher matcher = referencePattern.matcher(s);
+
+        List<String> matches = new ArrayList<>();
+        while (matcher.find()) {
+            matches.add(matcher.group(1));
+        }
+
+        for (String m : matches) {
+            String replace = m;
+            replace = "${i." + hash(m) + "}";
+            s = s.replace("${" + m + "}", replace);
+        }
+
+        return s;
+    }
+
+    public String encodeReferencesIRI(String s, String termType) {
         if (s != null) {
-            Matcher matcher = referencePattern.matcher(s);
+            s = matchAndReplaceReference(s);
 
-            List<String> matches = new ArrayList<>();
-            while (matcher.find()) {
-                matches.add(matcher.group(1));
+            if (s.startsWith("data:"))
+                return "<" + s + ">";
+            else {
+                if (termType != null)
+                    if (termType.equals("http://w3id.org/rml/IRI") && !isAbsoluteURI(s))
+                        return "<" + baseIRI + "$functions.encodeURIComponent(\"" + s + "\")>";
+                return "<$functions.resolveIRI(\"" + s + "\")>";
             }
-            
-            for(String m : matches) {
-                String replace = m;
-                replace = "${i." + hash(m) + "}";
-                s = s.replace("${" + m + "}", replace);
-            }
-
-            if(isIRI) {
-                // TODO Check if it should be done here or only when the value is extracted, cf. 20a
-                if(!isAbsoluteURI(s))
-                    return "<" + baseIRI + "$functions.encodeURIComponent(\"" + s + "\")>";
-                else
-                    return "<$functions.resolveIRI(\"" + s + "\")>";
-            }
-            else
-                return s;
         }
         return null;
     }
 
+    public String encodeReferencesLiteral(String s) {
+        if (s != null) {
+            s = matchAndReplaceReference(s);
+            return "\"" + s + "\"";
+        }
+        return null;
+    }
+
+    public String encodeDatatype(String literal, String datatype) {
+        if (datatype != null) {
+            datatype = matchAndReplaceReference(datatype);
+            return "$functions.resolveDatatype(" + literal + ",\"" + datatype + "\")";
+        }
+        return literal;
+    }
+
+    public String encodeSQLDatatype(String literal, String column, String sourceHash) {
+        return "$functions.resolveSQLDatatype(" + literal + ", $types_" + sourceHash + ".get(\"" + column + "\"))";
+    }
+    public String encodeLanguage(String literal, String language) {
+        if (language != null) {
+            language = matchAndReplaceReference(language);
+            return "$functions.resolveLanguage(" + literal + ",\"" + language + "\")";
+        }
+        return literal;
+    }
+
     public String encodeBlankNode(String s){
         if (s != null){
-            s = encodeReferences(s, false);
-            return "_:$functions.encodeURIComponent(" + s + ")";
+            s = matchAndReplaceReference(s);
+            return "_:$functions.encodeURIComponent(\"" + s + "\")";
         }
         return s;
-    }
-
-    public String encodeReferencesIRI(String s) {
-        return encodeReferences(s, true);
-    }
-
-    public String encodeReferencesLiteral(String s) {
-        return encodeReferences(s, false);
     }
 
     public List<String> getDistinct(List<String> list) {

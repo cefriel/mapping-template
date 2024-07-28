@@ -634,4 +634,31 @@ public class TemplateFunctions {
         return str.matches(regex);
     }
 
+    /**
+     * Encode URL component and replaces + with %20 and * with %2A.
+     * @param component of a URL to be encoded
+     * @return Encoded component
+     */
+    public static String encodeURIComponent(String component) {
+        final StringBuilder builder = new StringBuilder();
+
+        // TODO Check why # is not encoded in 22c, related to Termtype?
+        if (component.contains("#")) {
+            String[] parts = component.split("#",2);
+            component = URLEncoder.encode(parts[0], StandardCharsets.UTF_8) + "#"
+                    + URLEncoder.encode(parts[1], StandardCharsets.UTF_8);
+        } else
+            component = URLEncoder.encode(component, StandardCharsets.UTF_8);
+
+        for (char c : component.toCharArray()) {
+            if (c == '+')
+                builder.append("%20");
+            else if (c == '*')
+                builder.append("%2A");
+            else
+                builder.append(c);
+        }
+        return builder.toString();
+    }
+
 }

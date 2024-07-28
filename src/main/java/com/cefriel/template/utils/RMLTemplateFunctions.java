@@ -36,60 +36,39 @@ public class RMLTemplateFunctions extends TemplateFunctions {
 
     public String resolveIRI(String s) throws Exception {
         if(s != null) {
-            try {
-                s = encodeURI(s);
-            } catch (Exception e) {
-                s = encodeURIComponent(s);
+            if (!isAbsoluteURI(s)) {
+                s = baseIRI + encodeURIComponent(s);
+            } else {
+                URLComponents url = new URLComponents(s);
+                s = url.getEncodedURL();
             }
-            if (!URI.create(s).isAbsolute())
-                s = baseIRI + s;
+
             return s;
         }
         return s;
     }
 
-    /**
-     * Encode URIs and replacing + with %20 and * with %2A.
-     * @param s
-     * @return Encoded URI
-     */
-    public static String encodeURI(String s) throws Exception {
-        URL url = (new URI(s)).toURL();
-        String scheme = url.getProtocol();
-        String host = url.getHost();
-        int port = url.getPort();
-        String path = url.getPath();
-        String fragment = url.getRef();
-
-        // Encode the path segments
-        String encodedPath = Arrays.stream(path.split("/"))
-            .map(RMLTemplateFunctions::encodeURIComponent)
-            .collect(Collectors.joining("/"));
-
-        // Encode the fragment
-        String encodedFragment = fragment != null ? encodeURIComponent(fragment) : "";
-
-        // Reassemble the encoded URL
-        return scheme + "://" + host +
-                (port != -1 ? ":" + port : "") +
-                encodedPath +
-                (encodedFragment.isEmpty() ? "" : "#" + encodedFragment);
+    public String resolveDatatype(String literal, String datatype) throws Exception {
+        return "\"" + transformDatatypeString(literal, datatype) + "\"^^<" + resolveIRI(datatype) + ">";
     }
 
-    public static String encodeURIComponent(String component) {
-        final StringBuilder builder = new StringBuilder();
-        String encoded = URLEncoder.encode(component, StandardCharsets.UTF_8);
-        for (char c : encoded.toCharArray()) {
-            if (c == '+')
-                builder.append("%20");
-            else if (c == '*')
-                builder.append("%2A");
-            else
-                builder.append(c);
+    public String resolveSQLDatatype(String literal, String type) {
+        if (type != null) {
+            String xsdType = getXsdFromSqlDatatypes(type);
+            if (xsdType != null)
+                return "\"" + transformDatatypeString(literal, xsdType) + "\"^^<" + xsdType + ">";
         }
-        return builder.toString();
+        return "\"" + literal + "\"";
     }
 
+    public String resolveLanguage(String literal, String language) {
+        if(!literal.startsWith("\""))
+            literal = "\"" + literal + "\"";
+        if (isValidrrLanguage(language))
+            return literal + "@" + language;
+        else
+            return literal;
+    }
 
     // TODO Move as setOutputFormat("rdf") in SQL Reader
     /**
@@ -179,5 +158,5 @@ public class RMLTemplateFunctions extends TemplateFunctions {
         Pattern regexPatternLanguageTag = Pattern.compile("^((?:(en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux|i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-FR|sgn-BE-NL|sgn-CH-DE)|(art-lojban|cel-gaulish|no-bok|no-nyn|zh-guoyu|zh-hakka|zh-min|zh-min-nan|zh-xiang))|((?:([A-Za-z]{2,3}(-(?:[A-Za-z]{3}(-[A-Za-z]{3}){0,2}))?)|[A-Za-z]{4})(-(?:[A-Za-z]{4}))?(-(?:[A-Za-z]{2}|[0-9]{3}))?(-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(-(?:[0-9A-WY-Za-wy-z](-[A-Za-z0-9]{2,8})+))*(-(?:x(-[A-Za-z0-9]{1,8})+))?)|(?:x(-[A-Za-z0-9]{1,8})+))$");
         return regexPatternLanguageTag.matcher(s).matches();
     }
-    
+
 }
