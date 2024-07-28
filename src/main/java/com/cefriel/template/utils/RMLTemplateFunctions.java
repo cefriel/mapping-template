@@ -37,7 +37,8 @@ public class RMLTemplateFunctions extends TemplateFunctions {
     public String resolveIRI(String s) throws Exception {
         if(s != null) {
             if (!isAbsoluteURI(s)) {
-                s = baseIRI + encodeURIComponent(s);
+                s = baseIRI + s;
+                s = new URI(s).toString();
             } else {
                 URLComponents url = new URLComponents(s);
                 s = url.getEncodedURL();
