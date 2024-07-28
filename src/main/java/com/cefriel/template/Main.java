@@ -218,18 +218,11 @@ public class Main {
 		Path template = Paths.get(templatePath);
 
 		if(compileRML) {
-			Util.validateRML(template);
+			Util.validateRML(template, verbose);
 
 			Reader compilerReader = templateFunctions.getRDFReaderFromFile(templatePath);
 
-			// TODO Check when merged to master and remove commented code if working fine
-			Path rmlCompiler = Paths.get("rml/rml-compiler.vm"); //Paths.get("./rml-compiler.vm");
-			/*
-			Files.copy(Objects.requireNonNull(Main.class.getResourceAsStream("/rml/rml-compiler.vm")),
-					rmlCompiler,
-					StandardCopyOption.REPLACE_EXISTING);
-			*/
-
+			Path rmlCompiler = Paths.get("rml/rml-compiler.vm");
 			RMLCompilerUtils rmlCompilerUtils = new RMLCompilerUtils();
 
 			Map<String,String> rmlMap = new HashMap<>();
@@ -244,8 +237,6 @@ public class Main {
 
 			tl.executeMapping(compilerReader, rmlCompiler, true, false, false,
 					compiledTemplatePath, new TemplateMap(rmlMap), null, new RMLCompilerUtils());
-			//tl.executeMapping(compilerReader, rmlCompiler, false, false, false, compiledTemplatePath, null, null, new RMLCompilerUtils());
-
 			template = compiledTemplatePath;
 		}
 

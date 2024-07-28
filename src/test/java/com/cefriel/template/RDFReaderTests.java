@@ -52,8 +52,6 @@ public class RDFReaderTests {
 
         assert(expectedOutput.equals(result));
     }
-
-
     @Test
     public void agencyMultipleInputFile() throws Exception {
         Repository repo = new SailRepository(new MemoryStore());

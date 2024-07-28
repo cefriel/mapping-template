@@ -214,7 +214,7 @@ public class Util {
     }
 
 
-    public static void validateRML(Path templatePath) {
+    public static void validateRML(Path templatePath, boolean verbose) {
 
         ShaclSail shaclSail = new ShaclSail(new MemoryStore());
         SailRepository repository = new SailRepository(shaclSail);
@@ -243,10 +243,11 @@ public class Util {
                 } catch (RepositoryException exception) {
                     Throwable cause = exception.getCause();
                     log.error("RML not valid");
-                    if (cause instanceof ValidationException) {
-                        Model validationReportModel = ((ValidationException) cause).validationReportAsModel();
-                        Rio.write(validationReportModel, System.out, RDFFormat.TURTLE);
-                    }
+                    if (verbose)
+                        if (cause instanceof ValidationException) {
+                            Model validationReportModel = ((ValidationException) cause).validationReportAsModel();
+                            Rio.write(validationReportModel, System.out, RDFFormat.TURTLE);
+                        }
                     throw exception;
                 }
             }
