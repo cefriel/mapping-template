@@ -28,13 +28,10 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 
@@ -177,23 +174,23 @@ public class Main {
 			}
 		}
 
-		TemplateExecutor templateExecutor = new TemplateExecutor(reader, templateFunctions, failInvalidRef, trimTemplate, templateInResources, templateMap, formatter);
+		TemplateExecutor templateExecutor = new TemplateExecutor(templateFunctions, failInvalidRef, trimTemplate, templateInResources, templateMap, formatter);
 
 		if(timePath != null)
 			try (FileWriter pw = new FileWriter(timePath.toFile(), true)) {
 				long start = Instant.now().toEpochMilli();
 				if(queryPath != null)
-					templateExecutor.executeMappingParametric(templatePath, queryPath);
+					templateExecutor.executeMappingParametric(reader, templatePath, queryPath, destinationPath);
 				else
-					templateExecutor.executeMapping(templatePath, destinationPath);
+					templateExecutor.executeMapping(reader, templatePath, destinationPath);
 				long duration = Instant.now().toEpochMilli() - start;
 				pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
 			}
 		else{
 			if(queryPath != null)
-				templateExecutor.executeMappingParametric(templatePath, queryPath, destinationPath);
+				templateExecutor.executeMappingParametric(reader, templatePath, queryPath, destinationPath);
 			else
-				templateExecutor.executeMapping(templatePath, destinationPath);
+				templateExecutor.executeMapping(reader, templatePath, destinationPath);
 		}
 
 		if(reader != null)
