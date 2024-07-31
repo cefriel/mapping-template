@@ -116,6 +116,8 @@ public class RMLCompilerUtils extends TemplateFunctions {
             s = s.replace("${" + m + "}", replace);
         }
 
+        s = s.replaceAll("#", "\\${esc.h}");
+
         return s;
     }
 
@@ -211,16 +213,25 @@ public class RMLCompilerUtils extends TemplateFunctions {
      */
     @Override
     public String hash(String input) {
-        int hash = 0;
-        for (int i = 0; i < input.length(); i++) {
-            hash = (hash * 31 + input.charAt(i)) % 26;
+        String hashString = Integer.toString(input.hashCode());
+        char[] charArray = hashString.toCharArray();
+        StringBuilder sb = new StringBuilder();
+
+        for (char c : charArray) {
+            if (Character.isDigit(c)) {
+                // Convert digit to corresponding letter
+                int digit = Character.getNumericValue(c);
+                char letter = (char) ('a' + digit);
+                sb.append(letter);
+            } else if (c == '-') {
+                // Replace minus sign with 'z'
+                sb.append('z');
+            } else {
+                sb.append(c);
+            }
         }
-        StringBuilder stringBuilder = new StringBuilder();
-        char baseChar = 'a';
-        for (int i = 0; i < input.length(); i++) {
-            stringBuilder.append((char) (baseChar + (hash + i) % 26));
-        }
-        return stringBuilder.toString();
+
+        return sb.toString();
     }
 
     public String appendHash(String... inputs) {
