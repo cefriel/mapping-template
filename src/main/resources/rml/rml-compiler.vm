@@ -1,5 +1,7 @@
-## This template reuses and adapts the "mapping query" from the SDM-RDFizer source code (https://github.com/SDM-TIB/SDM-RDFizer) developed by the Scientific Data Management Group at TIB.
-## The query is modified to be compliant with the latest RML specification (https://w3id.org/rml).
+#* 
+This template reuses and adapts the "mapping query" from the SDM-RDFizer source code (https://github.com/SDM-TIB/SDM-RDFizer) developed by the Scientific Data Management Group at TIB.
+The query is modified to be compliant with the latest RML specification (https://w3id.org/rml).
+*#
 
 #set ( $prefixes = $reader.setPrefixes("
     prefix rml: <http://w3id.org/rml/>
@@ -315,7 +317,8 @@ useful information (e.g., sourceHash)
         #foreach($column in $lsReferences)
             ${h}set(${d}dataframe_$sourceHash = ${d}functions.renameDataframeColumn(${d}dataframe_$sourceHash, "$column", "$functions.hash($column)"))
         #end
-    #elseif($refForm == "http://w3id.org/rml/SQL2008Table" || $refForm == "http://w3id.org/rml/SQL2008Query")
+    #* TODO SQL2008TableName fix per KGCW mappings to be removed *#
+    #elseif($refForm == "http://w3id.org/rml/SQL2008Table" || $refForm == "http://w3id.org/rml/SQL2008TableName" || $refForm == "http://w3id.org/rml/SQL2008Query")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getSQLReaderFromDatabase("$ls.jdbcDSN", "$ls.user", "$ls.password"))
         #* TODO Check with RML-io *#
         #if($ls.query)
@@ -417,11 +420,9 @@ useful information (e.g., sourceHash)
 
 #* ########## GENERATE DATAFRAMES FOR JOINS ########## *#
 #foreach($row in $mappings_content)
-    #set($sourceHash = $functions.hash($row._source))
-
     #if($row.object_parent_triples_map)
+        #set($sourceHash = $functions.hash($row._source))
         #set($tmParent = $lTriplesMaps.get($row.object_parent_triples_map))
-
         #set($join_hash = $functions.appendHash($row.triples_map_id, $row.object_parent_triples_map, $row.child_value, $row.parent_value))
 
         #set($child_df = "$dataframe_" + $sourceHash)
@@ -456,6 +457,7 @@ useful information (e.g., sourceHash)
     #elseif ($stm.subject_termtype == "http://w3id.org/rml/Literal")
         ${d}error: subject can not be of type Literal.
     #else
+        #* TODO Check if for $subject the termtype should be set by default to rml:IRI *#
         #set($s = $functions.encodeReferencesIRI($s, $stm.subject_termtype))
     #end
 
@@ -507,6 +509,7 @@ TODO Currently done via option -f nq that validates the entire RDF
         #if($graph.equals("http://w3id.org/rml/defaultGraph"))
             #set($graph = $null)
         #else
+            #* TODO Check if for $graph the termtype should be set by default to rml:IRI *#
             #set($graph = $functions.encodeReferencesIRI($graph, $tm.graph_termtype))
         #end
 
@@ -542,6 +545,7 @@ TODO Currently done via option -f nq that validates the entire RDF
                 #set($predicate = $pom.predicate_constant_shortcut)
             #end
             #* TODO Check if termtype also for predicate should be extracted *#
+            #* TODO Check if for $predicate the termtype should be set by default to rml:IRI *#
             #set($predicate = $functions.encodeReferencesIRI($predicate, $null))
 
             #* OBJECT *#

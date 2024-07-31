@@ -222,7 +222,13 @@ public class Main {
 
 			Reader compilerReader = templateFunctions.getRDFReaderFromFile(templatePath);
 
-			Path rmlCompiler = Paths.get("rml/rml-compiler.vm");
+			Path rmlCompiler;
+			if (trimTemplate) {
+				rmlCompiler = Paths.get("rml/rml-compiler.vm.tmp.vm");
+				// Avoid trim on the compiled template
+				trimTemplate = false;
+			} else
+				rmlCompiler = Paths.get("rml/rml-compiler.vm");
 			RMLCompilerUtils rmlCompilerUtils = new RMLCompilerUtils();
 
 			Map<String,String> rmlMap = new HashMap<>();
@@ -230,10 +236,9 @@ public class Main {
 			String baseIriRML = rmlCompilerUtils.getBaseIRI(template);
 			baseIriRML = baseIriRML != null ? baseIriRML : baseIri;
 			rmlMap.put("baseIRI", baseIriRML);
-			if (basePath != null)
-				rmlMap.put("basePath", basePath);
+			rmlMap.put("basePath", basePath);
 
-			Path compiledTemplatePath = Paths.get("/data/shared/template.rml.vm");
+			Path compiledTemplatePath = Paths.get(basePath + "template.rml.vm");
 
 			tl.executeMapping(compilerReader, rmlCompiler, true, false, false,
 					compiledTemplatePath, new TemplateMap(rmlMap), null, new RMLCompilerUtils());
