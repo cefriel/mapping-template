@@ -321,7 +321,13 @@ useful information (e.g., sourceHash)
         #if($refForm == "http://w3id.org/rml/SQL2008Table" && $ls.jdbcDSN.contains("postgres"))
             #set($iterator = $iterator.toLowerCase())
         #end
-        ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe("$iterator"))
+        #set($stringRefs = $functions.getAsCommaSeparatedString($lsReferences))
+        #if($functions.checkString($stringRefs))
+            ${h}set(${d}columns = "$stringRefs")
+            ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getFilteredDataFrame("$iterator", ${d}columns))
+        #else
+            ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe("$iterator"))
+        #end
         ${h}set(${d}types_$sourceHash = ${d}reader_${sourceHash}.getColumnTypes("$iterator"))
         ${h}set(${d}columns = ${d}types_${sourceHash}.keySet())
         ${h}set(${d}refColumns = $functions.getAsStringArray($lsReferences))
@@ -366,7 +372,7 @@ useful information (e.g., sourceHash)
             ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$xmlQuery'))
         #else
             #* CONSTANT values, iterate once *#
-            ${h}set(${d}dataframe_$sourceHash = {"ITERATOR" : "ONCE"})
+            ${h}set(${d}dataframe_$sourceHash = [{"ITERATOR" : "ONCE"}])
         #end
 
     #elseif ($refForm=="http://w3id.org/rml/JSONPath")
@@ -401,12 +407,12 @@ useful information (e.g., sourceHash)
             ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$jsonQuery'))
         #else
             #* CONSTANT values, iterate once *#
-            ${h}set(${d}dataframe_$sourceHash = {"ITERATOR" : "ONCE"})
+            ${h}set(${d}dataframe_$sourceHash = [{"ITERATOR" : "ONCE"}])
         #end
-        ${h}set(${d}dataframe_$sourceHash = ${d}functions.removeDuplicatedRows(${d}dataframe_$sourceHash))
     #else
         ${d}error: "No compatible Reader found."
     #end
+    ${h}set(${d}dataframe_$sourceHash = ${d}functions.removeDuplicatedRows(${d}dataframe_$sourceHash))
 #end
 
 #* ########## GENERATE DATAFRAMES FOR JOINS ########## *#

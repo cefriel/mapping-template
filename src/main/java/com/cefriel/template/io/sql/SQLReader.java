@@ -27,10 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidParameterException;
 import java.sql.*;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SQLReader implements Reader {
 
@@ -119,10 +116,14 @@ public class SQLReader implements Reader {
 
     }
 
-    private List<Map<String, String>> populateDataframe(List<Map<String, String>> dataframe, ResultSet resultSet) throws SQLException {
+    private List<Map<String, String>> populateDataframe(List<Map<String, String>> dataframe, ResultSet resultSet, String filterVariables) throws SQLException {
 
         ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
+
+        List<String> filters = null;
+        if (filterVariables != null)
+            filters = Arrays.asList(filterVariables.split(","));
 
         while (resultSet.next()) {
             Map<String, String> row = new HashMap<>();
@@ -136,10 +137,11 @@ public class SQLReader implements Reader {
                 } else {
                     columnValue = resultSet.getString(i);
                 }
-                if (hashVariable)
-                    row.put(TemplateFunctions.literalHash(columnName), columnValue);
-                else
-                    row.put(columnName, columnValue);
+                if(filters == null || filters.contains(columnName))
+                    if (hashVariable)
+                        row.put(TemplateFunctions.literalHash(columnName), columnValue);
+                    else
+                        row.put(columnName, columnValue);
             }
             dataframe.add(row);
         }
@@ -206,12 +208,23 @@ public class SQLReader implements Reader {
      * @return Result of the SQL query
      */
     public List<Map<String, String>> getDataframe(String query) {
+        return getFilteredDataFrame(query, null);
+    }
+
+    /**
+     * Executes a SQL query returning a list of rows as {@code List<Map<String,String>>} filtered
+     * by the variables provided as comma-separated list.
+     *
+     * @param query SQL query to be executed
+     * @return Result of the SQL query
+     */
+    public List<Map<String, String>> getFilteredDataFrame(String query, String filterVariables) {
         List<Map<String, String>> dataframe = new ArrayList<>();
         String queryCheck = query.toLowerCase();
 
         if (queryCheck.contains("select")) {
             try (ResultSet resultSet = executeQuery(query)) {
-                dataframe = populateDataframe(dataframe, resultSet);
+                dataframe = populateDataframe(dataframe, resultSet, filterVariables);
             } catch (SQLException e) {
                 log.error(e.getMessage(), e);
             }
@@ -222,7 +235,7 @@ public class SQLReader implements Reader {
                 try {
                     PreparedStatement preparedStatement = conn.prepareStatement(q);
                     ResultSet resultSet = preparedStatement.executeQuery();
-                    dataframe = populateDataframe(dataframe, resultSet);
+                    dataframe = populateDataframe(dataframe, resultSet, filterVariables);
                 } catch (SQLException e) {
                     log.error(e.getMessage(), e);
                 }

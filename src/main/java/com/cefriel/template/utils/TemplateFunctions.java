@@ -626,7 +626,7 @@ public class TemplateFunctions {
      */
     public List<Map<String, String>> removeDuplicatedRows(List<Map<String, String>> dataframe) {
         return dataframe.stream()
-                .distinct() // Remove duplicates
+                .distinct()
                 .collect(Collectors.toList());
     }
 
