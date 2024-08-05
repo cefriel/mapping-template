@@ -17,6 +17,7 @@
 package com.cefriel.template.io.xml;
 
 import com.cefriel.template.io.Reader;
+import com.cefriel.template.utils.TemplateFunctions;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.ma.map.KeyValuePair;
 import net.sf.saxon.ma.map.MapItem;
@@ -56,6 +57,7 @@ public class XMLReader implements Reader {
 
     private boolean verbose;
     private boolean serializeElements;
+    private boolean hashVariable;
 
     public XMLReader(File file) throws Exception {
         if (Files.exists(file.toPath())) {
@@ -126,8 +128,12 @@ public class XMLReader implements Reader {
                             value = serializeElement(pair.value);
                     }
 
-                    if (value != null && !value.isEmpty())
-                        map.put(pair.key.getStringValue(), value);
+                    if (value != null && !value.isEmpty()) {
+                        String variable = pair.key.getStringValue();
+                        if (hashVariable)
+                            variable = TemplateFunctions.literalHash(variable);
+                        map.put(variable, value);
+                    }
                 }
             } else {
                 String value = item.getStringValue();
@@ -235,6 +241,11 @@ public class XMLReader implements Reader {
 
     public void setSerializeElements(boolean serializeElements) {
         this.serializeElements = serializeElements;
+    }
+
+    @Override
+    public void setHashVariable(boolean hashVariable) {
+        this.hashVariable = hashVariable;
     }
 
 }

@@ -40,6 +40,7 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class TemplateFunctions {
 
@@ -616,6 +617,57 @@ public class TemplateFunctions {
         } else {
             throw new IllegalArgumentException("dataframe cannot be null");
         }
+    }
+
+    /**
+     * Remove duplicate rows from a dataframe
+     * @param dataframe Dataframe as input
+     * @return dataframe without duplicated rows
+     */
+    public List<Map<String, String>> removeDuplicatedRows(List<Map<String, String>> dataframe) {
+        return dataframe.stream()
+                .distinct() // Remove duplicates
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Simple hash function that generates a hash composed only of letters (a-z).
+     * @param input
+     * @return computed hash
+     */
+    public static String literalHash(String input) {
+        String hashString = Integer.toString(input.hashCode());
+        char[] charArray = hashString.toCharArray();
+        StringBuilder sb = new StringBuilder();
+
+        for (char c : charArray) {
+            if (Character.isDigit(c)) {
+                // Convert digit to corresponding letter
+                int digit = Character.getNumericValue(c);
+                char letter = (char) ('a' + digit);
+                sb.append(letter);
+            } else if (c == '-') {
+                // Replace minus sign with 'z'
+                sb.append('z');
+            } else {
+                sb.append(c);
+            }
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Generates a hash composed only of letters (a-z) for an array of Strings. Based on {@link #literalHash(String)}.
+     * @param inputs Array of Strings
+     * @return computed hash
+     */
+    public static String appendHash(String... inputs) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String i : inputs)
+            if(i != null)
+                stringBuilder.append(i);
+        return literalHash(stringBuilder.toString());
     }
 
     /**

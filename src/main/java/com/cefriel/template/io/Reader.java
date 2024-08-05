@@ -67,6 +67,13 @@ public interface Reader {
     void setOutputFormat(String outputFormat);
 
     /**
+     * If {@code hashVariable} is set the variables returned in a Dataframe are hashed according to
+     * {@link com.cefriel.template.utils.TemplateFunctions#literalHash(String)}.
+     * @param hashVariable
+     */
+    void setHashVariable(boolean hashVariable);
+
+    /**
      * Shutdown the Reader.
      */
     void shutDown();

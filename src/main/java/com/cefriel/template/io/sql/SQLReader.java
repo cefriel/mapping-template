@@ -18,6 +18,7 @@ package com.cefriel.template.io.sql;
 
 import com.cefriel.template.io.Reader;
 
+import com.cefriel.template.utils.TemplateFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,7 @@ public class SQLReader implements Reader {
     private String queryHeader;
     private boolean verbose;
     private static final Object lock = new Object();
+    private boolean hashVariable;
 
 
     public SQLReader(String jdbcDSN, String username, String password) {
@@ -134,7 +136,10 @@ public class SQLReader implements Reader {
                 } else {
                     columnValue = resultSet.getString(i);
                 }
-                row.put(columnName, columnValue);
+                if (hashVariable)
+                    row.put(TemplateFunctions.literalHash(columnName), columnValue);
+                else
+                    row.put(columnName, columnValue);
             }
             dataframe.add(row);
         }
@@ -326,6 +331,11 @@ public class SQLReader implements Reader {
      */
     @Override
     public void setOutputFormat(String outputFormat) {
+    }
+
+    @Override
+    public void setHashVariable(boolean hashVariable) {
+        this.hashVariable = hashVariable;
     }
 
 }

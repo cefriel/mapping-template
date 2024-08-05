@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.cefriel.template.io.Reader;
+import com.cefriel.template.utils.TemplateFunctions;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.*;
@@ -60,6 +61,8 @@ public class RDFReader implements Reader {
     private IRI context;
 
     private String baseIRI;
+
+    private boolean hashVariable;
 
     private String queryHeader;
     private String outputFormat;
@@ -151,12 +154,20 @@ public class RDFReader implements Reader {
     private List<Map<String,String>> getQueryResultsStringValue(String query) {
         List<Map<String,Value>> valueResults = executeQuery(query);
         List<Map<String,String>> results = new ArrayList<>();
-        for(Map<String,Value> row : valueResults)
-            results.add(row.entrySet().stream()
+        for(Map<String,Value> row : valueResults) {
+            if (hashVariable)
+                results.add(row.entrySet().stream()
                     .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            e -> (e.getValue() != null) ? e.getValue().stringValue() : null )
+                            e -> TemplateFunctions.literalHash(e.getKey()),
+                            e -> (e.getValue() != null) ? e.getValue().stringValue() : null)
                     ));
+            else
+                results.add(row.entrySet().stream()
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                e -> (e.getValue() != null) ? e.getValue().stringValue() : null)
+                        ));
+        }
         return results;
     }
 
@@ -396,6 +407,11 @@ public class RDFReader implements Reader {
     @Deprecated
     public void setPrefixes(String queryHeader) {
         this.queryHeader = queryHeader;
+    }
+
+    @Override
+    public void setHashVariable(boolean hashVariable) {
+        this.hashVariable = hashVariable;
     }
 
 }

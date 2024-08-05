@@ -17,6 +17,7 @@
 package com.cefriel.template.io.csv;
 
 import com.cefriel.template.io.Reader;
+import com.cefriel.template.utils.TemplateFunctions;
 import de.siegmar.fastcsv.reader.CsvReader;
 import de.siegmar.fastcsv.reader.CsvRow;
 import de.siegmar.fastcsv.reader.NamedCsvReader;
@@ -32,6 +33,7 @@ import java.util.*;
 public class CSVReader implements Reader {
 
     public NamedCsvReader document;
+    private boolean hashVariable;
 
     public CSVReader(File file) throws IOException {
         if (Files.exists(file.toPath()))
@@ -73,7 +75,10 @@ public class CSVReader implements Reader {
         for (NamedCsvRow row : this.document) {
             HashMap<String, String> map = new HashMap<>();
             for (String c : columns) {
-                map.put(c, row.getField(c));
+                if(hashVariable)
+                    map.put(TemplateFunctions.literalHash(c), row.getField(c));
+                else
+                    map.put(c, row.getField(c));
             }
             output.add(map);
         }
@@ -86,9 +91,7 @@ public class CSVReader implements Reader {
     }
 
     @Override
-    public void setVerbose(boolean verbose) {
-
-    }
+    public void setVerbose(boolean verbose) {}
 
     /**
      * Not implemented for CSVReader yet.
@@ -96,6 +99,11 @@ public class CSVReader implements Reader {
      */
     @Override
     public void setOutputFormat(String outputFormat) { return;}
+
+    @Override
+    public void setHashVariable(boolean hashVariable) {
+        this.hashVariable = hashVariable;
+    }
 
     @Override
     public void shutDown() {

@@ -18,7 +18,6 @@ package com.cefriel.template.utils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.lang.StringBuilder;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -41,6 +40,11 @@ public class RMLCompilerUtils extends TemplateFunctions {
 
     public void setBaseIRI(String baseIRI) {
         this.baseIRI = baseIRI;
+    }
+
+    @Override
+    public String hash(String s) {
+        return literalHash(s);
     }
 
     public List<String> getReferencesFromTriple(String subject, String predicate, String object, String graph){
@@ -204,42 +208,6 @@ public class RMLCompilerUtils extends TemplateFunctions {
             if(s.length() - s.replace("$", "").length() == 1)
                 return true;
         return false;                     
-    }
-
-    /**
-     * Simple hash function that generates a hash composed only of letters (a-z).
-     * @param input
-     * @return
-     */
-    @Override
-    public String hash(String input) {
-        String hashString = Integer.toString(input.hashCode());
-        char[] charArray = hashString.toCharArray();
-        StringBuilder sb = new StringBuilder();
-
-        for (char c : charArray) {
-            if (Character.isDigit(c)) {
-                // Convert digit to corresponding letter
-                int digit = Character.getNumericValue(c);
-                char letter = (char) ('a' + digit);
-                sb.append(letter);
-            } else if (c == '-') {
-                // Replace minus sign with 'z'
-                sb.append('z');
-            } else {
-                sb.append(c);
-            }
-        }
-
-        return sb.toString();
-    }
-
-    public String appendHash(String... inputs) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (String i : inputs)
-            if(i != null)
-                stringBuilder.append(i);
-        return hash(stringBuilder.toString());
     }
 
     /**

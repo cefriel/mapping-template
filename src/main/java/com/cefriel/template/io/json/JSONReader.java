@@ -17,6 +17,7 @@
 package com.cefriel.template.io.json;
 
 import com.cefriel.template.io.Reader;
+import com.cefriel.template.utils.TemplateFunctions;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
@@ -35,7 +36,7 @@ public class JSONReader implements Reader {
 
     private final Logger log = LoggerFactory.getLogger(JSONReader.class);
     Object document;
-
+    private boolean hashVariable;
     private boolean verbose;
 
     public JSONReader(String json) {
@@ -81,12 +82,16 @@ public class JSONReader implements Reader {
                     String path = JsonPath.read(queryDoc, "$.paths." + key);
                     Object objects = JsonPath.read(document, iterator + "." + path);
 
+                    String variable = key;
+                    if (hashVariable)
+                        variable = TemplateFunctions.literalHash(variable);
+
                     // objects can either be a list of objects or a single object(string)
                     // if it is a single object then in the output list I have only one item
 
                     if (!(objects instanceof JSONArray)) {
                         if(objects != null)
-                            output.get(0).put(key, objects.toString());
+                            output.get(0).put(variable, objects.toString());
                     } else {
                         JSONArray objectsList = (JSONArray) objects;
                         // CASE 1, all the nodes identified by the iterator have the key (sub field)
@@ -94,7 +99,7 @@ public class JSONReader implements Reader {
                         if (objectsList.size() == results.size()) {
                             for (int i = 0; i < objectsList.size(); i++) {
                                 if(objectsList.get(i) != null)
-                                    output.get(i).put(key, objectsList.get(i).toString());
+                                    output.get(i).put(variable, objectsList.get(i).toString());
                             }
                         }
                         // CASE 2, not all nodes have the key (sub field)
@@ -106,7 +111,7 @@ public class JSONReader implements Reader {
                                 try {
                                     var x = JsonPath.read(document, topPath + "." + path);
                                     if (x != null)
-                                        output.get(i).put(key, x.toString());
+                                        output.get(i).put(variable, x.toString());
                                 } catch (PathNotFoundException pe) {
                                     // what happens when the path is not found? i.e. the item does not have the field the jsonPath is pointing to
                                     // for now we do not put the key in the map
@@ -147,6 +152,11 @@ public class JSONReader implements Reader {
      */
     @Override
     public void setOutputFormat(String outputFormat) { return;}
+
+    @Override
+    public void setHashVariable(boolean hashVariable) {
+        this.hashVariable = hashVariable;
+    }
 
     @Override
     public void shutDown() {}

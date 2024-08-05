@@ -1,7 +1,4 @@
-#* 
-This template reuses and adapts the "mapping query" from the SDM-RDFizer source code (https://github.com/SDM-TIB/SDM-RDFizer) developed by the Scientific Data Management Group at TIB.
-The query is modified to be compliant with the latest RML specification (https://w3id.org/rml).
-*#
+#* This template reuses and adapts the "mapping query" from the SDM-RDFizer source code (https://github.com/SDM-TIB/SDM-RDFizer) developed by the Scientific Data Management Group at TIB. The query is modified to be compliant with the latest RML specification (https://w3id.org/rml). *#
 
 #set ( $prefixes = $reader.setPrefixes("
     prefix rml: <http://w3id.org/rml/>
@@ -278,10 +275,7 @@ useful information (e.g., sourceHash)
     #set($foo = $lLogicalSources.get($ls).put("_REFS_", $functions.getDistinct($refs)))
 #end
 
-#*
-    TODO Check if can be optimized to get a single dataframe also for different
-    logical sources accessing the same "input"
-*#
+#* ########## GENERATE READERS and EXTRACT DATAFRAMES ########## *#
 #foreach($lsEntry in $lLogicalSources.entrySet())
     #set($ls = $lsEntry.value)
 
@@ -307,6 +301,7 @@ useful information (e.g., sourceHash)
 
     #if($refForm == "http://w3id.org/rml/CSV")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getCSVReaderFromFile("$sourceUrl"))
+        ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true)) 
         #set($stringRefs = $functions.getAsCommaSeparatedString($lsReferences))
         #if($functions.checkString($stringRefs))
             ${h}set(${d}columns = "$stringRefs")
@@ -314,12 +309,10 @@ useful information (e.g., sourceHash)
         #else
             ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe())
         #end
-        #foreach($column in $lsReferences)
-            ${h}set(${d}dataframe_$sourceHash = ${d}functions.renameDataframeColumn(${d}dataframe_$sourceHash, "$column", "$functions.hash($column)"))
-        #end
     #* TODO SQL2008TableName fix per KGCW mappings to be removed *#
     #elseif($refForm == "http://w3id.org/rml/SQL2008Table" || $refForm == "http://w3id.org/rml/SQL2008TableName" || $refForm == "http://w3id.org/rml/SQL2008Query")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getSQLReaderFromDatabase("$ls.jdbcDSN", "$ls.user", "$ls.password"))
+        ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true)) 
         #* TODO Check with RML-io *#
         #if($ls.query)
             #set($iterator = $ls.query)
@@ -338,9 +331,6 @@ useful information (e.g., sourceHash)
                 ${d}error: "${d}column not found in ${d}dataframe_$sourceHash."
             ${h}end
         ${h}end
-        #foreach($column in $lsReferences)
-            ${h}set(${d}dataframe_$sourceHash = ${d}functions.renameDataframeColumn(${d}dataframe_$sourceHash, "$column", "$functions.hash($column)"))
-        #end
         #set($sqlTypes = true)
     #elseif ($refForm == "http://w3id.org/rml/XPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile("$sourceUrl"))
@@ -413,6 +403,7 @@ useful information (e.g., sourceHash)
             #* CONSTANT values, iterate once *#
             ${h}set(${d}dataframe_$sourceHash = {"ITERATOR" : "ONCE"})
         #end
+        ${h}set(${d}dataframe_$sourceHash = ${d}functions.removeDuplicatedRows(${d}dataframe_$sourceHash))
     #else
         ${d}error: "No compatible Reader found."
     #end
@@ -421,19 +412,25 @@ useful information (e.g., sourceHash)
 #* ########## GENERATE DATAFRAMES FOR JOINS ########## *#
 #foreach($row in $mappings_content)
     #if($row.object_parent_triples_map)
-        #set($sourceHash = $functions.hash($row._source))
-        #set($tmParent = $lTriplesMaps.get($row.object_parent_triples_map))
-        #set($join_hash = $functions.appendHash($row.triples_map_id, $row.object_parent_triples_map, $row.child_value, $row.parent_value))
+        #set($childHash = $functions.hash($row._source))
 
-        #set($child_df = "$dataframe_" + $sourceHash)
+        #set($tmParent = $lTriplesMaps.get($row.object_parent_triples_map))
+
+        #set($join_hash = $functions.appendHash($tmParent._source, $row.parent_value))
+
+        #set($child_df = "$dataframe_" + $childHash)
         #set($parentHash = $functions.hash($tmParent._source))
         #set($parent_df = "$dataframe_" + $parentHash)
 
         #if($row.join_condition)
             #set($join_variable = $functions.hash($row.parent_value))
-            ${h}set(${d}dataframe_join_$join_hash = ${d}functions.getListMap($parent_df, "$join_variable"))
+            ${h}if(!${d}dataframe_join_$join_hash)
+                ${h}set(${d}dataframe_join_$join_hash = ${d}functions.getListMap($parent_df, "$join_variable"))
+            ${h}end
         #else
-            ${h}set(${d}dataframe_join_$join_hash = $parent_df)
+            ${h}if(!${d}dataframe_join_$join_hash)
+                ${h}set(${d}dataframe_join_$join_hash = $parent_df)
+            ${h}end
         #end
     #end
 #end
@@ -559,8 +556,8 @@ TODO Currently done via option -f nq that validates the entire RDF
             #elseif($pom.object_constant_shortcut)
                 #set($foo = $objects.add($pom.object_constant_shortcut))
             #elseif($pom.object_parent_triples_map)
-                #set($join_hash = $functions.appendHash($pom.triples_map_id, $pom.object_parent_triples_map, $pom.child_value, $pom.parent_value))
                 #set($ptm = $lTriplesMaps.get($pom.object_parent_triples_map))
+                #set($join_hash = $functions.appendHash($ptm._source, $pom.parent_value))
 
                 #* TODO Define a MACRO to define it once *#
                 #set($parent_subject = $null)
@@ -616,7 +613,7 @@ TODO Currently done via option -f nq that validates the entire RDF
                             #* Generate the triple/quad . *#
                             ${h}if(${d}functions.checkStrings(${d}refs))
                             #if($graph)
-                                $subject $predicate $parent_subject $graph.
+                                $subject $predicate $parent_subject $graph .
                             #else
                                 $subject $predicate $parent_subject .
                             #end
