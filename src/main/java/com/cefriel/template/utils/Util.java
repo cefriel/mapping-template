@@ -253,6 +253,8 @@ public class Util {
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
+        } finally {
+            repository.shutDown();
         }
     }
 }
