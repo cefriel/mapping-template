@@ -276,6 +276,7 @@ useful information (e.g., sourceHash)
 #end
 
 #* ########## GENERATE READERS and EXTRACT DATAFRAMES ########## *#
+#set($sqlTypes = [])
 #foreach($lsEntry in $lLogicalSources.entrySet())
     #set($ls = $lsEntry.value)
 
@@ -337,7 +338,7 @@ useful information (e.g., sourceHash)
                 ${d}error: "${d}column not found in ${d}dataframe_$sourceHash."
             ${h}end
         ${h}end
-        #set($sqlTypes = true)
+        #set($foo = $sqlTypes.add($sourceHash))
     #elseif ($refForm == "http://w3id.org/rml/XPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile("$sourceUrl"))
 
@@ -642,7 +643,7 @@ TODO Currently done via option -f nq that validates the entire RDF
                         #if($datatype)
                             #set($object = $functions.encodeDatatype($object, $datatype))
                         #* Check if the object is a reference and not a template, i.e., if the value is directly extracted from the SQL query result *#
-                        #elseif($sqlTypes && $functions.checkReference($raw_object))       
+                        #elseif($sqlTypes.contains($sourceHash) && $functions.checkReference($raw_object))       
                             #set($column = $functions.getIteratorFromString($raw_object))
                             #set($object = $functions.encodeSQLDatatype($object, $column, $sourceHash))
                         #end

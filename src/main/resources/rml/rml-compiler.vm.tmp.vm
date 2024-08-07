@@ -174,7 +174,7 @@ WHERE {
 #set($lLogicalSources = $functions.getMap($mappings_content, "_source"))#foreach($ls in $lLogicalSources.keySet())#if(!$lLogicalSources.get($ls).get("_REFS_"))#set($refs = [])#set($foo = $lLogicalSources.get($ls).put("_REFS_", $refs))#end#end##
 #foreach($tm in $lTriplesMaps.keySet())#set($refs = $lTriplesMaps.get($tm).get("_REFS_"))#set($foo = $lLogicalSources.get($tm._source).get("_REFS_").addAll($refs))#end##
 #foreach($ls in $lLogicalSources.keySet())#set($refs = $lLogicalSources.get($ls).get("_REFS_"))#set($foo = $lLogicalSources.get($ls).put("_REFS_", $functions.getDistinct($refs)))#end##
-#foreach($lsEntry in $lLogicalSources.entrySet())#set($ls = $lsEntry.value)#if($ls.access_url)#set($sourceUrl = $functions.replace($ls.access_url, "file://", ""))#elseif($ls.path)#if($map.basePath)#set($sourceUrl = $map.basePath + $ls.path)#else#set($sourceUrl = "./" + $ls.path)#end#end##
+#set($sqlTypes = [])#foreach($lsEntry in $lLogicalSources.entrySet())#set($ls = $lsEntry.value)#if($ls.access_url)#set($sourceUrl = $functions.replace($ls.access_url, "file://", ""))#elseif($ls.path)#if($map.basePath)#set($sourceUrl = $map.basePath + $ls.path)#else#set($sourceUrl = "./" + $ls.path)#end#end##
 #set($refForm = $ls.ref_form)#set($sourceHash = $functions.hash($ls._source))#set($foo = $ls.put("_SOURCE_HASH_", $sourceHash))#set($lsReferences = $ls.get("_REFS_"))#set($iterator = $ls.iterator)##
 #if($refForm == "http://w3id.org/rml/CSV")${h}set(${d}reader_$sourceHash = ${d}functions.getCSVReaderFromFile("$sourceUrl"))##
 ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))##
@@ -185,12 +185,12 @@ ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe())#end
 #elseif($refForm == "http://w3id.org/rml/SQL2008Table" || $refForm == "http://w3id.org/rml/SQL2008TableName" || $refForm == "http://w3id.org/rml/SQL2008Query")##
 ${h}set(${d}reader_$sourceHash = ${d}functions.getSQLReaderFromDatabase("$ls.jdbcDSN", "$ls.user", "$ls.password"))##
 ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))#if($ls.query)#set($iterator = $ls.query)#end#if($refForm == "http://w3id.org/rml/SQL2008Table" && $ls.jdbcDSN.contains("postgres"))#set($iterator = $iterator.toLowerCase())#end##
-#set($stringRefs = $functions.getAsCommaSeparatedString($lsReferences))#if($functions.checkString($stringRefs))${h}set(${d}columns = "$stringRefs")${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getFilteredDataFrame("$iterator", ${d}columns))#else${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe("$iterator"))#end
+#set($stringRefs = $functions.getAsCommaSeparatedString($lsReferences))#if($functions.checkString($stringRefs))${h}set(${d}columns = "$stringRefs")${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getFilteredDataFrame("$iterator", ${d}columns))#else${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe("$iterator"))#end##
 ${h}set(${d}types_$sourceHash = ${d}reader_${sourceHash}.getColumnTypes("$iterator"))##
 ${h}set(${d}columns = ${d}types_${sourceHash}.keySet())##
 ${h}set(${d}refColumns = $functions.getAsStringArray($lsReferences))##
 ${h}foreach(${d}column in ${d}refColumns)${h}if(!${d}columns.contains(${d}column))${d}error: "${d}column not found in ${d}dataframe_$sourceHash."${h}end${h}end## 
-#set($sqlTypes = true)##
+#set($foo = $sqlTypes.add($sourceHash))##
 #elseif($refForm == "http://w3id.org/rml/XPath")${h}set(${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile("$sourceUrl"))##
 #if($functions.checkList($lsReferences))##
 #set($xmlQuery = '
@@ -231,7 +231,7 @@ ${h}foreach(${d}j in ${d}dataframe_join_$join_hash)#end#set($parent_subject = $p
 $subject $predicate $parent_subject $graph .
 #else##
 $subject $predicate $parent_subject .
-#end${h}end${h}end#if($pom.child_value)${h}end#end#else#if($object.contains("://") || $object.startsWith("data:"))#set($object = $functions.encodeReferencesIRI($object, $pom.object_termtype))#else#set($raw_object = $object)#set($object = $object.replaceAll("\\",""))#set($object = $functions.encodeReferencesLiteral($object))#if($datatype)#set($object = $functions.encodeDatatype($object, $datatype))#elseif($sqlTypes && $functions.checkReference($raw_object))#set($column = $functions.getIteratorFromString($raw_object))#set($object = $functions.encodeSQLDatatype($object, $column, $sourceHash))#end#if($language)#set($object = $functions.encodeLanguage($object, $language))#end#end#set($refs = $functions.getReferencesFromTriple($subject, $predicate, $object, $graph))${h}set(${d}refs = $refs)${h}if(${d}functions.checkStrings(${d}refs))#if($graph) 
+#end${h}end${h}end#if($pom.child_value)${h}end#end#else#if($object.contains("://") || $object.startsWith("data:"))#set($object = $functions.encodeReferencesIRI($object, $pom.object_termtype))#else#set($raw_object = $object)#set($object = $object.replaceAll("\\",""))#set($object = $functions.encodeReferencesLiteral($object))#if($datatype)#set($object = $functions.encodeDatatype($object, $datatype))#elseif($sqlTypes.contains($sourceHash) && $functions.checkReference($raw_object))#set($column = $functions.getIteratorFromString($raw_object))#set($object = $functions.encodeSQLDatatype($object, $column, $sourceHash))#end#if($language)#set($object = $functions.encodeLanguage($object, $language))#end#end#set($refs = $functions.getReferencesFromTriple($subject, $predicate, $object, $graph))${h}set(${d}refs = $refs)${h}if(${d}functions.checkStrings(${d}refs))#if($graph) 
 $subject $predicate $object $graph . 
 #else##
 $subject $predicate $object .
