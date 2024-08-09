@@ -135,7 +135,11 @@ public class RMLCompilerUtils extends TemplateFunctions {
                 if (termType != null)
                     if (termType.equals("http://w3id.org/rml/IRI") && !isAbsoluteURI(s))
                         return "<" + baseIRI + "$functions.encodeURIComponent(\"" + s + "\")>";
-                return "<$functions.resolveIRI(\"" + s + "\")>";
+                Matcher matcher = referencePattern.matcher(s);
+                if (!matcher.find() && isAbsoluteURI(s))
+                    return "<" + s + ">";
+                else
+                    return "<$functions.resolveIRI(\"" + s + "\")>";
             }
         }
         return null;
