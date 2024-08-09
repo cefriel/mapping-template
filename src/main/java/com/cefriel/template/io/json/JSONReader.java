@@ -74,10 +74,11 @@ public class JSONReader implements Reader {
         try {
             // Extract paths for each node identified by the iterator
             List<String> results = JsonPath.using(conf).parse(document).read(iterator);
-            for (int i=0; i< results.size(); i++)
-                output.add(new HashMap<>());
 
             if(!results.isEmpty()) {
+                output = new ArrayList<>(results.size());
+                for (int i=0; i< results.size(); i++)
+                    output.add(new HashMap<>(keys.size()));
                 for(String key : keys) {
                     String path = JsonPath.read(queryDoc, "$.paths." + key);
                     Object objects = JsonPath.read(document, iterator + "." + path);

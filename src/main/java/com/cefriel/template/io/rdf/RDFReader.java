@@ -131,12 +131,13 @@ public class RDFReader implements Reader {
         try (RepositoryConnection con = this.repository.getConnection()) {
             TupleQuery tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL, query);
             List<BindingSet> resultList;
-            List<Map<String,Value>> results = new ArrayList<Map<String,Value>>();
             try (TupleQueryResult result = tupleQuery.evaluate()) {
                 resultList = QueryResults.asList(result);
             }
+            List<Map<String,Value>> results = new ArrayList<>(resultList.size());
+            int columnCount = !resultList.isEmpty() ? resultList.get(0).size() : 0;
             for (BindingSet bindingSet : resultList) {
-                Map<String,Value> result = new HashMap<String,Value>();
+                Map<String,Value> result = new HashMap<>(columnCount);
                 for (String bindingName : bindingSet.getBindingNames()) {
                     result.put(bindingName, bindingSet.getValue(bindingName));
                 }

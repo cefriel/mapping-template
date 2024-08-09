@@ -116,17 +116,19 @@ public class SQLReader implements Reader {
 
     }
 
-    private List<Map<String, String>> populateDataframe(List<Map<String, String>> dataframe, ResultSet resultSet, String filterVariables) throws SQLException {
+    private List<Map<String, String>> populateDataframe(int rowCount, ResultSet resultSet, String filterVariables) throws SQLException {
 
         ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
+        
+        List<Map<String,String>> dataframe = new ArrayList<>(rowCount);
 
         List<String> filters = null;
         if (filterVariables != null)
             filters = Arrays.asList(filterVariables.split(","));
 
         while (resultSet.next()) {
-            Map<String, String> row = new HashMap<>();
+            Map<String, String> row = new HashMap<>(columnCount);
             for (int i = 1; i <= columnCount; i++) {
                 String columnName = resultSet.getMetaData().getColumnLabel(i);
                 int columnType = resultSet.getMetaData().getColumnType(i);
@@ -159,7 +161,7 @@ public class SQLReader implements Reader {
         ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
 
-        Map<String, String> columnTypeName = new HashMap<>();
+        Map<String, String> columnTypeName = new HashMap<>(columnCount);
         for (int i = 1; i <= columnCount; i++) {
             columnTypeName.put(metaData.getColumnLabel(i),metaData.getColumnTypeName(i));
         }
@@ -174,30 +176,22 @@ public class SQLReader implements Reader {
      * @return Types of the columns in the result
      */
     public Map<String, String> getColumnTypes(String query) {
-        Map<String, String> columnTypes = new HashMap<>();
+        Map<String, String> columnTypes = null;
         String queryCheck = query.toLowerCase();
 
-        if (queryCheck.contains("select")) {
-            try (ResultSet resultSet = executeQuery(query)) {
-                columnTypes = populateColumnTypes(resultSet);
-            } catch (SQLException e) {
-                log.error(e.getMessage(), e);
-            }
-        } else {
-            // case-sensitive, user has to supply table name exactly like it is in the db
-            if (tables.contains(query)) {
-                String q = "SELECT * FROM " + query;
-                try {
-                    PreparedStatement preparedStatement = conn.prepareStatement(q);
-                    ResultSet resultSet = preparedStatement.executeQuery();
-                    columnTypes = populateColumnTypes(resultSet);
-                } catch (SQLException e) {
-                    log.error(e.getMessage(), e);
-                }
-            } else {
+        if (!queryCheck.contains("select")) {
+            if (tables.contains(query))
+                query = "SELECT * FROM " + query;
+            else
                 throw new InvalidParameterException("Table " + query + " does not exist.");
-            }
         }
+        
+        try (ResultSet resultSet = executeQuery(query)) {
+            columnTypes = populateColumnTypes(resultSet);
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+        }
+            
         return columnTypes;
     }
 
@@ -219,31 +213,39 @@ public class SQLReader implements Reader {
      * @return Result of the SQL query
      */
     public List<Map<String, String>> getFilteredDataFrame(String query, String filterVariables) {
-        List<Map<String, String>> dataframe = new ArrayList<>();
         String queryCheck = query.toLowerCase();
+        List<Map<String, String>> dataframe = new ArrayList<>();
 
-        if (queryCheck.contains("select")) {
-            try (ResultSet resultSet = executeQuery(query)) {
-                dataframe = populateDataframe(dataframe, resultSet, filterVariables);
-            } catch (SQLException e) {
-                log.error(e.getMessage(), e);
-            }
-        } else {
-            // case-sensitive, user has to supply table name exactly like it is in the db
-            if (tables.contains(query)) {
-                String q = "SELECT * FROM " + query;
-                try {
-                    PreparedStatement preparedStatement = conn.prepareStatement(q);
-                    ResultSet resultSet = preparedStatement.executeQuery();
-                    dataframe = populateDataframe(dataframe, resultSet, filterVariables);
-                } catch (SQLException e) {
-                    log.error(e.getMessage(), e);
-                }
-            } else {
-                throw new InvalidParameterException("Table " + query + " does not exist.");
-            }
+        if (!queryCheck.contains("select")) {
+            if (tables.contains(query))
+                query = "SELECT * FROM " + query;
+            else
+               throw new InvalidParameterException("Table " + query + " does not exist.");
         }
+        
+        int rowCount = getRowCount(query);
+        
+        try (ResultSet resultSet = executeQuery(query)) {
+            dataframe = populateDataframe(rowCount, resultSet, filterVariables);
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+        }
+        
         return dataframe;
+    }
+
+    private int getRowCount(String query) {
+        int fromIndex = query.toUpperCase().indexOf("FROM");
+        String countQuery = "SELECT COUNT(*) " + query.substring(fromIndex);
+        try (ResultSet resultSet = executeQuery(countQuery)) {
+            if (resultSet.next())
+                return resultSet.getInt(1);
+            else
+                return 0;
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+        }
+        return 0;
     }
 
     @Override

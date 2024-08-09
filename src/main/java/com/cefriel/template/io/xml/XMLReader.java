@@ -97,6 +97,7 @@ public class XMLReader implements Reader {
         StaticQueryContext sqc = config.newStaticQueryContext();
         XQueryExpression exp = sqc.compileQuery(query);
         SequenceIterator iter = exp.iterator(dynamicContext);
+        // TODO Check if rowCount can be obtained to properly initialise the ArrayList capacity
         List<Map<String, String>> results = new ArrayList<>();
 
         while (true) {
@@ -104,10 +105,11 @@ public class XMLReader implements Reader {
             if (item == null)
                 break;
 
-            Map<String,String> map = new HashMap<>();
+            Map<String,String> map;
             if (item instanceof MapItem) {
                 MapItem mitem = (MapItem) item;
                 Iterable<KeyValuePair> keyValuePairs = mitem.keyValuePairs();
+                map = new HashMap<>(mitem.size());
                 for (KeyValuePair pair : keyValuePairs) {
                     String value = pair.value.getStringValue();
                     if (isSerializeElements()) {
@@ -137,6 +139,7 @@ public class XMLReader implements Reader {
                 }
             } else {
                 String value = item.getStringValue();
+                map = new HashMap<>();
                 if (value != null && !value.isEmpty())
                     map.put(DEFAULT_KEY, value);
             }

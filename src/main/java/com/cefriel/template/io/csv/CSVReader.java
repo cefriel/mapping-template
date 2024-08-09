@@ -68,12 +68,16 @@ public class CSVReader implements Reader {
 
     public List<Map<String, String>> getDataframe(String... columns) throws Exception {
         Set<String> headers = this.document.getHeader();
-        for(String c : columns)
+        int columnCount = 0;
+        for(String c : columns) {
             if (!headers.contains(c))
                 throw new IllegalArgumentException("Column " + c + " not found");
+            columnCount += 1;
+        }
+        // TODO Check if rowCount can be obtained to properly initialise the ArrayList capacity
         List<Map<String, String>> output = new ArrayList<>();
         for (NamedCsvRow row : this.document) {
-            HashMap<String, String> map = new HashMap<>();
+            HashMap<String, String> map = new HashMap<>(columnCount);
             for (String c : columns) {
                 if(hashVariable)
                     map.put(TemplateFunctions.literalHash(c), row.getField(c));
