@@ -4,6 +4,8 @@
 
 A template-based component exploiting [Apache Velocity](https://velocity.apache.org/) to define declarative mappings for schema and data transformations.
 
+A quantitative and qualitative evaluation of the tool is available in the repository [mapping-template-eval](https://github.com/cefriel/mapping-template-eval).
+
 ### Mapping Template Language (MTL)
 
 The [Wiki](https://github.com/cefriel/mapping-template/wiki/Mapping-Template-Language-(MTL)) contains the documentation to specify compliant mapping templates.
@@ -59,10 +61,6 @@ Instructions on how to run the example mapping templates via command line are pr
 A `$reader` is initialized based on the specified `-if` option. Additional `Reader`s should be defined in the template using the available functions.
 
 If `-url` and `-id` options are set a remote database/repository is used for queries and the `-i`  option is ignored. If they are not set the `-i` option is mandatory. Assumptions to use a remote database/repository are: (i) it is up and running, and (ii) data are already in there.
-
-### Evaluation
-
-A preliminary evaluation of the tool is available in the repository [mapping-template-eval](https://github.com/cefriel/mapping-template-eval).
 
 ### Commercial Support
 
