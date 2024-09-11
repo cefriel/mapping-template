@@ -1,6 +1,6 @@
 FROM eclipse-temurin:11
 
-ARG MAPPING_TEMPLATE_VERSION=2.4.1-SNAPSHOT
+ARG MAPPING_TEMPLATE_VERSION=2.5.2-SNAPSHOT
 
 # Copy the built JAR from the previous stage
 RUN mkdir mapping-template
