@@ -230,7 +230,7 @@ useful information (e.g., sourceHash)
         #end
         #if($row.parent_value)
             #set($parentTriplesMap = $row.object_parent_triples_map)
-            #set($foo = $lTriplesMaps.get($row.parentTriplesMap).get("_REFS_").add($row.parent_value))
+            #set($foo = $lTriplesMaps.get($parentTriplesMap).get("_REFS_").add($row.parent_value))
         #end
     #end
 
@@ -302,7 +302,8 @@ useful information (e.g., sourceHash)
 
     #if($refForm == "http://w3id.org/rml/CSV")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getCSVReaderFromFile("$sourceUrl"))
-        ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true)) 
+        ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))
+        ${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))
         #set($stringRefs = $functions.getAsCommaSeparatedString($lsReferences))
         #if($functions.checkString($stringRefs))
             ${h}set(${d}columns = "$stringRefs")
@@ -313,7 +314,8 @@ useful information (e.g., sourceHash)
     #* TODO SQL2008TableName fix per KGCW mappings to be removed *#
     #elseif($refForm == "http://w3id.org/rml/SQL2008Table" || $refForm == "http://w3id.org/rml/SQL2008TableName" || $refForm == "http://w3id.org/rml/SQL2008Query")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getSQLReaderFromDatabase("$ls.jdbcDSN", "$ls.user", "$ls.password"))
-        ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true)) 
+        ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))
+        ${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))
         #* TODO Check with RML-io *#
         #if($ls.query)
             #set($iterator = $ls.query)
@@ -341,6 +343,7 @@ useful information (e.g., sourceHash)
         #set($foo = $sqlTypes.add($sourceHash))
     #elseif ($refForm == "http://w3id.org/rml/XPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile("$sourceUrl"))
+        ${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))
 
         #*
             Access the XML input to extract the dataframe considering references
@@ -413,7 +416,6 @@ useful information (e.g., sourceHash)
     #else
         ${d}error: "No compatible Reader found."
     #end
-    ${h}set(${d}dataframe_$sourceHash = ${d}functions.removeDuplicatedRows(${d}dataframe_$sourceHash))
 #end
 
 #* ########## GENERATE DATAFRAMES FOR JOINS ########## *#

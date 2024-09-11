@@ -15,16 +15,12 @@
  */
 package com.cefriel.template.utils;
 
-import org.eclipse.rdf4j.model.IRI;
-
 import java.math.BigDecimal;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class RMLTemplateFunctions extends TemplateFunctions {
 
@@ -113,10 +109,9 @@ public class RMLTemplateFunctions extends TemplateFunctions {
             case "http://www.w3.org/2001/XMLSchema#double":
                 return formatToScientific(Double.parseDouble(input));
             case "http://www.w3.org/2001/XMLSchema#boolean":
-                switch (input) {
+                switch (input.toLowerCase()) {
                     case "t":
                     case "true":
-                    case "TRUE":
                     case "1":
                         return "true";
                     default:

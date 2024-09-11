@@ -195,7 +195,7 @@ public class RMLCompilerUtils extends TemplateFunctions {
     }
 
     public String getAsStringArray(List<String> list) {
-        if (list.size() >= 1 && !list.contains(""))
+        if (!list.isEmpty() && !list.contains(""))
             return "[\"" + String.join("\",\"", list) + "\"]";
         return "[]";
     }

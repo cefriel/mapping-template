@@ -73,6 +73,13 @@ public interface Reader {
      */
     void setHashVariable(boolean hashVariable);
 
+
+    /**
+     * If {@code onlyDistinct} is set only distinct rows are returned in a dataframe.
+     * @param onlyDistinct
+     */
+    public void setOnlyDistinct(boolean onlyDistinct);
+
     /**
      * Shutdown the Reader.
      */

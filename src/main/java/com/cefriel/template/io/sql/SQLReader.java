@@ -19,6 +19,7 @@ package com.cefriel.template.io.sql;
 import com.cefriel.template.io.Reader;
 
 import com.cefriel.template.utils.TemplateFunctions;
+import org.eclipse.rdf4j.query.algebra.Str;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +42,8 @@ public class SQLReader implements Reader {
     private boolean verbose;
     private static final Object lock = new Object();
     private boolean hashVariable;
+    private boolean onlyDistinct;
+    private boolean useDoubleQuotes;
 
 
     public SQLReader(String jdbcDSN, String username, String password) {
@@ -60,6 +63,7 @@ public class SQLReader implements Reader {
                 String database = parts[parts.length - 1];
                 tablesQueryStatement.setString(1, database);
             } else if (jdbcDSN.contains("postgresql")) {
+                useDoubleQuotes = true;
                 tablesQueryStatement = conn.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'");
             } else {
                 throw new IllegalArgumentException("SQLReader does not support the driver indicated " + jdbcDSN);
@@ -117,11 +121,14 @@ public class SQLReader implements Reader {
     }
 
     private List<Map<String, String>> populateDataframe(int rowCount, ResultSet resultSet, String filterVariables) throws SQLException {
-
         ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
         
-        List<Map<String,String>> dataframe = new ArrayList<>(rowCount);
+        Collection<Map<String,String>> dataframe;
+        if (onlyDistinct)
+            dataframe = new ArrayList<>(rowCount);
+        else
+            dataframe = new HashSet<>(rowCount);
 
         List<String> filters = null;
         if (filterVariables != null)
@@ -130,8 +137,8 @@ public class SQLReader implements Reader {
         while (resultSet.next()) {
             Map<String, String> row = new HashMap<>(columnCount);
             for (int i = 1; i <= columnCount; i++) {
-                String columnName = resultSet.getMetaData().getColumnLabel(i);
-                int columnType = resultSet.getMetaData().getColumnType(i);
+                String columnName = metaData.getColumnLabel(i);
+                int columnType = metaData.getColumnType(i);
                 String columnValue;
                 if (columnType == Types.BINARY || columnType == Types.VARBINARY) {
                     byte[] binaryData = resultSet.getBytes(i);
@@ -147,7 +154,8 @@ public class SQLReader implements Reader {
             }
             dataframe.add(row);
         }
-        return dataframe;
+
+        return new ArrayList<>(dataframe);
     }
     private static String bytesToHex(byte[] bytes) {
         StringBuilder hexString = new StringBuilder();
@@ -217,14 +225,25 @@ public class SQLReader implements Reader {
         List<Map<String, String>> dataframe = new ArrayList<>();
 
         if (!queryCheck.contains("select")) {
-            if (tables.contains(query))
-                query = "SELECT * FROM " + query;
+            if (tables.contains(query)) {
+                if (filterVariables != null) {
+                    List<String> filters = Arrays.asList(filterVariables.split(","));
+                    if (useDoubleQuotes)
+                        filters.replaceAll(s -> "\"" + s + "\"");
+                    else
+                        filters.replaceAll(s -> "`" + s + "`");
+                    String selectVariables = String.join(",",filters);
+                    query = "SELECT DISTINCT " + selectVariables + " FROM " + query;
+                    filterVariables = null;
+                } else
+                    query = "SELECT * FROM " + query;
+            }
             else
                throw new InvalidParameterException("Table " + query + " does not exist.");
         }
         
         int rowCount = getRowCount(query);
-        
+
         try (ResultSet resultSet = executeQuery(query)) {
             dataframe = populateDataframe(rowCount, resultSet, filterVariables);
         } catch (SQLException e) {
@@ -351,6 +370,11 @@ public class SQLReader implements Reader {
     @Override
     public void setHashVariable(boolean hashVariable) {
         this.hashVariable = hashVariable;
+    }
+
+    @Override
+    public void setOnlyDistinct(boolean onlyDistinct) {
+        this.onlyDistinct = onlyDistinct;
     }
 
 }

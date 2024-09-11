@@ -37,6 +37,7 @@ public class JSONReader implements Reader {
     private final Logger log = LoggerFactory.getLogger(JSONReader.class);
     Object document;
     private boolean hashVariable;
+    private boolean onlyDistinct;
     private boolean verbose;
 
     public JSONReader(String json) {
@@ -67,18 +68,18 @@ public class JSONReader implements Reader {
         Object queryDoc = Configuration.defaultConfiguration().jsonProvider().parse(query);
         String iterator = JsonPath.read(queryDoc, "$.iterator");
         Set<String> keys = JsonPath.read(queryDoc, "$.paths.keys()");
-        List<Map<String, String>> output = new ArrayList<>();
+        List<Map<String,String>> dataframe = new ArrayList<>();
         // config to get results as jsonPaths
         Configuration conf = Configuration.builder()
                 .options(Option.AS_PATH_LIST, Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS).build();
         try {
             // Extract paths for each node identified by the iterator
             List<String> results = JsonPath.using(conf).parse(document).read(iterator);
+            dataframe = new ArrayList<>(results.size());
 
             if(!results.isEmpty()) {
-                output = new ArrayList<>(results.size());
                 for (int i=0; i< results.size(); i++)
-                    output.add(new HashMap<>(keys.size()));
+                    dataframe.add(new HashMap<>(keys.size()));
                 for(String key : keys) {
                     String path = JsonPath.read(queryDoc, "$.paths." + key);
                     Object objects = JsonPath.read(document, iterator + "." + path);
@@ -92,7 +93,7 @@ public class JSONReader implements Reader {
 
                     if (!(objects instanceof JSONArray)) {
                         if(objects != null)
-                            output.get(0).put(variable, objects.toString());
+                            dataframe.get(0).put(variable, objects.toString());
                     } else {
                         JSONArray objectsList = (JSONArray) objects;
                         // CASE 1, all the nodes identified by the iterator have the key (sub field)
@@ -100,7 +101,7 @@ public class JSONReader implements Reader {
                         if (objectsList.size() == results.size()) {
                             for (int i = 0; i < objectsList.size(); i++) {
                                 if(objectsList.get(i) != null)
-                                    output.get(i).put(variable, objectsList.get(i).toString());
+                                    dataframe.get(i).put(variable, objectsList.get(i).toString());
                             }
                         }
                         // CASE 2, not all nodes have the key (sub field)
@@ -112,7 +113,7 @@ public class JSONReader implements Reader {
                                 try {
                                     var x = JsonPath.read(document, topPath + "." + path);
                                     if (x != null)
-                                        output.get(i).put(variable, x.toString());
+                                        dataframe.get(i).put(variable, x.toString());
                                 } catch (PathNotFoundException pe) {
                                     // what happens when the path is not found? i.e. the item does not have the field the jsonPath is pointing to
                                     // for now we do not put the key in the map
@@ -129,7 +130,7 @@ public class JSONReader implements Reader {
             log.error("Exception while accessing JSON with query: " + query, e);
             throw e;
         }
-        return output;
+        return dataframe;
     }
 
     @Override
@@ -157,6 +158,11 @@ public class JSONReader implements Reader {
     @Override
     public void setHashVariable(boolean hashVariable) {
         this.hashVariable = hashVariable;
+    }
+
+    @Override
+    public void setOnlyDistinct(boolean onlyDistinct) {
+        log.warn("Not implemented for JSONReader");
     }
 
     @Override

@@ -34,6 +34,7 @@ public class CSVReader implements Reader {
 
     public NamedCsvReader document;
     private boolean hashVariable;
+    private boolean onlyDistinct;
 
     public CSVReader(File file) throws IOException {
         if (Files.exists(file.toPath()))
@@ -74,8 +75,12 @@ public class CSVReader implements Reader {
                 throw new IllegalArgumentException("Column " + c + " not found");
             columnCount += 1;
         }
-        // TODO Check if rowCount can be obtained to properly initialise the ArrayList capacity
-        List<Map<String, String>> output = new ArrayList<>();
+        // TODO Check if rowCount can be obtained to properly initialise the collection capacity
+        Collection<Map<String,String>> dataframe;
+        if (onlyDistinct)
+            dataframe = new ArrayList<>();
+        else
+            dataframe = new HashSet<>();
         for (NamedCsvRow row : this.document) {
             HashMap<String, String> map = new HashMap<>(columnCount);
             for (String c : columns) {
@@ -84,9 +89,9 @@ public class CSVReader implements Reader {
                 else
                     map.put(c, row.getField(c));
             }
-            output.add(map);
+            dataframe.add(map);
         }
-        return output;
+        return new ArrayList<>(dataframe);
     }
 
     @Override
@@ -107,6 +112,11 @@ public class CSVReader implements Reader {
     @Override
     public void setHashVariable(boolean hashVariable) {
         this.hashVariable = hashVariable;
+    }
+
+    @Override
+    public void setOnlyDistinct(boolean onlyDistinct) {
+        this.onlyDistinct = onlyDistinct;
     }
 
     @Override

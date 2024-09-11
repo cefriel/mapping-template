@@ -166,7 +166,7 @@ WHERE {
 #if($row.graph_template)#set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($row.graph_template)))#elseif($row.graph_reference)#set($foo = $lReferences.add($row.graph_reference))#end##
 #if($row.predicate_template)#set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($row.predicate_template)))#elseif($row.predicate_reference)#set($foo = $lReferences.add($row.predicate_reference))#end##
 #if($row.object_template)#set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($row.object_template)))#elseif($row.object_reference)#set($foo = $lReferences.add($row.object_reference))#elseif($row.object_parent_triples_map)#if($row.child_value)#set($foo = $lReferences.add($row.child_value))#end##
-#if($row.parent_value)#set($parentTriplesMap = $row.object_parent_triples_map)#set($foo = $lTriplesMaps.get($row.parentTriplesMap).get("_REFS_").add($row.parent_value))#end#end##
+#if($row.parent_value)#set($parentTriplesMap = $row.object_parent_triples_map)#set($foo = $lTriplesMaps.get($parentTriplesMap).get("_REFS_").add($row.parent_value))#end#end##
 #if($row.language_template)#set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($row.language_template)))#elseif($row.language_reference)#set($foo = $lReferences.add($row.language_reference))#end##
 #if($row.datatype_template)#set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($row.datatype_template)))#elseif($row.datatype_reference)#set($foo = $lReferences.add($row.datatype_reference))#end##
 #set($foo = $lTriplesMaps.get($row.triples_map_id).get("_REFS_").addAll($lReferences))#end##
@@ -178,13 +178,15 @@ WHERE {
 #set($refForm = $ls.ref_form)#set($sourceHash = $functions.hash($ls._source))#set($foo = $ls.put("_SOURCE_HASH_", $sourceHash))#set($lsReferences = $ls.get("_REFS_"))#set($iterator = $ls.iterator)##
 #if($refForm == "http://w3id.org/rml/CSV")${h}set(${d}reader_$sourceHash = ${d}functions.getCSVReaderFromFile("$sourceUrl"))##
 ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))##
+${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))##
 #set($stringRefs = $functions.getAsCommaSeparatedString($lsReferences))##
 #if($functions.checkString($stringRefs))${h}set(${d}columns = "$stringRefs")##
 ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe(${d}columns))#else##
 ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe())#end##
 #elseif($refForm == "http://w3id.org/rml/SQL2008Table" || $refForm == "http://w3id.org/rml/SQL2008TableName" || $refForm == "http://w3id.org/rml/SQL2008Query")##
 ${h}set(${d}reader_$sourceHash = ${d}functions.getSQLReaderFromDatabase("$ls.jdbcDSN", "$ls.user", "$ls.password"))##
-${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))#if($ls.query)#set($iterator = $ls.query)#end#if($refForm == "http://w3id.org/rml/SQL2008Table" && $ls.jdbcDSN.contains("postgres"))#set($iterator = $iterator.toLowerCase())#end##
+${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))##
+${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))#if($ls.query)#set($iterator = $ls.query)#end#if($refForm == "http://w3id.org/rml/SQL2008Table" && $ls.jdbcDSN.contains("postgres"))#set($iterator = $iterator.toLowerCase())#end##
 #set($stringRefs = $functions.getAsCommaSeparatedString($lsReferences))#if($functions.checkString($stringRefs))${h}set(${d}columns = "$stringRefs")${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getFilteredDataFrame("$iterator", ${d}columns))#else${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe("$iterator"))#end##
 ${h}set(${d}types_$sourceHash = ${d}reader_${sourceHash}.getColumnTypes("$iterator"))##
 ${h}set(${d}columns = ${d}types_${sourceHash}.keySet())##
@@ -192,6 +194,7 @@ ${h}set(${d}refColumns = $functions.getAsStringArray($lsReferences))##
 ${h}foreach(${d}column in ${d}refColumns)${h}if(!${d}columns.contains(${d}column))${d}error: "${d}column not found in ${d}dataframe_$sourceHash."${h}end${h}end## 
 #set($foo = $sqlTypes.add($sourceHash))##
 #elseif($refForm == "http://w3id.org/rml/XPath")${h}set(${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile("$sourceUrl"))##
+${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))##
 #if($functions.checkList($lsReferences))##
 #set($xmlQuery = '
     for $i in ITERATOR
@@ -209,8 +212,7 @@ ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$xmlQ
 ')#set($referenceQuery = $referenceQuery.replace("VARIABLE", $refHash))#set($ref = $ref.replace("$.",""))#set($referenceQuery = $referenceQuery.replace("REFERENCE", $ref))#set($jsonQuery = "${jsonQuery}${referenceQuery}")#end#set($jsonQuery = $jsonQuery.trim())#set($jsonQuery = $jsonQuery.substring(0, $jsonQuery.length() - 1))#set($jsonQuery = "${jsonQuery} }}")#set($jsonQuery = $functions.sanitizeJSON($jsonQuery))## 
 ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$jsonQuery'))#else##
 ${h}set(${d}dataframe_$sourceHash = [{"ITERATOR" : "ONCE"}])#end#else##
-${d}error: "No compatible Reader found."#end##
-${h}set(${d}dataframe_$sourceHash = ${d}functions.removeDuplicatedRows(${d}dataframe_$sourceHash))#end## 
+${d}error: "No compatible Reader found."#end#end## 
 #foreach($row in $mappings_content)#if($row.object_parent_triples_map)#set($childHash = $functions.hash($row._source))#set($tmParent = $lTriplesMaps.get($row.object_parent_triples_map))#set($join_hash = $functions.appendHash($tmParent._source, $row.parent_value))#set($child_df = "$dataframe_" + $childHash)#set($parentHash = $functions.hash($tmParent._source))#set($parent_df = "$dataframe_" + $parentHash)#if($row.join_condition)#set($join_variable = $functions.hash($row.parent_value))${h}if(!${d}dataframe_join_$join_hash)${h}set(${d}dataframe_join_$join_hash = ${d}functions.getListMap($parent_df, "$join_variable"))${h}end#else${h}if(!${d}dataframe_join_$join_hash)${h}set(${d}dataframe_join_$join_hash = $parent_df)${h}end#end#end#end## 
 #macro(subjectRender $stm)#set($s = $null)#if($stm.subject_template)#set($s = $functions.resolveTemplate($stm.subject_template))#elseif($stm.subject_reference)#set($s = $functions.resolveReference($stm.subject_reference))#elseif($stm.subject_constant)#set($s = $stm.subject_constant)#elseif($stm.subject_constant_shortcut)#set($s = $stm.subject_constant_shortcut)#end #if($stm.subject_termtype == "http://w3id.org/rml/BlankNode")#set($s = $functions.encodeBlankNode($s))#elseif($stm.subject_termtype == "http://w3id.org/rml/Literal")${d}error: subject can not be of type Literal.#else#set($s = $functions.encodeReferencesIRI($s, $stm.subject_termtype))#end##
 $s#end## 

@@ -21,10 +21,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.cefriel.template.io.Reader;
@@ -63,6 +60,8 @@ public class RDFReader implements Reader {
     private String baseIRI;
 
     private boolean hashVariable;
+
+    private boolean onlyDistinct;
 
     private String queryHeader;
     private String outputFormat;
@@ -154,22 +153,26 @@ public class RDFReader implements Reader {
      */
     private List<Map<String,String>> getQueryResultsStringValue(String query) {
         List<Map<String,Value>> valueResults = executeQuery(query);
-        List<Map<String,String>> results = new ArrayList<>();
+        Collection<Map<String,String>> dataframe;
+        if (onlyDistinct)
+            dataframe = new ArrayList<>();
+        else
+            dataframe = new HashSet<>();
         for(Map<String,Value> row : valueResults) {
             if (hashVariable)
-                results.add(row.entrySet().stream()
+                dataframe.add(row.entrySet().stream()
                     .collect(Collectors.toMap(
                             e -> TemplateFunctions.literalHash(e.getKey()),
                             e -> (e.getValue() != null) ? e.getValue().stringValue() : null)
                     ));
             else
-                results.add(row.entrySet().stream()
+                dataframe.add(row.entrySet().stream()
                         .collect(Collectors.toMap(
                                 Map.Entry::getKey,
                                 e -> (e.getValue() != null) ? e.getValue().stringValue() : null)
                         ));
         }
-        return results;
+        return new ArrayList<>(dataframe);
     }
 
     /**
@@ -413,6 +416,11 @@ public class RDFReader implements Reader {
     @Override
     public void setHashVariable(boolean hashVariable) {
         this.hashVariable = hashVariable;
+    }
+
+    @Override
+    public void setOnlyDistinct(boolean onlyDistinct) {
+        this.onlyDistinct = onlyDistinct;
     }
 
 }

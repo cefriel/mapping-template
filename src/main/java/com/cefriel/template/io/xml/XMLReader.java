@@ -58,6 +58,7 @@ public class XMLReader implements Reader {
     private boolean verbose;
     private boolean serializeElements;
     private boolean hashVariable;
+    private boolean onlyDistinct;
 
     public XMLReader(File file) throws Exception {
         if (Files.exists(file.toPath())) {
@@ -98,7 +99,11 @@ public class XMLReader implements Reader {
         XQueryExpression exp = sqc.compileQuery(query);
         SequenceIterator iter = exp.iterator(dynamicContext);
         // TODO Check if rowCount can be obtained to properly initialise the ArrayList capacity
-        List<Map<String, String>> results = new ArrayList<>();
+        Collection<Map<String,String>> dataframe;
+        if (onlyDistinct)
+            dataframe = new ArrayList<>();
+        else
+            dataframe = new HashSet<>();
 
         while (true) {
             Item item = iter.next();
@@ -144,10 +149,10 @@ public class XMLReader implements Reader {
                     map.put(DEFAULT_KEY, value);
             }
 
-            results.add(map);
+            dataframe.add(map);
         }
 
-        return results;
+        return new ArrayList<>(dataframe);
     }
 
     private String serializeElement(GroundedValue o) throws Exception {
@@ -249,6 +254,11 @@ public class XMLReader implements Reader {
     @Override
     public void setHashVariable(boolean hashVariable) {
         this.hashVariable = hashVariable;
+    }
+
+    @Override
+    public void setOnlyDistinct(boolean onlyDistinct) {
+        this.onlyDistinct = onlyDistinct;
     }
 
 }
