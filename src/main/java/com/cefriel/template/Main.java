@@ -19,8 +19,8 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
-import com.cefriel.template.io.sql.SQLReader;
-import com.cefriel.template.utils.*;
+import com.cefriel.template.utils.TemplateFunctions;
+import com.cefriel.template.utils.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,32 +29,31 @@ import javax.tools.ToolProvider;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.*;
-
-import static com.cefriel.template.utils.Util.validInputFormat;
+import java.util.List;
 
 public class Main {
 	@Parameter(names={"--template","-t"})
-	private String templatePath = "template.vm";
+	private Path templatePath = Path.of("template.vm");
 	@Parameter(names={"--input","-i"},
 			variableArity = true)
-	private List<String> inputFilesPaths = null;
+	private List<Path> inputFilesPaths = null;
 	@Parameter(names={"--input-format","-if"})
 	private String inputFormat = null;
 	@Parameter(names={"--baseiri","-iri"})
 	private String baseIri = "http://www.cefriel.com/data/";
 	@Parameter(names={"--basepath","-b"})
-	private String basePath = "./";
+	private Path basePath;
 	@Parameter(names={"--output","-o"})
-	private String destinationPath = "output.txt";
+	private Path destinationPath = Path.of("output.txt");
 	@Parameter(names={"--key-value","-kv"})
-	private String keyValuePairsPath;
+	private Path keyValuePairsPath;
 	@Parameter(names={"--key-value-csv","-kvc"})
-	private String keyValueCsvPath;
+	private Path keyValueCsvPath;
 	@Parameter(names={"--format","-f"})
 	private String format;
 	@Parameter(names={"--compile-rml","-rml"})
@@ -76,18 +75,17 @@ public class Main {
 	@Parameter(names={"--contextIRI","-c"})
 	private String context;
 	@Parameter(names={"--query","-q"})
-	private String queryPath;
+	private Path queryPath;
 	@Parameter(names={"--debug-query","-dq"})
 	private boolean debugQuery;
 	@Parameter(names={"--verbose","-v"})
 	private boolean verbose;
 	@Parameter(names={"--time","-tm"})
-	private String timePath;
+	private Path timePath;
 	@Parameter(names={"--functions","-fun"})
-	private String functionsPath;
+	private Path functionsPath;
 
-    private final Logger log = LoggerFactory.getLogger(Main.class);
-
+	private final Logger log = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String ... argv) throws Exception {
 
@@ -103,61 +101,28 @@ public class Main {
 	}
 
 	public void updateBasePath(){
-		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
-		templatePath = basePath + templatePath;
-		if (inputFilesPaths != null)
-			for (int i = 0; i < inputFilesPaths.size(); i++)
-				if(inputFilesPaths.get(i) != null)
-					inputFilesPaths.set(i, basePath + inputFilesPaths.get(i));
-
-		destinationPath = basePath + destinationPath;
-		if (queryPath != null)
-			queryPath = basePath + queryPath;
-		if (keyValueCsvPath != null)
-			keyValueCsvPath = basePath + keyValueCsvPath;
-		if (keyValuePairsPath != null)
-			keyValuePairsPath = basePath + keyValuePairsPath;
-		if (timePath != null)
-			timePath = basePath + timePath;
-	}
-
-	public boolean validateInputFiles(List<String> inputFilesPaths, String format) {
-		if (inputFilesPaths == null && inputFormat == null) {
-			//case when Reader is created directly in the template
-			return true;
+		if (basePath != null) {
+		    templatePath = basePath.resolve(templatePath);
+			if (inputFilesPaths != null)
+				for (int i = 0; i < inputFilesPaths.size(); i++)
+					if(inputFilesPaths.get(i) != null)
+						inputFilesPaths.set(i, basePath.resolve(inputFilesPaths.get(i)));
+			destinationPath = basePath.resolve(destinationPath);
+			if (queryPath != null)
+				queryPath = basePath.resolve(queryPath);
+			if (keyValueCsvPath != null)
+				keyValueCsvPath = basePath.resolve(keyValueCsvPath);
+			if (keyValuePairsPath != null)
+				keyValuePairsPath = basePath.resolve(keyValuePairsPath);
+			if (timePath != null)
+				timePath = basePath.resolve(timePath);
+			if (functionsPath != null)
+				functionsPath = basePath.resolve(functionsPath);
 		}
-
-		if (!validInputFormat(format)){
-			throw new IllegalArgumentException("FORMAT: " + format + " is not a supported input");
-		}
-
-		if(inputFilesPaths != null) {
-			if(inputFilesPaths.isEmpty()) {
-				throw new IllegalArgumentException("No input file is provided");
-			} else if(!format.equals("rdf")) {
-				throw new IllegalArgumentException("Multiple input files are supported only for rdf files");
-			}
-		}
-		return true;
 	}
 
 	public void exec() throws Exception {
-
-		Reader reader = null;
-
-		if (validateInputFiles(inputFilesPaths, inputFormat)) {
-			if (inputFormat != null) {
-				if (inputFormat.equals("rdf")) {
-					reader = Util.createRDFReader(inputFilesPaths, dbAddress, dbId, context, baseIri);
-				} else if (inputFormat.equals("mysql") || inputFormat.equals("postgresql"))   {
-					reader = new SQLReader(inputFormat, dbAddress, dbId, username, password);
-				}
-				else {
-					String inputFilePath = inputFilesPaths.get(0);
-					reader = Util.createNonRdfReader(inputFilePath, inputFormat);
-				}
-			}
-		}
+		Reader reader = Util.createReader(inputFormat, inputFilesPaths, dbAddress, dbId, context, baseIri, username, password);
 
 		if (reader != null) {
 			reader.setVerbose(verbose);
@@ -166,7 +131,7 @@ public class Main {
 				if (queryPath == null)
 					log.error("Provide a query using the --query option");
 				else {
-					String debugQueryFromFile = Files.readString(Paths.get(queryPath));
+					String debugQueryFromFile = Files.readString(queryPath);
 					reader.debugQuery(debugQueryFromFile, destinationPath);
 				}
 			}
@@ -194,10 +159,10 @@ public class Main {
 		// TODO Add functions using Decorator pattern so that they are added transparently to TemplateFunctions or RMLTemplateFunctions
 		if (functionsPath != null) {
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-			File utilsFile = new File(functionsPath);
+			File utilsFile = functionsPath.toFile();
 			compiler.run(null, null, null, utilsFile.getPath());
-
-			File classDir = new File(utilsFile.getParent());
+			File classDir = functionsPath.getParent() != null ?
+					functionsPath.getParent().toFile() : Path.of("./").resolve(functionsPath).toFile();
 			URLClassLoader classLoader = URLClassLoader.newInstance(new URL[]{(classDir).toURI().toURL()});
 
 			// List all the files in the directory and identify the class file

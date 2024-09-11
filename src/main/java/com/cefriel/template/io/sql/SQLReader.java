@@ -19,12 +19,10 @@ package com.cefriel.template.io.sql;
 import com.cefriel.template.io.Reader;
 
 import com.cefriel.template.utils.TemplateFunctions;
-import org.eclipse.rdf4j.query.algebra.Str;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidParameterException;
 import java.sql.*;
 import java.sql.Statement;
@@ -33,18 +31,32 @@ import java.util.*;
 public class SQLReader implements Reader {
 
     private final Logger log = LoggerFactory.getLogger(SQLReader.class);
-
+  
     private Connection conn;
-
     private List<String> tables = new ArrayList<>();
-
     private String queryHeader;
     private boolean verbose;
+
     private static final Object lock = new Object();
     private boolean hashVariable;
     private boolean onlyDistinct;
     private boolean useDoubleQuotes;
 
+    public boolean checkTableExists(String table, Connection connection) {
+        List<String> tables = new ArrayList<>();
+        try {
+            PreparedStatement tablesQueryStatement;
+            String dbDriver = connection.getMetaData().getDatabaseProductName();
+            String databaseName = connection.getCatalog();
+            // Prepare and execute table query based on the database driver
+            if (dbDriver.equalsIgnoreCase("mysql")) {
+                tablesQueryStatement = connection.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = ?;");
+                tablesQueryStatement.setString(1, databaseName);
+            } else if (dbDriver.equalsIgnoreCase("postgresql")) {
+                tablesQueryStatement = connection.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'");
+            } else {
+                throw new IllegalArgumentException("SQLReader does not support " + dbDriver);
+            }
 
     public SQLReader(String jdbcDSN, String username, String password) {
         if (!jdbcDSN.contains("jdbc:"))
@@ -77,6 +89,13 @@ public class SQLReader implements Reader {
         } catch (SQLException e) {
             log.error("Error connecting to the database: " + e.getMessage(), e);
         }
+        return tables.contains(table);
+    }
+    public SQLReader(String driver, String url, String database, String username, String password) throws SQLException {
+        if (!url.contains("jdbc:"))
+            url = "jdbc:" + driver + "://" + url + "/" + database;
+        log.info("Connection to database with URL: " + url);
+        conn = DriverManager.getConnection(url, username, password);
     }
 
     public SQLReader(String driver, String url, String database, String username, String password) {
@@ -222,8 +241,6 @@ public class SQLReader implements Reader {
      */
     public List<Map<String, String>> getFilteredDataFrame(String query, String filterVariables) {
         String queryCheck = query.toLowerCase();
-        List<Map<String, String>> dataframe = new ArrayList<>();
-
         if (!queryCheck.contains("select")) {
             if (tables.contains(query)) {
                 if (filterVariables != null) {
@@ -366,7 +383,7 @@ public class SQLReader implements Reader {
     @Override
     public void setOutputFormat(String outputFormat) {
     }
-
+          
     @Override
     public void setHashVariable(boolean hashVariable) {
         this.hashVariable = hashVariable;

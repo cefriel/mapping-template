@@ -18,10 +18,12 @@ package com.cefriel.template;
 
 import com.cefriel.template.io.rdf.RDFReader;
 import com.cefriel.template.utils.TemplateFunctions;
+import com.cefriel.template.utils.Util;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
+import org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +31,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 
 public class RDFReaderTests {
@@ -37,12 +40,10 @@ public class RDFReaderTests {
     }
     @Test
     public void agencyTestFile() throws Exception {
-        Repository repo = new SailRepository(new MemoryStore());
-        RDFReader reader = new RDFReader(repo);
-        reader.setBaseIRI("http://www.cefriel.com/data/");
-
         String folder = "agency";
-        reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
+        String baseIri = "http://www.cefriel.com/data/";
+        RDFReader reader = (RDFReader) Util.createInMemoryReader("rdf", List.of(Paths.get(resolvePath(folder, "input.ttl"))), null, baseIri);
+
         TemplateExecutor executor = new TemplateExecutor();
         Path template = Paths.get(resolvePath(folder, "template.vm"));
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")));
@@ -54,11 +55,11 @@ public class RDFReaderTests {
     }
     @Test
     public void agencyMultipleInputFile() throws Exception {
-        Repository repo = new SailRepository(new MemoryStore());
-        RDFReader reader = new RDFReader(repo);
-        reader.setBaseIRI("http://www.cefriel.com/data/");
-
         String folder = "agency-multiple-input";
+        String baseIri = "http://www.cefriel.com/data/";
+
+        RDFReader reader = new RDFReader();
+        reader.setBaseIRI(baseIri);
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
         reader.addFile(resolvePath(folder, "input2.ttl"), RDFFormat.TURTLE);
         TemplateExecutor executor = new TemplateExecutor();
@@ -74,10 +75,8 @@ public class RDFReaderTests {
     }
     @Test
     public void agencyParametric() throws Exception {
-        Repository repo = new SailRepository(new MemoryStore());
-        RDFReader reader = new RDFReader(repo);
+        RDFReader reader = new RDFReader();
         reader.setBaseIRI("http://www.cefriel.com/data/");
-
         String folder = "agency-parametric";
         reader.addFile(resolvePath(folder, "input.ttl"), RDFFormat.TURTLE);
         TemplateExecutor executor = new TemplateExecutor();
@@ -97,8 +96,7 @@ public class RDFReaderTests {
 
     @Test
     public void agencyParametricStream() throws Exception {
-        Repository repo = new SailRepository(new MemoryStore());
-        RDFReader reader = new RDFReader(repo);
+        RDFReader reader = new RDFReader();
         reader.setBaseIRI("http://www.cefriel.com/data/");
 
         TemplateExecutor executor = new TemplateExecutor();

@@ -18,17 +18,14 @@ package com.cefriel.template.io.csv;
 
 import com.cefriel.template.io.Reader;
 import com.cefriel.template.utils.TemplateFunctions;
-import de.siegmar.fastcsv.reader.CsvReader;
-import de.siegmar.fastcsv.reader.CsvRow;
 import de.siegmar.fastcsv.reader.NamedCsvReader;
 import de.siegmar.fastcsv.reader.NamedCsvRow;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.InvalidParameterException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CSVReader implements Reader {
 
@@ -40,10 +37,10 @@ public class CSVReader implements Reader {
         if (Files.exists(file.toPath()))
             this.document = NamedCsvReader.builder().build(file.toPath());
         else
-            throw new IllegalArgumentException("FILE: " + file.getPath() + " FOR CSVREADER DOES NOT EXIST");
+            throw new IllegalArgumentException("File does not exist: " + file.getPath());
     }
 
-    public CSVReader(String csv) throws IOException {
+    public CSVReader(String csv) {
         this.document = NamedCsvReader.builder().build(csv);
     }
     @Override
@@ -55,12 +52,13 @@ public class CSVReader implements Reader {
     public void appendQueryHeader(String s) {
 
     }
-
+  
     public List<Map<String, String>> getDataframe() throws Exception {
         Set<String> headers = this.document.getHeader();
         String[] columns = headers.toArray(new String[0]);
         return getDataframe(columns);
     }
+
     @Override
     public List<Map<String, String>> getDataframe(String query) throws Exception {
         String[] columns = query.split(",");
@@ -69,6 +67,11 @@ public class CSVReader implements Reader {
 
     public List<Map<String, String>> getDataframe(String... columns) throws Exception {
         Set<String> headers = this.document.getHeader();
+        
+        // Return entire dataframe if no columns are provided or if empty string is provided
+        if ((columns == null || columns.length == 0) || (columns.length == 1 && columns[0].isEmpty()))
+            return getDataframe();
+      
         int columnCount = 0;
         for(String c : columns) {
             if (!headers.contains(c))
@@ -95,7 +98,7 @@ public class CSVReader implements Reader {
     }
 
     @Override
-    public void debugQuery(String query, String destinationPath) throws Exception {
+    public void debugQuery(String query, Path destinationPath) throws Exception {
 
     }
 

@@ -340,8 +340,10 @@ public class TemplateFunctions {
      * @throws Exception
      */
     public RDFReader getRDFReaderForRepository(String address, String repositoryId, String context) throws Exception {
-        if (context != null) return new RDFReader(address, repositoryId, context);
-        else return new RDFReader(address, repositoryId);
+        if (context != null) 
+          return new RDFReader(address, repositoryId, context);
+        else 
+          return new RDFReader(address, repositoryId);
     }
 
     /**

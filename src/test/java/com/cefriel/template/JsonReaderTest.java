@@ -18,6 +18,7 @@ package com.cefriel.template;
 
 import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.utils.TemplateFunctions;
+import com.cefriel.template.utils.Util;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -25,12 +26,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 public class JsonReaderTest {
 
     @Test
     public void jsonTest() throws Exception {
-        JSONReader reader = new JSONReader(new File("src/test/resources/json/example.json"));
+        JSONReader reader = (JSONReader) Util.createReader("json", List.of(Paths.get("src/test/resources/json/example.json")), null, null, null, null, null, null);
         TemplateExecutor executor = new TemplateExecutor();
         Path template = Paths.get("src/test/resources/json/template.vm");
 

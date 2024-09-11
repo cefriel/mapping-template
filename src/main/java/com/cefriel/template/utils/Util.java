@@ -24,6 +24,7 @@ import com.cefriel.template.io.json.JSONFormatter;
 import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.io.rdf.RDFFormatter;
 import com.cefriel.template.io.rdf.RDFReader;
+import com.cefriel.template.io.sql.SQLReader;
 import com.cefriel.template.io.xml.XMLFormatter;
 import com.cefriel.template.io.xml.XMLReader;
 import org.apache.velocity.VelocityContext;
@@ -51,6 +52,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidParameterException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -59,70 +62,78 @@ public class Util {
     public static boolean validInputFormat(String format) {
         return MappingTemplateConstants.INPUT_FORMATS.contains(format);
     }
-    public static Reader createNonRdfReaderFromInput(String input, String format) throws Exception {
-        if (validInputFormat(format)) {
-            Reader reader = null;
-            if (format.equals("xml")) {
-                reader = new XMLReader(input);
-            }
-            else if (format.equals("json")) {
-                reader = new JSONReader(input);
-            }
-            else if (format.equals("csv")) {
-                reader = new CSVReader(input);
-            }
-            else
-                throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
-            return reader;
-        }
-        else throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
-    }
-    public static Reader createNonRdfReader(String filePath, String format) throws Exception {
-        if (validInputFormat(format)) {
-            File f = new File(filePath);
-            Reader reader = null;
-            if (format.equals("xml")) {
-                reader = new XMLReader(f);
-            }
-            else if (format.equals("json")) {
-                reader = new JSONReader(f);
-            }
-            else if (format.equals("csv")) {
-                reader = new CSVReader(f);
-            }
-            else
-                throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
+    public static Reader createRemoteReader(String inputFormat, String dbUrl, String dbId, String username, String password,String graphName, String baseIri) throws SQLException {
+        if (!validInputFormat(inputFormat))
+            throw new UnsupportedOperationException("Unsupported Reader format: " + inputFormat);
 
-            return reader;
+        switch (inputFormat) {
+            case "rdf":
+                RDFReader rdfReader = new RDFReader(dbUrl, dbId);
+                if (graphName != null)
+                    rdfReader.setContext(graphName);
+                if (baseIri != null)
+                    rdfReader.setBaseIRI(baseIri);
+            case "mysql":
+            case "postgresql":
+                return new SQLReader(inputFormat, dbUrl, dbId, username, password);
+            default: throw new InvalidParameterException("Cannot create Reader for inputFormat: " + inputFormat);
         }
-        else throw new IllegalArgumentException("A reader for FORMAT: " + format + " is not supported");
     }
-    public static RDFReader createRDFReader(String graphName, String baseIri, Repository repository) {
-        RDFReader reader = new RDFReader(repository);
-        reader.setContext(graphName);
-        reader.setBaseIRI(baseIri);
-        return reader;
-    }
-    public static RDFReader createRDFReader(List<String> inputFilesPaths, String repositoryUrl, String repositoryId, String graphName, String baseIri) throws Exception {
-        if (inputFilesPaths != null) {
-            Repository repo;
-            if ((repositoryUrl != null) && (repositoryId != null)) {
-                repo = new HTTPRepository(repositoryUrl, repositoryId);
-            } else {
-                repo = new SailRepository(new MemoryStore());
-            }
-            RDFReader rdfReader = createRDFReader(graphName, baseIri, repo);
-            RDFFormat format;
-            for (String triplesPath : inputFilesPaths)
-                if ((new File(triplesPath)).exists()) {
-                    format = Rio.getParserFormatForFileName(triplesPath).orElse(RDFFormat.TURTLE);
-                    rdfReader.addFile(triplesPath, format);
-                }
-            return rdfReader;
+    public static Reader createInMemoryReader(String inputFormat, List<Path> inputFilesPaths, String graphName, String baseIri) throws Exception {
+        if (!validInputFormat(inputFormat))
+            throw new UnsupportedOperationException("Unsupported Reader format: " + inputFormat);
+
+        if(inputFilesPaths.isEmpty() && !inputFormat.equals("rdf"))
+            // an rdf reader can be initialized (when not created from cli) and then files can be added to it with the addFile method
+            throw new InvalidParameterException("Cannot create a " + inputFormat + "Reader with no input file");
+
+        switch (inputFormat) {
+            case "json":
+                if (inputFilesPaths.size() > 1)
+                    throw new InvalidParameterException("Cannot create JSONReader with more than one input file.");
+                else
+                    return new JSONReader(inputFilesPaths.get(0).toFile());
+            case "xml":
+                if (inputFilesPaths.size() > 1)
+                    throw new InvalidParameterException("Cannot create XMLReader with more than one input file.");
+                else
+                    return new XMLReader(inputFilesPaths.get(0).toFile());
+            case "csv":
+                if (inputFilesPaths.size() > 1)
+                    throw new InvalidParameterException("Cannot create CSVReader with more than one input file.");
+                else
+                    return new CSVReader(inputFilesPaths.get(0).toFile());
+            case "rdf":
+                RDFReader rdfReader = new RDFReader();
+                for (Path triplesFile : inputFilesPaths)
+                    rdfReader.addFile(triplesFile.toString());
+                if (graphName != null)
+                    rdfReader.setContext(graphName);
+                if (baseIri != null)
+                    rdfReader.setBaseIRI(baseIri);
+                return rdfReader;
+            default: throw new InvalidParameterException("Cannot create Reader for inputFormat: " + inputFormat);
         }
-        return null;
     }
 
+    public static Reader createReader(String inputFormat, List<Path> inputFilesPaths, String dbAddress, String dbId, String graphName, String baseIri, String username, String password) throws Exception {
+        if (inputFilesPaths == null && inputFormat == null) {
+            //case when Reader is created directly in the template
+            return null;
+        }
+        // determine if trying to create remote or in memory Reader
+        // if dbadress is specified then it is remote
+        boolean isRemoteReader = (dbAddress != null) ;
+
+        if (isRemoteReader) {
+            return createRemoteReader(inputFormat, dbAddress, dbId, username, password, graphName, baseIri);
+        }
+        else {
+            return createInMemoryReader(inputFormat, inputFilesPaths, graphName, baseIri);
+        }
+
+
+    }
     public static boolean validFormatterFormat(String format) {
         return MappingTemplateConstants.FORMATTER_FORMATS.contains(format);
     }

@@ -40,9 +40,8 @@ public class TemplateMap extends HashMap<String, String> {
         putAll(map);
     }
 
-    public TemplateMap(String filePath, boolean isCsv) throws IOException {
-        Path path = FileSystems.getDefault().getPath(filePath);
-        Stream<String> lines = Files.lines(path);
+    public TemplateMap(Path filePath, boolean isCsv) throws IOException {
+        Stream<String> lines = Files.lines(filePath);
         if (isCsv)
             putAll(parseCsvMap(lines));
         else

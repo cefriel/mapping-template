@@ -16,6 +16,7 @@
 
 package com.cefriel.template.io;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +52,7 @@ public interface Reader {
      * @param destinationPath The path of the destination file
      * @throws Exception
      */
-    void debugQuery(String query, String destinationPath) throws Exception;
+    void debugQuery(String query, Path destinationPath) throws Exception;
 
     /**
      * If {@code verbose} is set, debug information about executed queries are logged
