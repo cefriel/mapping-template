@@ -199,7 +199,7 @@ public class Main {
 			String baseIriRML = rmlCompilerUtils.getBaseIRI(templatePath);
 			baseIriRML = baseIriRML != null ? baseIriRML : baseIri;
 			rmlMap.put("baseIRI", baseIriRML);
-			rmlMap.put("basePath", basePath.toString());
+			rmlMap.put("basePath", basePath.toString() + "/");
 
 			Path compiledTemplatePath = Paths.get(basePath + "template.rml.vm");
 
