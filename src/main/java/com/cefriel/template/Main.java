@@ -19,6 +19,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
+import com.cefriel.template.utils.RMLCompilerUtils;
 import com.cefriel.template.utils.TemplateFunctions;
 import com.cefriel.template.utils.Util;
 import org.slf4j.Logger;
@@ -29,12 +30,13 @@ import javax.tools.ToolProvider;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
 	@Parameter(names={"--template","-t"})
@@ -154,9 +156,7 @@ public class Main {
 				reader.setOutputFormat(format);
 		}
 
-		// TODO compileRML ? new RMLTemplateFunctions() : new TemplateFunctions();
-		TemplateFunctions templateFunctions = new RMLTemplateFunctions();
-		// TODO Add functions using Decorator pattern so that they are added transparently to TemplateFunctions or RMLTemplateFunctions
+		TemplateFunctions templateFunctions = new TemplateFunctions();
 		if (functionsPath != null) {
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 			File utilsFile = functionsPath.toFile();
@@ -180,12 +180,10 @@ public class Main {
 			}
 		}
 
-		Path template = Paths.get(templatePath);
-
 		if(compileRML) {
-			Util.validateRML(template, verbose);
+			Util.validateRML(templatePath, verbose);
 
-			Reader compilerReader = templateFunctions.getRDFReaderFromFile(templatePath);
+			Reader compilerReader = TemplateFunctions.getRDFReaderFromFile(templatePath.toString());
 
 			Path rmlCompiler;
 			if (trimTemplate) {
@@ -198,37 +196,37 @@ public class Main {
 
 			Map<String,String> rmlMap = new HashMap<>();
 			// Extract base IRI if provided
-			String baseIriRML = rmlCompilerUtils.getBaseIRI(template);
+			String baseIriRML = rmlCompilerUtils.getBaseIRI(templatePath);
 			baseIriRML = baseIriRML != null ? baseIriRML : baseIri;
 			rmlMap.put("baseIRI", baseIriRML);
-			rmlMap.put("basePath", basePath);
+			rmlMap.put("basePath", basePath.toString());
 
 			Path compiledTemplatePath = Paths.get(basePath + "template.rml.vm");
 
 			tl.executeMapping(compilerReader, rmlCompiler, true, false, false,
 					compiledTemplatePath, new TemplateMap(rmlMap), null, new RMLCompilerUtils());
-			template = compiledTemplatePath;
+			templatePath = compiledTemplatePath;
 		}
 
 		try {
-			if (timePath != null)
-				try (FileWriter pw = new FileWriter(timePath, true)) {
+			if(timePath != null)
+				try (FileWriter pw = new FileWriter(timePath.toFile(), true)) {
 					long start = Instant.now().toEpochMilli();
-					if (queryPath != null)
-						tl.executeMappingParametric(reader, template, templateInResources, failInvalidRef, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+					if(queryPath != null)
+						tl.executeMappingParametric(reader, templatePath, templateInResources, failInvalidRef, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
 					else
-						tl.executeMapping(reader, template, templateInResources, failInvalidRef, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+						tl.executeMapping(reader, templatePath, templateInResources, failInvalidRef, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
 					long duration = Instant.now().toEpochMilli() - start;
-					pw.write(template + "," + destinationPath + "," + duration + "\n");
+					pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
 				}
-			else {
-				if (queryPath != null)
-					tl.executeMappingParametric(reader, template, templateInResources, failInvalidRef, trimTemplate, Paths.get(queryPath), Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+			else{
+				if(queryPath != null)
+					tl.executeMappingParametric(reader, templatePath, templateInResources, failInvalidRef, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
 				else
-					tl.executeMapping(reader, template, templateInResources, failInvalidRef, trimTemplate, Paths.get(destinationPath), templateMap, formatter, templateFunctions);
+					tl.executeMapping(reader, templatePath, templateInResources, failInvalidRef, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
 			}
 		} catch (Exception e) {
-			Files.deleteIfExists(Paths.get(destinationPath));
+			Files.deleteIfExists(destinationPath);
 			throw e;
 		}
 

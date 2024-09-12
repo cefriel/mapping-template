@@ -31,6 +31,7 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 public class TemplateFunctions {
 
     private String prefix;
+    private String baseIRI;
 
     /**
      * If a prefix is set, removes it from the parameter {@code String s}. If a prefix is not set,
@@ -77,7 +79,7 @@ public class TemplateFunctions {
      * @param substring Pattern to get the substring
      * @return Suffix substring
      */
-    public String sp(String s, String substring) {
+    public static String sp(String s, String substring) {
         if (s != null) {
             return s.substring(s.indexOf(substring) + substring.length());
         }
@@ -92,7 +94,7 @@ public class TemplateFunctions {
      * @param substring Pattern to get the substring
      * @return Prefix substring
      */
-    public String p(String s, String substring) {
+    public static String p(String s, String substring) {
         if (s != null) {
             return s.substring(0, s.indexOf(substring));
         }
@@ -107,7 +109,7 @@ public class TemplateFunctions {
      * @param replacement String to be used as replacement
      * @return Modified string
      */
-    public String replace(String s, String regex, String replacement) {
+    public static String replace(String s, String regex, String replacement) {
         if (s != null) return s.replaceAll(regex, replacement);
         return null;
     }
@@ -117,7 +119,7 @@ public class TemplateFunctions {
      *
      * @return A new line char.
      */
-    public String newline() {
+    public static String newline() {
         return "\n";
     }
 
@@ -160,7 +162,7 @@ public class TemplateFunctions {
      * @param key     The variable to be used to build the map
      * @return Map associating to each value of the variable {@code key} a row of the query results.
      */
-    public Map<String, Map<String, String>> getMap(List<Map<String, String>> results, String key) {
+    public static Map<String, Map<String, String>> getMap(List<Map<String, String>> results, String key) {
         Map<String, Map<String, String>> results_map = new HashMap<>();
         if (results != null) {
             for (Map<String, String> result : results)
@@ -177,7 +179,7 @@ public class TemplateFunctions {
      * @param key     The variable to be used to build the map
      * @return Map associating to each value of the variable {@code key} a {@link java.util.List} of rows in the query results.
      */
-    public Map<String, List<Map<String, String>>> getListMap(List<Map<String, String>> results, String key) {
+    public static Map<String, List<Map<String, String>>> getListMap(List<Map<String, String>> results, String key) {
         Map<String, List<Map<String, String>>> results_map = new HashMap<>();
         if (results != null) {
             for (Map<String, String> result : results)
@@ -188,7 +190,7 @@ public class TemplateFunctions {
         return results_map;
     }
 
-    public List<Map<String, String>> splitColumn(List<Map<String, String>> df, String columnName, String regex) {
+    public static List<Map<String, String>> splitColumn(List<Map<String, String>> df, String columnName, String regex) {
         for (Map<String, String> row : df) {
             String[] values = row.get(columnName).split(regex);
             Map<String, String> x = new HashMap<>();
@@ -208,7 +210,7 @@ public class TemplateFunctions {
      * @param <T> Type of objects contained in the list
      * @return boolean
      */
-    public <T> boolean checkList(List<T> l) {
+    public static <T> boolean checkList(List<T> l) {
         return l != null && !l.isEmpty();
     }
 
@@ -220,7 +222,7 @@ public class TemplateFunctions {
      * @param <T> Type of objects contained in the list
      * @return boolean
      */
-    public <T> boolean checkList(List<T> l, T o) {
+    public static <T> boolean checkList(List<T> l, T o) {
         return checkList(l) && l.contains(o);
     }
 
@@ -232,7 +234,7 @@ public class TemplateFunctions {
      * @param <V> Type for values in the map
      * @return boolean
      */
-    public <K, V> boolean checkMap(Map<K, V> m) {
+    public static <K, V> boolean checkMap(Map<K, V> m) {
         return m != null && !m.isEmpty();
     }
 
@@ -245,7 +247,7 @@ public class TemplateFunctions {
      * @param <V> Type for values in the map
      * @return boolean
      */
-    public <K, V> boolean checkMap(Map<K, V> m, K key) {
+    public static <K, V> boolean checkMap(Map<K, V> m, K key) {
         return checkMap(m) && m.containsKey(key);
     }
 
@@ -260,11 +262,11 @@ public class TemplateFunctions {
      * @param defaultValue Value to return when key is not found in map. Defaults to null if not passed as parameter.
      * @return The value of type {@code V} associated with {@code key} in the map
      */
-    public <K, V> V getMapValue(Map<K, V> map, K key, V defaultValue) {
+    public static <K, V> V getMapValue(Map<K, V> map, K key, V defaultValue) {
         return checkMap(map, key) ? map.get(key) : defaultValue;
     }
 
-    public <K, V> V getMapValue(Map<K, V> map, K key) {
+    public static <K, V> V getMapValue(Map<K, V> map, K key) {
         return getMapValue(map, key, null);
     }
 
@@ -278,7 +280,7 @@ public class TemplateFunctions {
      * @param <V>     Type for lists used as value in the map
      * @return The list of type {@code V} associated with {@code key} in the map
      */
-    public <K, V> List<V> getListMapValue(Map<K, List<V>> listMap, K key) {
+    public static <K, V> List<V> getListMapValue(Map<K, List<V>> listMap, K key) {
         if (checkMap(listMap, key)) return listMap.get(key);
         else return new ArrayList<>();
     }
@@ -290,7 +292,7 @@ public class TemplateFunctions {
      * @return the file's contents
      * @throws IOException if read fails for any reason
      */
-    public String getFileAsString(String fileName) throws IOException {
+    public static String getFileAsString(String fileName) throws IOException {
         String content = Files.readString(Paths.get(fileName));
         return content;
     }
@@ -303,7 +305,7 @@ public class TemplateFunctions {
      * @return An RDFReader
      * @throws Exception
      */
-    public RDFReader getRDFReaderFromFile(String fileName) throws Exception {
+    public static RDFReader getRDFReaderFromFile(String fileName) throws Exception {
         RDFReader rdfReader = new RDFReader();
         if (fileName != null) if ((new File(fileName)).exists()) {
             RDFFormat format = Rio.getParserFormatForFileName(fileName).orElse(RDFFormat.TURTLE);
@@ -322,7 +324,7 @@ public class TemplateFunctions {
      * @return An RDFReader
      * @throws Exception
      */
-    public RDFReader getRDFReaderFromString(String s, String MIMEType) throws Exception {
+    public static RDFReader getRDFReaderFromString(String s, String MIMEType) throws Exception {
         Repository repo = new SailRepository(new MemoryStore());
         RDFReader rdfReader = new RDFReader(repo);
         RDFFormat rdfFormat = Rio.getParserFormatForMIMEType(MIMEType).orElse(RDFFormat.TURTLE);
@@ -339,7 +341,7 @@ public class TemplateFunctions {
      * @return An RDFReader
      * @throws Exception
      */
-    public RDFReader getRDFReaderForRepository(String address, String repositoryId, String context) throws Exception {
+    public static RDFReader getRDFReaderForRepository(String address, String repositoryId, String context) throws Exception {
         if (context != null) 
           return new RDFReader(address, repositoryId, context);
         else 
@@ -353,7 +355,7 @@ public class TemplateFunctions {
      * @return An XMLReader
      * @throws Exception
      */
-    public XMLReader getXMLReaderFromFile(String fileName) throws Exception {
+    public static XMLReader getXMLReaderFromFile(String fileName) throws Exception {
         File xmlDocument = new File(fileName);
         return new XMLReader(xmlDocument);
     }
@@ -365,7 +367,7 @@ public class TemplateFunctions {
      * @return An XMLReader
      * @throws Exception
      */
-    public XMLReader getXMLReaderFromString(String s) throws Exception {
+    public static XMLReader getXMLReaderFromString(String s) throws Exception {
         if (s != null) {
             return new XMLReader(s);
         }
@@ -379,7 +381,7 @@ public class TemplateFunctions {
      * @return A JSONReader
      * @throws Exception
      */
-    public JSONReader getJSONReaderFromFile(String fileName) throws Exception {
+    public static JSONReader getJSONReaderFromFile(String fileName) throws Exception {
         File jsonDocument = new File(fileName);
         return new JSONReader(jsonDocument);
     }
@@ -391,7 +393,7 @@ public class TemplateFunctions {
      * @return An JSONReader
      * @throws Exception
      */
-    public JSONReader getJSONReaderFromString(String s) throws Exception {
+    public static JSONReader getJSONReaderFromString(String s) throws Exception {
         if (s != null) {
             return new JSONReader(s);
         }
@@ -405,7 +407,7 @@ public class TemplateFunctions {
      * @return A CSVReader
      * @throws Exception
      */
-    public CSVReader getCSVReaderFromFile(String fileName) throws Exception {
+    public static CSVReader getCSVReaderFromFile(String fileName) throws Exception {
         File f = new File(fileName);
         return new CSVReader(f);
     }
@@ -417,7 +419,7 @@ public class TemplateFunctions {
      * @return A CSVReader
      * @throws Exception
      */
-    public CSVReader getCSVReaderFromString(String s) throws Exception {
+    public static CSVReader getCSVReaderFromString(String s) throws Exception {
         if (s != null) {
             return new CSVReader(s);
         }
@@ -435,7 +437,7 @@ public class TemplateFunctions {
      * @return An SQLReader
      * @throws Exception
      */
-    public SQLReader getSQLReaderFromDatabase(String driver, String url, String databaseName, String username, String password) throws Exception {
+    public static SQLReader getSQLReaderFromDatabase(String driver, String url, String databaseName, String username, String password) throws Exception {
         return new SQLReader(driver, url, databaseName, username, password);
     }
 
@@ -448,7 +450,7 @@ public class TemplateFunctions {
      * @return An SQLReader
      * @throws Exception
      */
-    public SQLReader getSQLReaderFromDatabase(String jdbcDSN, String username, String password) throws Exception {
+    public static SQLReader getSQLReaderFromDatabase(String jdbcDSN, String username, String password) throws Exception {
         return new SQLReader(jdbcDSN, username, password);
     }
 
@@ -459,166 +461,12 @@ public class TemplateFunctions {
      * @param otherResults Results to be merged
      * @return Merged results
      */
-    public List<Map<String, String>> mergeResults(List<Map<String, String>> results, List<Map<String, String>> otherResults) {
+    public static List<Map<String, String>> mergeResults(List<Map<String, String>> results, List<Map<String, String>> otherResults) {
         if (checkList(results)) {
             if (checkList(otherResults)) results.addAll(otherResults);
             return results;
         } else if (checkList(otherResults)) return otherResults;
         else return new ArrayList<>();
-    }
-    
-    private Set<String> commonColumnNames(List<Map<String, String>> leftTable, List<Map<String, String>> rightTable, String leftKey, String rightKey) {
-        // check if tables share column names
-        Set<String> leftTableKeys = new HashSet<>(leftTable.get(0).keySet());
-        Set<String> rightTableKeys = new HashSet<>(rightTable.get(0).keySet());
-
-        // Find common keys between left and right tables
-        Set<String> commonKeys = new HashSet<>(leftTableKeys);
-        commonKeys.retainAll(rightTableKeys);
-
-        if (!commonKeys.isEmpty()) {
-            // Check if joining on the same key, and it's the only shared column name
-            List<String> commonKeyList = new ArrayList<>(commonKeys);
-            String commonKey = commonKeyList.get(0);
-            if (commonKeyList.size() == 1 && commonKey.equals(leftKey) && commonKey.equals(rightKey)) {
-                // If joining on the same key, and it's the only shared column name, proceed
-                // Example: Joining on key "b" and "b" and no other column names are shared
-                // return empty with "ok" semantic
-                return Collections.emptySet();
-            } else {
-                // Throw exception if columns have the same name and can't perform join
-                return commonKeys;
-            }
-        }
-        return commonKeys;
-    }
-
-    public List<Map<String, String>> leftJoin(List<Map<String, String>> leftTable, List<Map<String, String>> rightTable, String key) {
-        return leftJoin(leftTable, rightTable, key, key);
-    }
-
-    public List<Map<String, String>> leftJoin(List<Map<String, String>> leftTable, List<Map<String, String>> rightTable, String leftKey, String rightKey) {
-
-        if (leftTable == null && rightTable == null)
-            throw new IllegalArgumentException("tables in join cannot be null");
-        if (leftTable == null) throw new IllegalArgumentException("leftTable cannot be null");
-        if (rightTable == null) throw new IllegalArgumentException("rightTable cannot be null");
-
-        if (leftTable.isEmpty()) return Collections.emptyList();
-        // if the right table is empty (columns but no rows, impossible with maps like we use) the result should be all the colums from the left table + all columns from right table with null as values
-
-        var commonKeys = commonColumnNames(leftTable, rightTable, leftKey, rightKey);
-        if (!commonKeys.isEmpty()) {
-            throw new RuntimeException("Cannot perform inner join on tables due to duplicate column names: " + commonKeys + ". Column names can be renamed using the 'renameDataFrameColumn' function");
-        } else {
-            Map<String, List<Map<String, String>>> rightTableMap = new HashMap<>();
-            for (Map<String, String> rightMapEntry : rightTable) {
-                String key = rightMapEntry.get(rightKey);
-                if (!rightTableMap.containsKey(key)) {
-                    rightTableMap.put(key, List.of(rightMapEntry));
-                } else {
-                    List<Map<String, String>> value = new ArrayList<>(rightTableMap.get(key));
-                    value.add(rightMapEntry);
-                    rightTableMap.put(key, value);
-                }
-            }
-
-            Map<String, String> emptyRightRow = new HashMap<>();
-
-            for (String k : rightTable.get(0).keySet()) {
-                emptyRightRow.put(k, null);
-            }
-            List<Map<String, String>> result = new ArrayList<>();
-
-            for (var leftRow : leftTable) {
-                List<Map<String, String>> matches = rightTableMap.get(leftRow.get(leftKey));
-                HashMap<String, String> joinedRow;
-                if (matches != null) {   // add all columns from each table to the result
-                    for (Map<String, String> match : matches) {
-                        joinedRow = new HashMap<>(match);
-                        joinedRow.putAll(leftRow);
-                        result.add(joinedRow);
-                    }
-
-                } else {
-                    joinedRow = new HashMap<>(emptyRightRow);
-                    // written in this order the null values in the emptyRightRow get overwritten (if present) by present values in leftRow
-                    // TLDR do not swap the previous and next lines
-                    joinedRow.putAll(leftRow);
-                    result.add(joinedRow);
-                }
-            }
-            return result;
-        }
-    }
-
-    public List<Map<String, String>> innerJoin(List<Map<String, String>> leftTable, List<Map<String, String>> rightTable, String key) {
-        return innerJoin(leftTable, rightTable, key, key);
-    }
-
-    public List<Map<String, String>> innerJoin(List<Map<String, String>> leftTable, List<Map<String, String>> rightTable, String leftKey, String rightKey) {
-
-        if (leftTable == null && rightTable == null)
-            throw new IllegalArgumentException("tables in join cannot be null");
-        if (leftTable == null) throw new IllegalArgumentException("leftTable cannot be null");
-        if (rightTable == null) throw new IllegalArgumentException("rightTable cannot be null");
-
-        // if either table is empty the return is an empty table/dataframe
-        if (leftTable.isEmpty() || rightTable.isEmpty()) return Collections.emptyList();
-
-        var commonKeys = commonColumnNames(leftTable, rightTable, leftKey, rightKey);
-        if (!commonKeys.isEmpty()) {
-            throw new RuntimeException("Cannot perform inner join on tables due to duplicate column names: " + commonKeys + ". Column names can be renamed using the 'renameDataFrameColumn' function");
-        } else {
-            Map<String, List<Map<String, String>>> leftTableMap = new HashMap<>();
-            for (Map<String, String> leftMapEntry : leftTable) {
-                String key = leftMapEntry.get(leftKey);
-                if (!leftTableMap.containsKey(key)) {
-                    leftTableMap.put(key, List.of(leftMapEntry));
-                } else {
-                    List<Map<String, String>> value = new ArrayList<>(leftTableMap.get(key));
-                    value.add(leftMapEntry);
-                    leftTableMap.put(key, value);
-                }
-            }
-
-            List<Map<String, String>> result = new ArrayList<>();
-
-            for (Map<String, String> rightRow : rightTable) {
-                List<Map<String, String>> matches = leftTableMap.get(rightRow.get(rightKey));
-                if (matches != null) {   // add all columns from each table to the result
-                    for (Map<String, String> match : matches) {
-                        HashMap<String, String> joinedRow = new HashMap<>(match);
-                        joinedRow.putAll(rightRow);
-                        result.add(joinedRow);
-                    }
-                }
-            }
-            return result;
-        }
-    }
-
-    public List<Map<String, String>> renameDataframeColumn(List<Map<String, String>> dataFrame, String oldColumn, String newColumn) {
-        if (dataFrame != null) {
-            if (!dataFrame.isEmpty()) {
-                Set<String> columnNames = dataFrame.get(0).keySet();
-                if (columnNames.contains(newColumn)) {
-                    throw new IllegalArgumentException("dataframe already contain a column named " + newColumn);
-                }
-
-                for (int i = 0; i < dataFrame.size(); i++) {
-                    Map<String, String> row = dataFrame.get(i);
-                    Map<String, String> updatedRow = new HashMap<>(row);
-
-                    String v = updatedRow.remove(oldColumn);
-                    updatedRow.put(newColumn, v);
-                    dataFrame.set(i, updatedRow);
-                }
-            }
-            return dataFrame;
-        } else {
-            throw new IllegalArgumentException("dataframe cannot be null");
-        }
     }
 
     /**
@@ -696,7 +544,7 @@ public class TemplateFunctions {
     public static String encodeURIComponent(String component) {
         final StringBuilder builder = new StringBuilder();
 
-        // TODO Check why # is not encoded in 22c, related to Termtype?
+        // TODO Check why # is not encoded in rml-tc-22c, related to Termtype?
         if (component.contains("#")) {
             String[] parts = component.split("#",2);
             component = URLEncoder.encode(parts[0], StandardCharsets.UTF_8) + "#"
@@ -713,6 +561,134 @@ public class TemplateFunctions {
                 builder.append(c);
         }
         return builder.toString();
+    }
+
+    public void setBaseIRI(String baseIRI) {
+        this.baseIRI = baseIRI;
+    }
+
+    public String resolveIRI(String s) throws Exception {
+        if(s != null) {
+            if (!isAbsoluteURI(s)) {
+                s = baseIRI + s;
+                s = new URI(s).toString();
+            } else {
+                URLComponents url = new URLComponents(s);
+                s = url.getEncodedURL();
+            }
+
+            return s;
+        }
+        return s;
+    }
+
+    public String resolveDatatype(String literal, String datatype) throws Exception {
+        return "\"" + transformDatatypeString(literal, datatype) + "\"^^<" + resolveIRI(datatype) + ">";
+    }
+
+    public String resolveSQLDatatype(String literal, String type) {
+        if (type != null) {
+            String xsdType = getXsdFromSqlDatatypes(type);
+            if (xsdType != null)
+                return "\"" + transformDatatypeString(literal, xsdType) + "\"^^<" + xsdType + ">";
+        }
+        return "\"" + literal + "\"";
+    }
+
+    public String resolveLanguage(String literal, String language) {
+        if(!literal.startsWith("\""))
+            literal = "\"" + literal + "\"";
+        if (isValidrrLanguage(language))
+            return literal + "@" + language;
+        else
+            return literal;
+    }
+
+    /**
+     * Return XSD datatype from SQL datatype
+     * @param sqlDatatype SQL datatype
+     * @return XSD datatype corresponding to the input SQL datatype
+     */
+    public static String getXsdFromSqlDatatypes(String sqlDatatype) {
+        Map<String, String> map = new HashMap<>() {{
+            put("DOUBLE", "http://www.w3.org/2001/XMLSchema#double");
+            put("FLOAT", "http://www.w3.org/2001/XMLSchema#double");
+            put("VARBINARY", "http://www.w3.org/2001/XMLSchema#hexBinary");
+            put("DECIMAL", "http://www.w3.org/2001/XMLSchema#decimal");
+            put("INTEGER", "http://www.w3.org/2001/XMLSchema#integer");
+            put("INT", "http://www.w3.org/2001/XMLSchema#integer");
+            put("BIT", "http://www.w3.org/2001/XMLSchema#boolean");
+            put("BOOL", "http://www.w3.org/2001/XMLSchema#boolean");
+            put("DATE", "http://www.w3.org/2001/XMLSchema#date");
+            put("TIME", "http://www.w3.org/2001/XMLSchema#time");
+            put("TIMESTAMP", "http://www.w3.org/2001/XMLSchema#dateTime");
+            put("DATETIME", "http://www.w3.org/2001/XMLSchema#dateTime");
+        }};
+
+        if(sqlDatatype != null)
+            for(String datatype : map.keySet())
+                if(sqlDatatype.toUpperCase().contains(datatype))
+                    return map.get(datatype);
+
+        return null;
+    }
+
+    // From rmlmapper https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L661
+    public static String transformDatatypeString(String input, String datatype) {
+        switch (datatype) {
+            case "http://www.w3.org/2001/XMLSchema#hexBinary":
+                return input;
+            case "http://www.w3.org/2001/XMLSchema#decimal":
+                return "" + Double.parseDouble(input);
+            case "http://www.w3.org/2001/XMLSchema#integer":
+                return "" + Integer.parseInt(input);
+            case "http://www.w3.org/2001/XMLSchema#double":
+                return formatToScientific(Double.parseDouble(input));
+            case "http://www.w3.org/2001/XMLSchema#boolean":
+                switch (input.toLowerCase()) {
+                    case "t":
+                    case "true":
+                    case "1":
+                        return "true";
+                    default:
+                        return "false";
+                }
+            case "http://www.w3.org/2001/XMLSchema#date":
+                return input;
+            case "http://www.w3.org/2001/XMLSchema#time":
+                return input;
+            case "http://www.w3.org/2001/XMLSchema#dateTime":
+                return input.replace(" ", "T");
+            default:
+                return input;
+        }
+    }
+
+    /**
+     * From rmlmapper <a href="https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L704">...</a>
+     */
+    private static String formatToScientific(Double d) {
+        BigDecimal input = BigDecimal.valueOf(d).stripTrailingZeros();
+        int precision = input.scale() < 0
+                ? input.precision() - input.scale()
+                : input.precision();
+        StringBuilder s = new StringBuilder("0.0");
+        for (int i = 2; i < precision; i++) {
+            s.append("#");
+        }
+        s.append("E0");
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+        DecimalFormat df = (DecimalFormat) nf;
+        df.applyPattern(s.toString());
+        return df.format(d);
+    }
+
+    /**
+     * From rmlmapper <a href="https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L385">...</a>
+     */
+    public static boolean isValidrrLanguage(String s) {
+        Pattern regexPatternLanguageTag = Pattern.compile("^((?:(en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux|i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-FR|sgn-BE-NL|sgn-CH-DE)|(art-lojban|cel-gaulish|no-bok|no-nyn|zh-guoyu|zh-hakka|zh-min|zh-min-nan|zh-xiang))|((?:([A-Za-z]{2,3}(-(?:[A-Za-z]{3}(-[A-Za-z]{3}){0,2}))?)|[A-Za-z]{4})(-(?:[A-Za-z]{4}))?(-(?:[A-Za-z]{2}|[0-9]{3}))?(-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(-(?:[0-9A-WY-Za-wy-z](-[A-Za-z0-9]{2,8})+))*(-(?:x(-[A-Za-z0-9]{1,8})+))?)|(?:x(-[A-Za-z0-9]{1,8})+))$");
+        return regexPatternLanguageTag.matcher(s).matches();
     }
 
 }

@@ -18,7 +18,6 @@ package com.cefriel.template;
 
 import com.cefriel.template.io.Reader;
 import com.cefriel.template.utils.RMLCompilerUtils;
-import com.cefriel.template.utils.RMLTemplateFunctions;
 import com.cefriel.template.utils.TemplateFunctions;
 import com.cefriel.template.utils.Util;
 import org.eclipse.rdf4j.model.Model;
@@ -60,13 +59,13 @@ public class RMLTests {
         String rmlMappings = resolvePath(folder, "mapping.ttl");
 
         TemplateExecutor executor = new TemplateExecutor();
-        TemplateFunctions templateFunctions = new RMLTemplateFunctions();
+        TemplateFunctions templateFunctions = new TemplateFunctions();
 
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "output.nq")));
 
         Util.validateRML(Paths.get(rmlMappings), false);
 
-        Reader compilerReader = templateFunctions.getRDFReaderFromFile(rmlMappings);
+        Reader compilerReader = TemplateFunctions.getRDFReaderFromFile(rmlMappings);
         Path rmlCompiler = Paths.get("rml/rml-compiler.vm");
         Path compiledTemplatePath = Paths.get(resolvePath(folder,"template.rml.vm"));
 

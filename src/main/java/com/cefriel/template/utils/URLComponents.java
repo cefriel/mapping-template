@@ -60,14 +60,13 @@ public class URLComponents {
         }
     }
 
-
     public String getEncodedURL() {
         // Encode the path segments
         String encodedPath = Arrays.stream(path.split("/"))
                 .map(TemplateFunctions::encodeURIComponent)
                 .collect(Collectors.joining("/"));
 
-        // TODO Check why ; should not be encoded in 005a
+        // TODO Check why ; should not be encoded in rml-tc-005a
         encodedPath = encodedPath.replaceAll("%3B", ";");
 
         // Encode the fragment

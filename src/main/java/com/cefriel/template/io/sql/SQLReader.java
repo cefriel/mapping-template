@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.InvalidParameterException;
 import java.sql.*;
 import java.sql.Statement;
@@ -38,29 +40,16 @@ public class SQLReader implements Reader {
     private boolean verbose;
 
     private static final Object lock = new Object();
+
+    private String outputFormat;
     private boolean hashVariable;
     private boolean onlyDistinct;
     private boolean useDoubleQuotes;
 
-    public boolean checkTableExists(String table, Connection connection) {
-        List<String> tables = new ArrayList<>();
-        try {
-            PreparedStatement tablesQueryStatement;
-            String dbDriver = connection.getMetaData().getDatabaseProductName();
-            String databaseName = connection.getCatalog();
-            // Prepare and execute table query based on the database driver
-            if (dbDriver.equalsIgnoreCase("mysql")) {
-                tablesQueryStatement = connection.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = ?;");
-                tablesQueryStatement.setString(1, databaseName);
-            } else if (dbDriver.equalsIgnoreCase("postgresql")) {
-                tablesQueryStatement = connection.prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'");
-            } else {
-                throw new IllegalArgumentException("SQLReader does not support " + dbDriver);
-            }
-
     public SQLReader(String jdbcDSN, String username, String password) {
         if (!jdbcDSN.contains("jdbc:"))
             jdbcDSN = "jdbc:" + jdbcDSN;
+
         log.info("Connection to database: " + jdbcDSN);
 
         try {
@@ -89,17 +78,10 @@ public class SQLReader implements Reader {
         } catch (SQLException e) {
             log.error("Error connecting to the database: " + e.getMessage(), e);
         }
-        return tables.contains(table);
-    }
-    public SQLReader(String driver, String url, String database, String username, String password) throws SQLException {
-        if (!url.contains("jdbc:"))
-            url = "jdbc:" + driver + "://" + url + "/" + database;
-        log.info("Connection to database with URL: " + url);
-        conn = DriverManager.getConnection(url, username, password);
-    }
+   }
 
     public SQLReader(String driver, String url, String database, String username, String password) {
-        this("jdbc:" + driver + "://" + url + "/" + database, username, password);
+        this(driver + "://" + url + "/" + database, username, password);
     }
 
     public SQLReader(Connection conn) {
@@ -162,9 +144,8 @@ public class SQLReader implements Reader {
                 if (columnType == Types.BINARY || columnType == Types.VARBINARY) {
                     byte[] binaryData = resultSet.getBytes(i);
                     columnValue = bytesToHex(binaryData);
-                } else {
+                } else
                     columnValue = resultSet.getString(i);
-                }
                 if(filters == null || filters.contains(columnName))
                     if (hashVariable)
                         row.put(TemplateFunctions.literalHash(columnName), columnValue);
@@ -241,6 +222,8 @@ public class SQLReader implements Reader {
      */
     public List<Map<String, String>> getFilteredDataFrame(String query, String filterVariables) {
         String queryCheck = query.toLowerCase();
+        List<Map<String, String>> dataframe = new ArrayList<>();
+
         if (!queryCheck.contains("select")) {
             if (tables.contains(query)) {
                 if (filterVariables != null) {
@@ -320,12 +303,11 @@ public class SQLReader implements Reader {
      * @param destinationPath File to save the results of the SQL query
      * @throws IOException If an error occurs in handling the files
      */
-    public void debugQuery(String query, String destinationPath) throws IOException {
-
+    public void debugQuery(String query, Path destinationPath) throws IOException {
         String queryCheck = query.toLowerCase();
         if (queryCheck.contains("select")) {
             try (ResultSet resultSet = executeQuery(query)) {
-                try (FileWriter writer = new FileWriter(destinationPath)) {
+                try (BufferedWriter writer = new BufferedWriter(Files.newBufferedWriter(destinationPath))) {
                     queryResultToWriter(writer, resultSet);
                 }
             } catch (SQLException e) {
@@ -337,7 +319,7 @@ public class SQLReader implements Reader {
                 try {
                     PreparedStatement preparedStatement = conn.prepareStatement(q);
                     ResultSet resultSet = preparedStatement.executeQuery();
-                    try (FileWriter writer = new FileWriter(destinationPath)) {
+                    try (BufferedWriter writer = new BufferedWriter(Files.newBufferedWriter(destinationPath))) {
                         queryResultToWriter(writer, resultSet);
                     }
                 } catch (SQLException e) {
@@ -376,12 +358,12 @@ public class SQLReader implements Reader {
     }
 
     /**
-     * Not implemented for JSONReader yet.
-     *
+     * Implemented for RDF type conversion
      * @param outputFormat String identifying the output format
      */
     @Override
     public void setOutputFormat(String outputFormat) {
+        this.outputFormat = outputFormat;
     }
           
     @Override
