@@ -260,16 +260,20 @@ useful information (e.g., sourceHash)
 
 #* Get only distinct REFS for each Logical Source *#
 #set($lLogicalSources = $functions.getMap($mappings_content, "_source"))
+#* Init REFS for each Logical Source as empty array *#
 #foreach($ls in $lLogicalSources.keySet())
     #if(!$lLogicalSources.get($ls).get("_REFS_"))
         #set($refs = [])
         #set($foo = $lLogicalSources.get($ls).put("_REFS_", $refs))
     #end
 #end
+#* Associate REFS for each TriplesMap to the corresponding Logical Source *#
 #foreach($tm in $lTriplesMaps.keySet())
     #set($refs = $lTriplesMaps.get($tm).get("_REFS_"))
-    #set($foo = $lLogicalSources.get($tm._source).get("_REFS_").addAll($refs))
+    #set($tm_source = $lTriplesMaps.get($tm)._source)
+    #set($foo = $lLogicalSources.get($tm_source).get("_REFS_").addAll($refs))
 #end
+#* Apply distinct operation *#
 #foreach($ls in $lLogicalSources.keySet())
     #set($refs = $lLogicalSources.get($ls).get("_REFS_"))
     #set($foo = $lLogicalSources.get($ls).put("_REFS_", $functions.getDistinct($refs)))
@@ -661,7 +665,7 @@ TODO Currently done via option -f nq that validates the entire RDF
 
                     #* Generate the triple/quad . *#
                     ${h}if(${d}functions.checkStrings(${d}refs))
-                        #* TODO Test function to remove duplicates agains hash hashset and check impact on performances *#                
+                        #* TODO Test function to remove duplicates against hash hashset and check impact on performances *#
                         #if($graph)
                         $subject $predicate $object $graph .
                         #else

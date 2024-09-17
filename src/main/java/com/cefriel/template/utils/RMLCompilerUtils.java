@@ -56,6 +56,7 @@ public class RMLCompilerUtils extends TemplateFunctions {
         Set<String> distinctMatches = new HashSet(matches);
         
         return distinctMatches.stream()
+            .filter(x -> !x.equals("esc.h"))
             .map(x -> "${" + x + "}")
             .collect(Collectors.toList());
     }

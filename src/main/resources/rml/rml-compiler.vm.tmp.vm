@@ -172,7 +172,7 @@ WHERE {
 #set($foo = $lTriplesMaps.get($row.triples_map_id).get("_REFS_").addAll($lReferences))#end##
 #foreach($tm in $lTriplesMaps.keySet())#set($refs = $lTriplesMaps.get($tm).get("_REFS_"))#set($foo = $lTriplesMaps.get($tm).put("_REFS_", $functions.getDistinct($refs)))#end##
 #set($lLogicalSources = $functions.getMap($mappings_content, "_source"))#foreach($ls in $lLogicalSources.keySet())#if(!$lLogicalSources.get($ls).get("_REFS_"))#set($refs = [])#set($foo = $lLogicalSources.get($ls).put("_REFS_", $refs))#end#end##
-#foreach($tm in $lTriplesMaps.keySet())#set($refs = $lTriplesMaps.get($tm).get("_REFS_"))#set($foo = $lLogicalSources.get($tm._source).get("_REFS_").addAll($refs))#end##
+#foreach($tm in $lTriplesMaps.keySet())#set($refs = $lTriplesMaps.get($tm).get("_REFS_"))#set($tm_source = $lTriplesMaps.get($tm)._source)#set($foo = $lLogicalSources.get($tm_source).get("_REFS_").addAll($refs))#end##
 #foreach($ls in $lLogicalSources.keySet())#set($refs = $lLogicalSources.get($ls).get("_REFS_"))#set($foo = $lLogicalSources.get($ls).put("_REFS_", $functions.getDistinct($refs)))#end##
 #set($sqlTypes = [])#foreach($lsEntry in $lLogicalSources.entrySet())#set($ls = $lsEntry.value)#if($ls.access_url)#set($sourceUrl = $functions.replace($ls.access_url, "file://", ""))#elseif($ls.path)#if($map.basePath)#set($sourceUrl = $map.basePath + $ls.path)#else#set($sourceUrl = "./" + $ls.path)#end#end##
 #set($refForm = $ls.ref_form)#set($sourceHash = $functions.hash($ls._source))#set($foo = $ls.put("_SOURCE_HASH_", $sourceHash))#set($lsReferences = $ls.get("_REFS_"))#set($iterator = $ls.iterator)##
