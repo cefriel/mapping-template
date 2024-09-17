@@ -29,10 +29,10 @@ public class NullAndMissingFieldsTest {
     @Test
     public void nullAndMissingFieldsTest() throws Exception {
         JSONReader jsonReader = new JSONReader(new File("src/test/resources/null-and-missing-fields/modified.json"));
-        TemplateExecutor executor = new TemplateExecutor();
         Path template = Paths.get("src/test/resources/null-and-missing-fields/template.vm");
 
-        String result = executor.executeMapping(jsonReader,  template, false, false, false, null, null, new TemplateFunctions());
+        TemplateExecutor executor = new TemplateExecutor(new TemplateFunctions(), false, false, false, null, null);
+        String result = executor.executeMapping(jsonReader, template);
         String expectedOutput = Files.readString(Paths.get("src/test/resources/null-and-missing-fields/correct-output.txt"));
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");

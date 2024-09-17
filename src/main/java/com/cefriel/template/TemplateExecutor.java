@@ -35,226 +35,280 @@ import java.util.Map;
 
 public class TemplateExecutor {
 
-	private final org.slf4j.Logger log = LoggerFactory.getLogger(TemplateExecutor.class);
+    private final org.slf4j.Logger log = LoggerFactory.getLogger(TemplateExecutor.class);
+    private final TemplateFunctions templateFunctions;
+    private final boolean failInvalidRef;
+    private final boolean trimTemplate;
+    private final boolean templateInResourcesFolder;
+    private final TemplateMap templateMap;
+    private final Formatter formatter;
+    private final VelocityEngine velocityEngine;
 
-	// methods called from cli
-	public String executeMapping(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean failInvalidRef, boolean trimTemplate, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
-		VelocityContext velocityContext;
-		velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap,templateFunctions);
-		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder,failInvalidRef);
-		Path usedTemplatePath = trimTemplate ? trimTemplate(templatePath) : templatePath;
-		return applyTemplate(usedTemplatePath, velocityContext, velocityEngine, formatter);
-	}
-	public Path executeMapping(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean failInvalidRef, boolean trimTemplate, Path outputFilePath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
-		VelocityContext velocityContext;
-		velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder,failInvalidRef);
-		Path usedTemplatePath = trimTemplate ? trimTemplate(templatePath) : templatePath;
-		return applyTemplate(usedTemplatePath, velocityContext, velocityEngine, formatter, outputFilePath);
-	}
-	public Map<String,String> executeMappingParametric(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean failInvalidRef, boolean trimTemplate, Path queryPath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
-		VelocityContext velocityContext;
-		velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder,failInvalidRef);
-		Path usedTemplatePath = trimTemplate ? trimTemplate(templatePath) : templatePath;
-		String query = Files.readString(queryPath);
-		return applyTemplateParametric(usedTemplatePath, query, velocityContext, velocityEngine, formatter);
-	}
-	public List<Path> executeMappingParametric(Reader reader, Path templatePath, boolean templateInResourcesFolder, boolean failInvalidRef, boolean trimTemplate, Path queryPath, Path outputFilePath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
-		VelocityContext velocityContext;
-		velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-		VelocityEngine velocityEngine = Util.createVelocityEngine(templateInResourcesFolder,failInvalidRef);
-		Path usedTemplatePath = trimTemplate ? trimTemplate(templatePath) : templatePath;
-		String query = Files.readString(queryPath);
-		return applyTemplateParametric(usedTemplatePath, query, velocityContext, velocityEngine, formatter, outputFilePath);
-	}
-	// non parametric - return string result
-	private String applyTemplate(Path templatePath, VelocityContext context, VelocityEngine velocityEngine, Formatter formatter) throws Exception {
-		StringWriter writer = new StringWriter();
-		Template t = velocityEngine.getTemplate(templatePath.toString());
-		t.merge(context, writer);
-		String result = writer.toString();
-		writer.close();
+    public TemplateExecutor(TemplateFunctions templateFunctions, boolean failInvalidRef, boolean trimTemplate, boolean templateInResourcesFolder, TemplateMap templateMap, Formatter formatter) {
+        this.templateFunctions = templateFunctions;
+        this.failInvalidRef = failInvalidRef;
+        this.trimTemplate = trimTemplate;
+        this.templateInResourcesFolder = templateInResourcesFolder;
+        this.templateMap = templateMap;
+        this.formatter = formatter;
+        this.velocityEngine = Util.createVelocityEngine(this.templateInResourcesFolder, failInvalidRef);
+    }
 
-		return formatter != null ? formatter.formatString(result) : result;
-	}
-	// non-parametric - write to file and return filePath
-	private Path applyTemplate(Path templatePath, VelocityContext context, VelocityEngine velocityEngine, Formatter formatter, Path outputFilePath) throws Exception {
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-				new FileOutputStream(outputFilePath.toFile()),
-				StandardCharsets.UTF_8));
-		Template t = velocityEngine.getTemplate(templatePath.toString());
-		t.merge(context, writer);
-		writer.close();
+    // methods called from cli
+    public String executeMapping(Map<String, Reader> readers, Path templatePath) throws Exception {
+        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
+        return applyTemplate(usedTemplatePath, velocityContext);
+    }
 
-		if (formatter != null)
-			formatter.formatFile(outputFilePath.toString());
+    public String executeMapping(Reader reader, Path templatePath) throws Exception {
+        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
+        return applyTemplate(usedTemplatePath, velocityContext);
+    }
 
-		return outputFilePath.toAbsolutePath();
-	}
-	// parametric - return result
-	private Map<String, String> applyTemplateParametric(Path templatePath, String query,  VelocityContext context, VelocityEngine velocityEngine, Formatter formatter) throws Exception {
-		if(query != null) {
-			Reader reader = (Reader) context.get("reader");
-			List<Map<String, String>> dataframe = reader.getDataframe(query);
+    public Path executeMapping(Map<String, Reader> readers, Path templatePath, Path outputFilePath) throws Exception {
+        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
+        return applyTemplate(usedTemplatePath, outputFilePath, velocityContext);
+    }
 
-			HashMap<String, String> output = new HashMap<>();
-			int counter = 0;
-			for (Map<String, String> row : dataframe) {
-				if (row != null)
-					context.put("x", row);
+    public Path executeMapping(Reader reader, Path templatePath, Path outputFilePath) throws Exception {
+        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
+        return applyTemplate(usedTemplatePath, outputFilePath, velocityContext);
+    }
 
-				String rowId = Util.generateRowId(row, counter);
-				String result = applyTemplate(templatePath, context, velocityEngine, formatter);
-				output.put(rowId, result);
-				counter++;
-			}
-			return output;
-		}
-		else {
-			throw new IllegalArgumentException("QueryPath parameter cannot be null");
-		}
-	}
-	private List<Path> applyTemplateParametric(Path templatePath, String query, VelocityContext context, VelocityEngine velocityEngine, Formatter formatter, Path outputFilePath) throws Exception {
-		if(query != null) {
-			List<Path> resultFilePaths = new ArrayList<>();
-			Reader reader = (Reader) context.get("reader");
-			List<Map<String, String>> dataframe = reader.getDataframe(query);
+    public Map<String, String> executeMappingParametric(Map<String, Reader> readers, Path templatePath, Path queryPath) throws Exception {
+        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
+        String query = Files.readString(queryPath);
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
+        return applyTemplateParametric(usedTemplatePath, query, velocityContext);
+    }
 
-			int counter = 0;
-			for (Map<String, String> row : dataframe) {
-				if (row != null)
-					context.put("x", row);
-				Path resultFilePath = applyTemplate(templatePath, context, velocityEngine, formatter,
-						Util.createOutputFileName(outputFilePath, counter));
-				resultFilePaths.add(resultFilePath.toAbsolutePath());
-				counter++;
-			}
-			return resultFilePaths;
-		}
-		else {
-			throw new IllegalArgumentException("QueryPath parameter cannot be null");
-		}
-	}
+    public Map<String, String> executeMappingParametric(Reader reader, Path templatePath, Path queryPath) throws Exception {
+        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
+        String query = Files.readString(queryPath);
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
+        return applyTemplateParametric(usedTemplatePath, query, velocityContext);
+    }
 
-	// STREAM OPTIONS
-	// non-parametric return string result
-		public String executeMapping(Reader reader, InputStream template, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
-		    VelocityContext velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-			return applyTemplate(template, velocityContext, formatter);
-		}
-		public Path executeMapping(Reader reader, InputStream template, Path outputFilePath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
-		    VelocityContext velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-		    return applyTemplate(template, velocityContext, formatter, outputFilePath);
-		}
-		public Map<String,String> executeMappingParametric(Reader reader, InputStream template, InputStream query, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
-			VelocityContext velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-			String queryString = Util.inputStreamToString(query);
-			return applyTemplateParametric(template, queryString, velocityContext, formatter);
-		}
+    public List<Path> executeMappingParametric(Map<String, Reader> readers, Path templatePath, Path queryPath, Path outputFilePath) throws Exception {
+        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
+        String query = Files.readString(queryPath);
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
+        return applyTemplateParametric(usedTemplatePath, query, outputFilePath, velocityContext);
+    }
 
-		public List<Path> executeMappingParametric(Reader reader, InputStream template, InputStream query, Path outputFilePath, TemplateMap templateMap, Formatter formatter, TemplateFunctions templateFunctions) throws Exception {
-		    VelocityContext velocityContext = templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
+    public List<Path> executeMappingParametric(Reader reader, Path templatePath, Path queryPath, Path outputFilePath) throws Exception {
+        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
+        String query = Files.readString(queryPath);
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
+        return applyTemplateParametric(usedTemplatePath, query, outputFilePath, velocityContext);
+    }
 
-			String queryString = Util.inputStreamToString(query);
-			return applyTemplateParametric(template, queryString, velocityContext, formatter, outputFilePath);
-		}
-		// non parametric - return string result
-		private String applyTemplate(InputStream template, VelocityContext context, Formatter formatter) throws Exception {
-			java.io.Reader templateReader = new InputStreamReader(template);
-			StringWriter writer = new StringWriter();
+    // non parametric - return string result
+    private String applyTemplate(Path templatePath, VelocityContext velocityContext) throws Exception {
+        StringWriter writer = new StringWriter();
+        Template t = this.velocityEngine.getTemplate(templatePath.toString());
+        t.merge(velocityContext, writer);
+        String result = writer.toString();
+        writer.close();
 
-			VelocityEngine velocityEngine = Util.createVelocityEngine(false,true);
-			velocityEngine.evaluate(context, writer, "TemplateExecutor", templateReader);
+        return this.formatter != null ? this.formatter.formatString(result) : result;
+    }
 
-			String result = writer.toString();
-			templateReader.close();
-			writer.close();
+    // non-parametric - write to file and return filePath
+    private Path applyTemplate(Path templatePath, Path outputFilePath, VelocityContext velocityContext) throws Exception {
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFilePath.toFile()), StandardCharsets.UTF_8));
+        Template t = velocityEngine.getTemplate(templatePath.toString());
+        t.merge(velocityContext, writer);
+        writer.close();
 
-			return formatter != null ? formatter.formatString(result) : result;
-		}
+        if (this.formatter != null) this.formatter.formatFile(outputFilePath.toString());
 
-		// non-parametric - write to file and return filePath
-		private Path applyTemplate(InputStream template, VelocityContext context, Formatter formatter, Path outputFilePath) throws Exception {
+        return outputFilePath.toAbsolutePath();
+    }
 
-			java.io.Reader templateReader = new InputStreamReader(template);
-			try (BufferedWriter writer = Files.newBufferedWriter(outputFilePath, StandardCharsets.UTF_8)) {
-				VelocityEngine velocityEngine = Util.createVelocityEngine(false, true);
-				velocityEngine.evaluate(context, writer, "TemplateExecutor", templateReader);
-				templateReader.close();
-			}
+    // parametric - return result
+    private Map<String, String> applyTemplateParametric(Path templatePath, String query, VelocityContext velocityContext) throws Exception {
+        if (query != null) {
+            Reader reader = (Reader) velocityContext.get("reader");
+            List<Map<String, String>> dataframe = reader.getDataframe(query);
 
-			if (formatter != null)
-				formatter.formatFile(outputFilePath.toString());
+            HashMap<String, String> output = new HashMap<>();
+            int counter = 0;
+            for (Map<String, String> row : dataframe) {
+                if (row != null) velocityContext.put("x", row);
 
-			return outputFilePath.toAbsolutePath();
-		}
+                String rowId = Util.generateRowId(row, counter);
+                String result = applyTemplate(templatePath, velocityContext);
+                output.put(rowId, result);
+                counter++;
+            }
+            return output;
+        } else {
+            throw new IllegalArgumentException("QueryPath parameter cannot be null");
+        }
+    }
 
-		// parametric - return result
-		private Map<String, String> applyTemplateParametric(InputStream template, String query,  VelocityContext context, Formatter formatter) throws Exception {
-			if(query != null) {
-				Reader reader = (Reader) context.get("reader");
-				List<Map<String, String>> dataframe = reader.getDataframe(query);
+    private List<Path> applyTemplateParametric(Path templatePath, String query, Path outputFilePath, VelocityContext velocityContext) throws Exception {
+        if (query != null) {
+            List<Path> resultFilePaths = new ArrayList<>();
+            Reader reader = (Reader) velocityContext.get("reader");
+            List<Map<String, String>> dataframe = reader.getDataframe(query);
 
-				// copy templateStream which is otherwise consumed
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				template.transferTo(baos);
+            int counter = 0;
+            for (Map<String, String> row : dataframe) {
+                if (row != null) velocityContext.put("x", row);
+                Path resultFilePath = applyTemplate(templatePath, Util.createOutputFileName(outputFilePath, counter), velocityContext);
+                resultFilePaths.add(resultFilePath.toAbsolutePath());
+                counter++;
+            }
+            return resultFilePaths;
+        } else {
+            throw new IllegalArgumentException("QueryPath parameter cannot be null");
+        }
+    }
 
+    // STREAM OPTIONS
+    // non-parametric return string result
+    public String executeMapping(Map<String, Reader> readers, InputStream template) throws Exception {
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
+        return applyTemplate(template, velocityContext);
+    }
 
-				HashMap<String, String> output = new HashMap<>();
-				int counter = 0;
-				for (Map<String, String> row : dataframe) {
-					if (row != null)
-						context.put("x", row);
+    public String executeMapping(Reader reader, InputStream template) throws Exception {
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
+        return applyTemplate(template, velocityContext);
+    }
 
-					String rowId = Util.generateRowId(row, counter);
-					String result = applyTemplate(new ByteArrayInputStream(baos.toByteArray()), context, formatter);
-					output.put(rowId, result);
-					counter++;
-				}
-				return output;
-			}
-			else {
-				throw new IllegalArgumentException("Query parameter cannot be null");
-			}
-		}
+    public Path executeMapping(Map<String, Reader> readers, InputStream template, Path outputFilePath) throws Exception {
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
+        return applyTemplate(template, outputFilePath, velocityContext);
+    }
 
-		// parametric - return list of filePaths
-		private List<Path> applyTemplateParametric(InputStream template, String query, VelocityContext context, Formatter formatter, Path outputFilePath) throws Exception {
-			if(query != null) {
-				List<Path> resultFilePaths = new ArrayList<>();
-				Reader reader = (Reader) context.get("reader");
-				List<Map<String, String>> dataframe = reader.getDataframe(query);
+    public Path executeMapping(Reader reader, InputStream template, Path outputFilePath) throws Exception {
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
+        return applyTemplate(template, outputFilePath, velocityContext);
+    }
 
-				// copy templateStream which is otherwise consumed
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				template.transferTo(baos);
+    public Map<String, String> executeMappingParametric(Map<String, Reader> readers, InputStream template, InputStream query) throws Exception {
+        String queryString = Util.inputStreamToString(query);
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
+        return applyTemplateParametric(template, queryString, velocityContext);
+    }
 
-				int counter = 0;
-				for (Map<String, String> row : dataframe) {
-					if (row != null)
-						context.put("x", row);
-					Path resultFilePath = applyTemplate(new ByteArrayInputStream(baos.toByteArray()), context, formatter,
-							Util.createOutputFileName(outputFilePath, counter));
-					resultFilePaths.add(resultFilePath.toAbsolutePath());
-					counter++;
-				}
-				return resultFilePaths;
-			}
-			else {
-				throw new IllegalArgumentException("Query parameter cannot be null");
-			}
-		}
-	public Path trimTemplate(Path templatePath) throws IOException {
-		Path trimmedTempTemplatePath = Path.of(templatePath + ".tmp.vm");
-		List<String> newLines = new ArrayList<>();
-		for (String line : Files.readAllLines(templatePath, StandardCharsets.UTF_8)) {
-			newLines.add(line.trim().replace("\n", "").replace("\r",""));
-		}
-		String result = String.join(" ", newLines);
-		try (PrintWriter out = new PrintWriter(trimmedTempTemplatePath.toFile(), StandardCharsets.UTF_8)) {
-			out.println(result);
-		}
-		return trimmedTempTemplatePath;
-	}
+    public Map<String, String> executeMappingParametric(Reader reader, InputStream template, InputStream query) throws Exception {
+        String queryString = Util.inputStreamToString(query);
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
+        return applyTemplateParametric(template, queryString, velocityContext);
+    }
+
+    public List<Path> executeMappingParametric(Map<String, Reader> readers, InputStream template, InputStream query, Path outputFilePath) throws Exception {
+        String queryString = Util.inputStreamToString(query);
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
+        return applyTemplateParametric(template, queryString, outputFilePath, velocityContext);
+    }
+
+    public List<Path> executeMappingParametric(Reader reader, InputStream template, InputStream query, Path outputFilePath) throws Exception {
+        String queryString = Util.inputStreamToString(query);
+        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
+        return applyTemplateParametric(template, queryString, outputFilePath, velocityContext);
+    }
+
+    // non parametric - return string result
+    private String applyTemplate(InputStream template, VelocityContext velocityContext) throws Exception {
+        java.io.Reader templateReader = new InputStreamReader(template);
+        StringWriter writer = new StringWriter();
+
+        VelocityEngine velocityEngine = this.velocityEngine;
+        velocityEngine.evaluate(velocityContext, writer, "TemplateExecutor", templateReader);
+
+        String result = writer.toString();
+        templateReader.close();
+        writer.close();
+
+        return this.formatter != null ? this.formatter.formatString(result) : result;
+    }
+
+    // non-parametric - write to file and return filePath
+    private Path applyTemplate(InputStream template, Path outputFilePath, VelocityContext velocityContext) throws Exception {
+        java.io.Reader templateReader = new InputStreamReader(template);
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFilePath.toString()), StandardCharsets.UTF_8));
+
+        VelocityEngine velocityEngine = this.velocityEngine;
+        velocityEngine.evaluate(velocityContext, writer, "TemplateExecutor", templateReader);
+
+        templateReader.close();
+        writer.close();
+
+        if (this.formatter != null) this.formatter.formatFile(outputFilePath.toString());
+
+        return outputFilePath.toAbsolutePath();
+    }
+
+    // parametric - return result
+    private Map<String, String> applyTemplateParametric(InputStream template, String query, VelocityContext velocityContext) throws Exception {
+        if (query != null) {
+            Reader reader = (Reader) velocityContext.get("reader");
+            List<Map<String, String>> dataframe = reader.getDataframe(query);
+
+            // copy templateStream which is otherwise consumed
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            template.transferTo(baos);
+
+            HashMap<String, String> output = new HashMap<>();
+            int counter = 0;
+            for (Map<String, String> row : dataframe) {
+                if (row != null) velocityContext.put("x", row);
+
+                String rowId = Util.generateRowId(row, counter);
+                String result = applyTemplate(new ByteArrayInputStream(baos.toByteArray()), velocityContext);
+                output.put(rowId, result);
+                counter++;
+            }
+            return output;
+        } else {
+            throw new IllegalArgumentException("Query parameter cannot be null");
+        }
+    }
+
+    // parametric - return list of filePaths
+    private List<Path> applyTemplateParametric(InputStream template, String query, Path outputFilePath, VelocityContext velocityContext) throws Exception {
+        if (query != null) {
+            List<Path> resultFilePaths = new ArrayList<>();
+            Reader reader = (Reader) velocityContext.get("reader");
+            List<Map<String, String>> dataframe = reader.getDataframe(query);
+
+            // copy templateStream which is otherwise consumed
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            template.transferTo(baos);
+
+            int counter = 0;
+            for (Map<String, String> row : dataframe) {
+                if (row != null) velocityContext.put("x", row);
+                Path resultFilePath = applyTemplate(new ByteArrayInputStream(baos.toByteArray()), Util.createOutputFileName(outputFilePath, counter), velocityContext);
+                resultFilePaths.add(resultFilePath.toAbsolutePath());
+                counter++;
+            }
+            return resultFilePaths;
+        } else {
+            throw new IllegalArgumentException("Query parameter cannot be null");
+        }
+    }
+
+    public Path trimTemplate(Path templatePath) throws IOException {
+        Path trimmedTempTemplatePath = Path.of(templatePath + ".tmp.vm");
+        List<String> newLines = new ArrayList<>();
+        for (String line : Files.readAllLines(templatePath, StandardCharsets.UTF_8)) {
+            newLines.add(line.trim().replace("\n", "").replace("\r", ""));
+        }
+        String result = String.join(" ", newLines);
+        try (PrintWriter out = new PrintWriter(trimmedTempTemplatePath.toFile(), StandardCharsets.UTF_8)) {
+            out.println(result);
+        }
+
+        return trimmedTempTemplatePath;
+    }
 }

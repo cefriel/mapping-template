@@ -54,6 +54,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -201,30 +202,6 @@ public class Util {
         velocityEngine.init();
         return velocityEngine;
     }
-
-    public static VelocityContext createVelocityContext(Reader reader, TemplateMap templateMap, TemplateFunctions templateFunctions) {
-        VelocityContext context = new VelocityContext();
-        if(reader != null) {
-            context.put("reader", reader);
-        }
-        context.put("functions", templateFunctions);
-        // apache velocity generic tools
-        context.put("math", new MathTool());
-        context.put("number", new NumberTool());
-        context.put("date", new DateTool());
-        context.put("esc", new EscapeTool());
-
-        if (templateMap != null)
-            context.put("map", templateMap);
-
-        return context;
-    }
-
-    public static VelocityContext createVelocityContext(Reader reader, TemplateMap templateMap) {
-        return createVelocityContext(reader, templateMap, new TemplateFunctions());
-    }
-
-
     public static void validateRML(Path templatePath, boolean verbose) {
 
         ShaclSail shaclSail = new ShaclSail(new MemoryStore());
@@ -267,5 +244,92 @@ public class Util {
         } finally {
             repository.shutDown();
         }
+    }
+
+    /**
+     * Creates a new {@link VelocityContext} and populates it with the provided readers, template map, and template functions.
+     * Additionally, it adds a set of common tools for mathematical operations, number formatting, date manipulation,
+     * and escaping strings.
+     *
+     * @param readers A map where the key is a {@link String} representing the name, and the value is a {@link Reader}
+     *                object that will be added to the context. Can be null or empty.
+     * @param templateMap An instance of {@link TemplateMap} to be added to the context. Can be null.
+     * @param templateFunctions An instance of {@link TemplateFunctions} providing various template-related functions to be added to the context. Must not be null.
+     * @return A {@link VelocityContext} populated with the provided readers, template map, template functions,
+     *         and a set of common tools (math, number, date, and escape tools).
+     */
+    public static VelocityContext createVelocityContext(Map<String, Reader> readers, TemplateMap templateMap, TemplateFunctions templateFunctions) {
+        VelocityContext context = new VelocityContext();
+
+        if (readers != null) {
+            if (readers.size() == 1) {
+                Map.Entry<String, Reader> singleReader = readers.entrySet().iterator().next();
+                context.put("reader", singleReader.getValue());
+                context.put("readers", Map.of(singleReader.getKey(), singleReader.getValue()));
+            }
+            else if (readers.size() > 1) {
+                Map<String, Reader> allReaders = new HashMap<>(readers);
+                context.put("readers", allReaders);
+            }
+        }
+
+        context.put("functions", templateFunctions);
+        // apache velocity generic tools
+        context.put("math", new MathTool());
+        context.put("number", new NumberTool());
+        context.put("date", new DateTool());
+        context.put("esc", new EscapeTool());
+
+        if (templateMap != null)
+            context.put("map", templateMap);
+
+        return context;
+    }
+
+    /**
+     * Creates a new {@link VelocityContext} and populates it with the provided reader, template map, and template functions.
+     * This method is a convenience overload that allows for a single reader to be added to the context.
+     *
+     * @param reader A {@link Reader} object that will be added to the context with the key "reader". Can be null.
+     * @param templateMap An instance of {@link TemplateMap} to be added to the context. Can be null.
+     * @param templateFunctions An instance of {@link TemplateFunctions} providing various template-related functions to be added to the context. Must not be null.
+     * @return A {@link VelocityContext} populated with the provided reader, template map, template functions,
+     *         and a set of common tools (math, number, date, and escape tools).
+     */
+    public static VelocityContext createVelocityContext(Reader reader, TemplateMap templateMap, TemplateFunctions templateFunctions) {
+        Map<String, Reader> readers = new HashMap<>();
+        if (reader != null)
+            readers.put("reader", reader);
+        return createVelocityContext(readers, templateMap, templateFunctions);
+    }
+
+    /**
+     * Creates a new {@link VelocityContext} and populates it with the provided reader, template map.
+     * The context is also populated with an instance of {@link TemplateFunctions}.
+     * This method is a convenience overload that allows for a single reader to be added to the context.
+     *
+     * @param reader A {@link Reader} object that will be added to the context with the key "reader". Must not be null.
+     * @param templateMap An instance of {@link TemplateMap} to be added to the context. Can be null.
+     * @return A {@link VelocityContext} populated with the provided reader, template map, template functions,
+     *         and a set of common tools (math, number, date, and escape tools).
+     */
+    public static VelocityContext createVelocityContext(Reader reader, TemplateMap templateMap) {
+        return createVelocityContext(reader, templateMap, new TemplateFunctions());
+    }
+
+    /**
+     * Creates a new {@link VelocityContext} and populates it with the provided readers, and template map.
+     * The context is also populated with an instance of {@link TemplateFunctions}.
+     * Additionally, it adds a set of common tools for mathematical operations, number formatting, date manipulation,
+     * and escaping strings.
+     *
+     * @param readers A map where the key is a {@link String} representing the name, and the value is a {@link Reader}
+     *                object that will be added to the context. Can be null or empty.
+     * @param templateMap An instance of {@link TemplateMap} to be added to the context. Can be null.
+     * @return A {@link VelocityContext} populated with the provided readers, template map, template functions,
+     *         and a set of common tools (math, number, date, and escape tools).
+     */
+    public static VelocityContext createVelocityContext(Map<String, Reader> readers, TemplateMap templateMap) {
+        return createVelocityContext(readers, templateMap, new TemplateFunctions());
     }
 }

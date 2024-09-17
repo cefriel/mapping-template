@@ -27,7 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -64,7 +65,7 @@ public class Main {
 	private boolean trimTemplate;
 	@Parameter(names={"--template-resource","-trs"})
 	private boolean templateInResources;
-	@Parameter(names={"--fail-invalid-ref","-fir"})
+    	@Parameter(names={"--fail-invalid-ref","-fir"})
 	private boolean failInvalidRef;
 	@Parameter(names={"--username","-us"})
 	private String username;
@@ -139,8 +140,6 @@ public class Main {
 			}
 		}
 
-		TemplateExecutor tl = new TemplateExecutor();
-
 		TemplateMap templateMap = null;
 		if (keyValueCsvPath != null) {
 			templateMap = new TemplateMap(keyValueCsvPath, true);
@@ -179,7 +178,6 @@ public class Main {
 				}
 			}
 		}
-
 		if(compileRML) {
 			Util.validateRML(templatePath, verbose);
 
@@ -202,28 +200,28 @@ public class Main {
 			rmlMap.put("basePath", basePath.toString() + "/");
 
 			Path compiledTemplatePath = Paths.get(basePath + "template.rml.vm");
-
-			tl.executeMapping(compilerReader, rmlCompiler, true, false, false,
-					compiledTemplatePath, new TemplateMap(rmlMap), null, new RMLCompilerUtils());
+			TemplateExecutor templateExecutor = new TemplateExecutor(new RMLCompilerUtils(), failInvalidRef, trimTemplate, templateInResources, new TemplateMap(rmlMap), formatter);
+			templateExecutor.executeMapping(compilerReader, rmlCompiler, compiledTemplatePath);
 			templatePath = compiledTemplatePath;
 		}
 
 		try {
+			TemplateExecutor templateExecutor = new TemplateExecutor(templateFunctions, failInvalidRef, trimTemplate, templateInResources, templateMap, formatter);
 			if(timePath != null)
 				try (FileWriter pw = new FileWriter(timePath.toFile(), true)) {
 					long start = Instant.now().toEpochMilli();
 					if(queryPath != null)
-						tl.executeMappingParametric(reader, templatePath, templateInResources, failInvalidRef, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
+						templateExecutor.executeMappingParametric(reader, templatePath, queryPath, destinationPath);
 					else
-						tl.executeMapping(reader, templatePath, templateInResources, failInvalidRef, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
+						templateExecutor.executeMapping(reader, templatePath, destinationPath);
 					long duration = Instant.now().toEpochMilli() - start;
 					pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
 				}
 			else{
 				if(queryPath != null)
-					tl.executeMappingParametric(reader, templatePath, templateInResources, failInvalidRef, trimTemplate, queryPath, destinationPath, templateMap, formatter, templateFunctions);
+					templateExecutor.executeMappingParametric(reader, templatePath, queryPath, destinationPath);
 				else
-					tl.executeMapping(reader, templatePath, templateInResources, failInvalidRef, trimTemplate, destinationPath, templateMap, formatter, templateFunctions);
+					templateExecutor.executeMapping(reader, templatePath, destinationPath);
 			}
 		} catch (Exception e) {
 			Files.deleteIfExists(destinationPath);

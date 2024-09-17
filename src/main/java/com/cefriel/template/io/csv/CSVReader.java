@@ -52,7 +52,7 @@ public class CSVReader implements Reader {
     public void appendQueryHeader(String s) {
 
     }
-  
+
     public List<Map<String, String>> getDataframe() throws Exception {
         Set<String> headers = this.document.getHeader();
         String[] columns = headers.toArray(new String[0]);
@@ -101,7 +101,6 @@ public class CSVReader implements Reader {
     public void debugQuery(String query, Path destinationPath) throws Exception {
 
     }
-
     @Override
     public void setVerbose(boolean verbose) {}
 

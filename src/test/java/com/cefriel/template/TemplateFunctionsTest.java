@@ -16,6 +16,7 @@
 
 package com.cefriel.template;
 
+import com.cefriel.template.io.Reader;
 import com.cefriel.template.utils.TemplateFunctions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -73,23 +74,24 @@ public class TemplateFunctionsTest {
 
     @Test
     public void testCustomFunctions() throws Exception {
-        TemplateExecutor executor = new TemplateExecutor();
+
         Path template = Paths.get("src/test/resources/custom-functions/template.vm");
-
         CustomTemplateFunctions customTemplateFunctions = new CustomTemplateFunctions();
+        TemplateExecutor executor = new TemplateExecutor(customTemplateFunctions, true, false, false, null, null);
 
-        String result = executor.executeMapping(null,  template, false, false, false, null, null, customTemplateFunctions);
+        String result = executor.executeMapping((Reader) null, template);
         Assertions.assertEquals(result, customTemplateFunctions.printMessage());
     }
 
     @Test
     public void testCustomFunctionsStreamMode() throws Exception {
-        TemplateExecutor executor = new TemplateExecutor();
+
         File template = new File("src/test/resources/custom-functions/template.vm");
         FileInputStream fileInputStream = new FileInputStream(template);
 
         CustomTemplateFunctions customTemplateFunctions = new CustomTemplateFunctions();
-        String result = executor.executeMapping(null, fileInputStream, null, null, customTemplateFunctions);
+        TemplateExecutor executor = new TemplateExecutor(customTemplateFunctions, true, false, false, null, null);
+        String result = executor.executeMapping((Reader) null, fileInputStream);
 
         Assertions.assertEquals(result, customTemplateFunctions.printMessage());
     }
