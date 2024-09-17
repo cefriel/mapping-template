@@ -563,10 +563,21 @@ public class TemplateFunctions {
         return builder.toString();
     }
 
+    /**
+     * Set base IRI used by {@link #resolveIRI(String)} method to resolve not absolute IRIs.
+     * @param baseIRI Base IRI to be set
+     */
     public void setBaseIRI(String baseIRI) {
         this.baseIRI = baseIRI;
     }
 
+    /**
+     * Resolve IRIs by checking if they are absolute (otherwise base IRI set via {@link #setBaseIRI(String)} is used)
+     * and encoding them appropriately using {@link URLComponents#getEncodedURL()}.
+     * @param s IRI to be checked
+     * @return Encoded absolute IRI
+     * @throws Exception If a proper IRI can not be returned
+     */
     public String resolveIRI(String s) throws Exception {
         if(s != null) {
             if (!isAbsoluteURI(s)) {
@@ -582,10 +593,28 @@ public class TemplateFunctions {
         return s;
     }
 
+    /**
+     * Return an RDF literal concatenating {@code literal} and {@code datatype}. Check if {@code datatype}
+     * is a proper IRI using {@link #resolveIRI(String)} and perform required transformation on the {@code literal}
+     * according to the given {@code datatype} (see {@link #transformDatatypeString(String, String)}).
+     * @param literal Literal to be processed
+     * @param datatype Datatype for the literal
+     * @return Combined representation in RDF
+     * @throws Exception If the datatype provided can not be processed
+     */
     public String resolveDatatype(String literal, String datatype) throws Exception {
         return "\"" + transformDatatypeString(literal, datatype) + "\"^^<" + resolveIRI(datatype) + ">";
     }
 
+    /**
+     * Return an RDF literal concatenating with {@code literal} and the XSD datatype corresponding
+     * to the SQL {@code datatype} provided as input (see {@link #getXsdFromSqlDatatypes(String)}).
+     * Perform required transformation on the {@code literal}
+     * according to the given {@code datatype} (see {@link #transformDatatypeString(String, String)}).
+     * @param literal Literal to be processed
+     * @param type Datatype in SQL for the literal
+     * @return Combined representation in RDF
+     */
     public String resolveSQLDatatype(String literal, String type) {
         if (type != null) {
             String xsdType = getXsdFromSqlDatatypes(type);
@@ -595,6 +624,13 @@ public class TemplateFunctions {
         return "\"" + literal + "\"";
     }
 
+    /**
+     * Return an RDF literal concatenating {@code literal} and {@code language}. Check if {@code datatype}
+     * is a proper language tag using {@link #isValidrrLanguage(String)}.
+     * @param literal Literal to be processed
+     * @param language Language tag for the literal
+     * @return Combined representation in RDF
+     */
     public String resolveLanguage(String literal, String language) {
         if(!literal.startsWith("\""))
             literal = "\"" + literal + "\"";
@@ -633,7 +669,9 @@ public class TemplateFunctions {
         return null;
     }
 
-    // From rmlmapper https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L661
+    /**
+     * From rmlmapper <a href="https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L661">source code</a>
+     */
     public static String transformDatatypeString(String input, String datatype) {
         switch (datatype) {
             case "http://www.w3.org/2001/XMLSchema#hexBinary":
@@ -665,7 +703,7 @@ public class TemplateFunctions {
     }
 
     /**
-     * From rmlmapper <a href="https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L704">...</a>
+     * From rmlmapper <a href="https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L704">source code</a>
      */
     private static String formatToScientific(Double d) {
         BigDecimal input = BigDecimal.valueOf(d).stripTrailingZeros();
@@ -684,7 +722,7 @@ public class TemplateFunctions {
     }
 
     /**
-     * From rmlmapper <a href="https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L385">...</a>
+     * From rmlmapper <a href="https://github.com/RMLio/rmlmapper-java/blob/f8d15d97efb9a30359b05f37a28328584fe62744/src/main/java/be/ugent/rml/Utils.java#L385">source code</a>
      */
     public static boolean isValidrrLanguage(String s) {
         Pattern regexPatternLanguageTag = Pattern.compile("^((?:(en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux|i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-FR|sgn-BE-NL|sgn-CH-DE)|(art-lojban|cel-gaulish|no-bok|no-nyn|zh-guoyu|zh-hakka|zh-min|zh-min-nan|zh-xiang))|((?:([A-Za-z]{2,3}(-(?:[A-Za-z]{3}(-[A-Za-z]{3}){0,2}))?)|[A-Za-z]{4})(-(?:[A-Za-z]{4}))?(-(?:[A-Za-z]{2}|[0-9]{3}))?(-(?:[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(-(?:[0-9A-WY-Za-wy-z](-[A-Za-z0-9]{2,8})+))*(-(?:x(-[A-Za-z0-9]{1,8})+))?)|(?:x(-[A-Za-z0-9]{1,8})+))$");
