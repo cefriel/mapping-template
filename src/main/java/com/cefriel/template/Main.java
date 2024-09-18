@@ -200,7 +200,8 @@ public class Main {
 			rmlMap.put("basePath", basePath.toString() + "/");
 
 			Path compiledTemplatePath = Paths.get(basePath + "template.rml.vm");
-			TemplateExecutor templateExecutor = new TemplateExecutor(new RMLCompilerUtils(), failInvalidRef, trimTemplate, templateInResources, new TemplateMap(rmlMap), formatter);
+			TemplateExecutor templateExecutor = new TemplateExecutor(new RMLCompilerUtils(), false, false,
+					true, new TemplateMap(rmlMap), null);
 			templateExecutor.executeMapping(compilerReader, rmlCompiler, compiledTemplatePath);
 			templatePath = compiledTemplatePath;
 		}
