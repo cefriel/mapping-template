@@ -18,14 +18,13 @@ package com.cefriel.template;
 
 import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.utils.TemplateFunctions;
-import com.cefriel.template.utils.Util;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.Map;
 
 public class JsonReaderTest {
 
@@ -35,7 +34,7 @@ public class JsonReaderTest {
         TemplateExecutor executor = new TemplateExecutor(new TemplateFunctions(), true, false, false,null ,null);
         Path template = Paths.get("src/test/resources/json/template.vm");
 
-        String result = executor.executeMapping(reader, template);
+        String result = executor.executeMapping(Map.of("reader",reader), template);
         String expectedOutput = Files.readString(Paths.get("src/test/resources/json/correct-output.ttl"));
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");

@@ -78,8 +78,9 @@ public class TemplateFunctionsTest {
         Path template = Paths.get("src/test/resources/custom-functions/template.vm");
         CustomTemplateFunctions customTemplateFunctions = new CustomTemplateFunctions();
         TemplateExecutor executor = new TemplateExecutor(customTemplateFunctions, true, false, false, null, null);
-
-        String result = executor.executeMapping((Reader) null, template);
+        Map<String, Reader> readerMap = new HashMap<>();
+        readerMap.put("reader", (Reader) null);
+        String result = executor.executeMapping(readerMap, template);
         Assertions.assertEquals(result, customTemplateFunctions.printMessage());
     }
 
@@ -90,8 +91,10 @@ public class TemplateFunctionsTest {
         FileInputStream fileInputStream = new FileInputStream(template);
 
         CustomTemplateFunctions customTemplateFunctions = new CustomTemplateFunctions();
+        Map<String, Reader> readerMap = new HashMap<>();
+        readerMap.put("reader", (Reader) null);
         TemplateExecutor executor = new TemplateExecutor(customTemplateFunctions, true, false, false, null, null);
-        String result = executor.executeMapping((Reader) null, fileInputStream);
+        String result = executor.executeMapping(readerMap, fileInputStream);
 
         Assertions.assertEquals(result, customTemplateFunctions.printMessage());
     }

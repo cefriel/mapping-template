@@ -18,20 +18,17 @@ package com.cefriel.template;
 
 import com.cefriel.template.io.rdf.RDFReader;
 import com.cefriel.template.utils.TemplateFunctions;
-import com.cefriel.template.utils.Util;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
-import org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Map;
 
 public class RDFReaderTests {
@@ -49,7 +46,7 @@ public class RDFReaderTests {
         TemplateExecutor executor = new TemplateExecutor(new TemplateFunctions(), true, false, false, null, null);
         Path template = Paths.get(resolvePath(folder, "template.vm"));
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")));
-        String result = executor.executeMapping(reader, template);
+        String result = executor.executeMapping(Map.of("reader", reader), template);
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
         result = result.replaceAll("\\r\\n", "\n");
 
@@ -70,7 +67,7 @@ public class RDFReaderTests {
         Path template = Paths.get(resolvePath(folder, "template.vm"));
 
         String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "agency.csv")));
-        String result = executor.executeMapping(reader, template);
+        String result = executor.executeMapping(Map.of("reader", reader), template);
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");
         result = result.replaceAll("\\r\\n", "\n");
@@ -87,7 +84,7 @@ public class RDFReaderTests {
         Path template = Paths.get(resolvePath(folder, "template.vm"));
 
         Path queryPath = Paths.get(resolvePath(folder, "query.txt"));
-        Map<String, String> output = executor.executeMappingParametric(reader, template, queryPath);
+        Map<String, String> output = executor.executeMappingParametric(Map.of("reader", reader), template, queryPath);
 
         for(String id : output.keySet()) {
             String expectedOutput = Files
@@ -108,7 +105,7 @@ public class RDFReaderTests {
         InputStream template = new FileInputStream(Paths.get(resolvePath(folder, "template.vm")).toString());
         InputStream query = new FileInputStream(Paths.get(resolvePath(folder, "query.txt")).toString());
         TemplateExecutor executor = new TemplateExecutor(new TemplateFunctions(), true, false, false, null, null);
-        Map<String, String> output = executor.executeMappingParametric(reader, template, query);
+        Map<String, String> output = executor.executeMappingParametric(Map.of("reader", reader), template, query);
 
         for(String id : output.keySet()) {
             String expectedOutput = Files
