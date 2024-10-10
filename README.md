@@ -54,7 +54,7 @@ options:
   -kvc, --key-value-csv <arg>     Path for a csv file with one line interpreted as a set of key[column]-value[line] pairs. 
                                   These pairs are made available as a map in the template.
   -o, --output <arg>              Path of output file. Default: output.txt
-  -rml, --compile-rml             Provide an RML mapping file to be executed
+  -rml, --compile-rml <arg>       Provide an RML mapping file to be executed
   -t, --template <arg>            Path of template file. Default: template.vm
   -tm, --time <arg>               Path of file reporting template execution time. Default: timing not saved. 
   -tr, --trim                     Trim newlines from the template before executing it to reduce memory usage.
