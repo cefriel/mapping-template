@@ -12,6 +12,12 @@ The [Wiki](https://github.com/cefriel/mapping-template/wiki/Mapping-Template-Lan
 
 Example templates are provided in the [examples](https://github.com/cefriel/mapping-template/tree/main/examples) folder.
 
+### RDF Mapping Language support (RML to MTL)
+
+The `mapping template` supports the execution of RML mappings that are automatically compiled to an MTL template and executed. The `mapping template` is currently compliant with the `rml-core` specification (https://w3id.org/rml/portal).
+
+The RML mapping can be passed with the `--rml` option for usage via CLI and a [test case](src/test/java/com/cefriel/template/RMLTests.java) is made available to exemplify the usage as a library.
+
 ### Usage as a Library
 
 The  `mapping-template` can be used as a library through the `TemplateExecutor` class. It allows to execute mapping templates accessing data from the filesystem or through `InputStream`s. Configuration examples can be found in the `Main` class and in the `test` folder.
@@ -39,6 +45,7 @@ options:
   -dq, --debug-query              Saves in the output file the result of the query provided with -q option.
   -f, --format <arg>              Activate procedures for specific output formats. Supported values: 'xml' 
                                   (XML escape, XML parsing to check structure, indentation), 'turtle', 'rdfxml', 'nt', 'json'.
+  -fir, --fail-invalid-ref        If this option is enabled, the execution fails every time a variable in the template can not be accessed.
   -fun, --functions <arg>         Provide the path to a Java file defining a TemplateFunctions subclass.
   -if, --input-format <arg>       Format for the input(s). Supported values are: 'csv', 'json', 'xml', 'rdf', 'mysql', 'postgresql'.
   -i, --input <arg>               Path for the input file. Multiple input files are supported if the '--input-format' is 'rdf'.
@@ -47,6 +54,7 @@ options:
   -kvc, --key-value-csv <arg>     Path for a csv file with one line interpreted as a set of key[column]-value[line] pairs. 
                                   These pairs are made available as a map in the template.
   -o, --output <arg>              Path of output file. Default: output.txt
+  -rml, --compile-rml             Provide an RML mapping file to be executed
   -t, --template <arg>            Path of template file. Default: template.vm
   -tm, --time <arg>               Path of file reporting template execution time. Default: timing not saved. 
   -tr, --trim                     Trim newlines from the template before executing it to reduce memory usage.
