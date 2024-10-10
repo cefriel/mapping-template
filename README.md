@@ -62,6 +62,16 @@ A `$reader` is initialized based on the specified `-if` option. Additional `Read
 
 If `-url` and `-id` options are set a remote database/repository is used for queries and the `-i`  option is ignored. If they are not set the `-i` option is mandatory. Assumptions to use a remote database/repository are: (i) it is up and running, and (ii) data are already in there.
 
+### References
+
+Projects using the `mapping-template`:
+- SmartEdge: Semantic Low-code Programming Tools for Edge Intelligence https://www.smart-edge.eu/ (GA 101092908)
+- TANGENT: Enhanced Data Processing Techniques for Dynamic Management of Multimodal Traffic https://tangent-h2020.eu/ (GA 955273)
+
+Publications:
+- Scrocca, M., Carenini, A., Grassi, M., Comerio, M., & Celino, I. (2024). `Not Everybody Speaks RDF: Knowledge Conversion between Different Data Representations`. In: Fifth International Workshop on Knowledge Graph Construction co-located with the ESWC2024. CEUR-WS. https://ceur-ws.org/Vol-3718/paper3.pdf
+- Scrocca, M., Grassi, M., Comerio, M., Carriero, V. A., Dias, T. D., Da Silva, A. V., & Celino, I. (2024). `Intelligent Urban Traffic Management via Semantic Interoperability across Multiple Heterogeneous Mobility Data Sources`. In: The Semantic Web – ISWC 2024. Springer. (_to appear_). https://arxiv.org/abs/2407.10539
+
 ### Commercial Support
 
 If you need commercial support for the `mapping-template` contact us at [chimera-dev@cefriel.com](mailto:chimera-dev@cefriel.com).
