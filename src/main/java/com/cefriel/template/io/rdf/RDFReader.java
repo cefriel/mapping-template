@@ -294,8 +294,7 @@ public class RDFReader implements Reader {
             Model dumpModel = QueryResults.asModel(dump);
 
             RepositoryResult<Namespace> namespaces = con.getNamespaces();
-            for (Namespace n : Iterations.asList(namespaces))
-                dumpModel.setNamespace(n);
+            namespaces.stream().forEach(dumpModel::setNamespace);
             return dumpModel;
         }
     }
