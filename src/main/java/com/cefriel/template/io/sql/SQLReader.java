@@ -17,17 +17,17 @@
 package com.cefriel.template.io.sql;
 
 import com.cefriel.template.io.Reader;
-
 import com.cefriel.template.utils.TemplateFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidParameterException;
 import java.sql.*;
-import java.sql.Statement;
 import java.util.*;
 
 public class SQLReader implements Reader {

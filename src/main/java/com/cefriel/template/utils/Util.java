@@ -30,15 +30,16 @@ import com.cefriel.template.io.xml.XMLReader;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.apache.velocity.tools.generic.*;
+import org.apache.velocity.tools.generic.DateTool;
+import org.apache.velocity.tools.generic.EscapeTool;
+import org.apache.velocity.tools.generic.MathTool;
+import org.apache.velocity.tools.generic.NumberTool;
 import org.eclipse.rdf4j.common.exception.ValidationException;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.vocabulary.RDF4J;
 import org.eclipse.rdf4j.model.vocabulary.SHACL;
-import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
-import org.eclipse.rdf4j.repository.http.HTTPRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
@@ -47,7 +48,8 @@ import org.eclipse.rdf4j.sail.shacl.ShaclSail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -132,8 +134,6 @@ public class Util {
         else {
             return createInMemoryReader(inputFormat, inputFilesPaths, graphName, baseIri);
         }
-
-
     }
     public static boolean validFormatterFormat(String format) {
         return MappingTemplateConstants.FORMATTER_FORMATS.contains(format);
@@ -265,14 +265,17 @@ public class Util {
             if (readers.size() == 1) {
                 Map.Entry<String, Reader> singleReader = readers.entrySet().iterator().next();
                 context.put("reader", singleReader.getValue());
-                context.put("readers", Map.of(singleReader.getKey(), singleReader.getValue()));
+                Map<String, Reader> readerMap = new HashMap<>();
+                readerMap.put(singleReader.getKey(), singleReader.getValue());
+                context.put("readers", readerMap);
             }
             else if (readers.size() > 1) {
                 Map<String, Reader> allReaders = new HashMap<>(readers);
-                context.put("readers", allReaders);
+                for(Map.Entry<String, Reader> entry: allReaders.entrySet()) {
+                    context.put(entry.getKey(), entry.getValue());
+                }
             }
         }
-
         context.put("functions", templateFunctions);
         // apache velocity generic tools
         context.put("math", new MathTool());

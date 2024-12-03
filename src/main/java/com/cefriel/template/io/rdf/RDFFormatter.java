@@ -17,7 +17,6 @@
 package com.cefriel.template.io.rdf;
 
 import com.cefriel.template.io.Formatter;
-import org.apache.xpath.operations.Bool;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;

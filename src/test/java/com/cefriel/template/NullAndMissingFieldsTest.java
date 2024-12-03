@@ -23,6 +23,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 public class NullAndMissingFieldsTest {
 
@@ -32,7 +33,7 @@ public class NullAndMissingFieldsTest {
         Path template = Paths.get("src/test/resources/null-and-missing-fields/template.vm");
 
         TemplateExecutor executor = new TemplateExecutor(new TemplateFunctions(), false, false, false, null, null);
-        String result = executor.executeMapping(jsonReader, template);
+        String result = executor.executeMapping(Map.of("reader", jsonReader), template);
         String expectedOutput = Files.readString(Paths.get("src/test/resources/null-and-missing-fields/correct-output.txt"));
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");

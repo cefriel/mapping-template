@@ -21,7 +21,6 @@ import com.cefriel.template.io.json.JSONReader;
 import com.cefriel.template.io.rdf.RDFReader;
 import com.cefriel.template.io.sql.SQLReader;
 import com.cefriel.template.io.xml.XMLReader;
-import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
@@ -39,7 +38,6 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 

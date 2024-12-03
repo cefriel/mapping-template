@@ -60,53 +60,23 @@ public class TemplateExecutor {
         VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
         return applyTemplate(usedTemplatePath, velocityContext);
     }
-
-    public String executeMapping(Reader reader, Path templatePath) throws Exception {
-        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
-        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-        return applyTemplate(usedTemplatePath, velocityContext);
-    }
-
     public Path executeMapping(Map<String, Reader> readers, Path templatePath, Path outputFilePath) throws Exception {
         Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
         VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
         return applyTemplate(usedTemplatePath, outputFilePath, velocityContext);
     }
-
-    public Path executeMapping(Reader reader, Path templatePath, Path outputFilePath) throws Exception {
-        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
-        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-        return applyTemplate(usedTemplatePath, outputFilePath, velocityContext);
-    }
-
     public Map<String, String> executeMappingParametric(Map<String, Reader> readers, Path templatePath, Path queryPath) throws Exception {
         Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
         String query = Files.readString(queryPath);
         VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
         return applyTemplateParametric(usedTemplatePath, query, velocityContext);
     }
-
-    public Map<String, String> executeMappingParametric(Reader reader, Path templatePath, Path queryPath) throws Exception {
-        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
-        String query = Files.readString(queryPath);
-        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-        return applyTemplateParametric(usedTemplatePath, query, velocityContext);
-    }
-
     public List<Path> executeMappingParametric(Map<String, Reader> readers, Path templatePath, Path queryPath, Path outputFilePath) throws Exception {
         Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
         String query = Files.readString(queryPath);
         VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
         return applyTemplateParametric(usedTemplatePath, query, outputFilePath, velocityContext);
     }
-
-    public List<Path> executeMappingParametric(Reader reader, Path templatePath, Path queryPath, Path outputFilePath) throws Exception {
-        Path usedTemplatePath = this.trimTemplate ? trimTemplate(templatePath) : templatePath;
-        String query = Files.readString(queryPath);
-        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-        return applyTemplateParametric(usedTemplatePath, query, outputFilePath, velocityContext);
-    }
-
     // non parametric - return string result
     private String applyTemplate(Path templatePath, VelocityContext velocityContext) throws Exception {
         StringWriter writer = new StringWriter();
@@ -177,46 +147,20 @@ public class TemplateExecutor {
         VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
         return applyTemplate(template, velocityContext);
     }
-
-    public String executeMapping(Reader reader, InputStream template) throws Exception {
-        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-        return applyTemplate(template, velocityContext);
-    }
-
     public Path executeMapping(Map<String, Reader> readers, InputStream template, Path outputFilePath) throws Exception {
         VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
         return applyTemplate(template, outputFilePath, velocityContext);
     }
-
-    public Path executeMapping(Reader reader, InputStream template, Path outputFilePath) throws Exception {
-        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-        return applyTemplate(template, outputFilePath, velocityContext);
-    }
-
     public Map<String, String> executeMappingParametric(Map<String, Reader> readers, InputStream template, InputStream query) throws Exception {
         String queryString = Util.inputStreamToString(query);
         VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
         return applyTemplateParametric(template, queryString, velocityContext);
     }
-
-    public Map<String, String> executeMappingParametric(Reader reader, InputStream template, InputStream query) throws Exception {
-        String queryString = Util.inputStreamToString(query);
-        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-        return applyTemplateParametric(template, queryString, velocityContext);
-    }
-
     public List<Path> executeMappingParametric(Map<String, Reader> readers, InputStream template, InputStream query, Path outputFilePath) throws Exception {
         String queryString = Util.inputStreamToString(query);
         VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(readers, templateMap) : Util.createVelocityContext(readers, templateMap, templateFunctions);
         return applyTemplateParametric(template, queryString, outputFilePath, velocityContext);
     }
-
-    public List<Path> executeMappingParametric(Reader reader, InputStream template, InputStream query, Path outputFilePath) throws Exception {
-        String queryString = Util.inputStreamToString(query);
-        VelocityContext velocityContext = this.templateFunctions == null ? Util.createVelocityContext(reader, templateMap) : Util.createVelocityContext(reader, templateMap, templateFunctions);
-        return applyTemplateParametric(template, queryString, outputFilePath, velocityContext);
-    }
-
     // non parametric - return string result
     private String applyTemplate(InputStream template, VelocityContext velocityContext) throws Exception {
         java.io.Reader templateReader = new InputStreamReader(template);

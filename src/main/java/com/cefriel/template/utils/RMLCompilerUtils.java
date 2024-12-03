@@ -18,18 +18,12 @@ package com.cefriel.template.utils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RMLCompilerUtils extends TemplateFunctions {

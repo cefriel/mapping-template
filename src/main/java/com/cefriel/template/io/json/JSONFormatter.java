@@ -17,13 +17,11 @@
 package com.cefriel.template.io.json;
 
 import com.cefriel.template.io.Formatter;
-
-import com.fasterxml.jackson.core.JsonParseException;
 import com.jayway.jsonpath.InvalidJsonException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
