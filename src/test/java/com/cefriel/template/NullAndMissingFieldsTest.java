@@ -32,8 +32,8 @@ public class NullAndMissingFieldsTest {
         JSONReader jsonReader = new JSONReader(new File("src/test/resources/null-and-missing-fields/modified.json"));
         Path template = Paths.get("src/test/resources/null-and-missing-fields/template.vm");
 
-        TemplateExecutor executor = new TemplateExecutor(new TemplateFunctions(), false, false, false, null, null);
-        String result = executor.executeMapping(Map.of("reader", jsonReader), template);
+        TemplateExecutor executor = new TemplateExecutor( false, false, false,  null);
+        String result = executor.executeMapping(Map.of("reader", jsonReader), template, new TemplateFunctions(), null);
         String expectedOutput = Files.readString(Paths.get("src/test/resources/null-and-missing-fields/correct-output.txt"));
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");

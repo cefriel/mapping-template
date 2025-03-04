@@ -69,10 +69,10 @@ public class RMLTests {
         Map<String,String> rmlMap = new HashMap<>();
         rmlMap.put("basePath", FOLDER);
 
-        TemplateExecutor rmlTemplateExecutor = new TemplateExecutor(new RMLCompilerUtils(), false, false, true, new TemplateMap(rmlMap), null);
-        TemplateExecutor templateExecutor = new TemplateExecutor(new TemplateFunctions(), false, false, false, null, null);
-        rmlTemplateExecutor.executeMapping(Map.of("reader", compilerReader), rmlCompiler, compiledTemplatePath);
-        String result = templateExecutor.executeMapping(Map.of("reader", compilerReader), compiledTemplatePath);
+        TemplateExecutor rmlTemplateExecutor = new TemplateExecutor(false, false, true, null);
+        TemplateExecutor templateExecutor = new TemplateExecutor(false, false, false, null);
+        rmlTemplateExecutor.executeMapping(Map.of("reader", compilerReader), rmlCompiler, compiledTemplatePath, new RMLCompilerUtils(), new TemplateMap(rmlMap));
+        String result = templateExecutor.executeMapping(Map.of("reader", compilerReader), compiledTemplatePath, new TemplateFunctions(), null);
         Files.delete(compiledTemplatePath);
 
         Model resultModel = parseRDFString(result);
