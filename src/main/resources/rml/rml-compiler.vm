@@ -26,6 +26,9 @@ WHERE {
 	# Subject -------------------------------------------------------------------------
 			?triples_map_id rml:logicalSource ?_source .
 
+            # typhon-rml identifier
+            ?_source rml:reader ?reader_id .
+
 			OPTIONAL { ?_source rml:iterator ?iterator . }
 			OPTIONAL { ?_source rml:query ?query .}
             # TODO Handle rml:null
@@ -268,7 +271,7 @@ useful information (e.g., sourceHash)
     #set($foo = $lLogicalSources.get($ls).put("_REFS_", $functions.getDistinct($refs)))
 #end
 
-#* ########## GENERATE READERS and EXTRACT DATAFRAMES ########## *#
+#* ########## EXTRACT DATAFRAMES FROM INCOMING READERS ########## *#
 #set($sqlTypes = [])
 #foreach($lsEntry in $lLogicalSources.entrySet())
     #set($ls = $lsEntry.value)
@@ -283,7 +286,7 @@ useful information (e.g., sourceHash)
     #set($iterator = $ls.iterator)
 
     #* GET READER *#
-    ${h}set(${d}reader_$sourceHash = ${d}$sourceHash)
+    ${h}set(${d}reader_$sourceHash = ${d}$ls.reader_id)
 
     #if($refForm == "http://w3id.org/rml/CSV")
         ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))
