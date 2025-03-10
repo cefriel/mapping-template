@@ -34,7 +34,7 @@ public class JsonReaderTest {
         TemplateExecutor executor = new TemplateExecutor(true, false, false,null);
         Path template = Paths.get("src/test/resources/json/template.vm");
 
-        String result = executor.executeMapping(Map.of("reader",reader), template, new TemplateFunctions(), null);
+        String result = executor.executeMapping(Map.of("reader",reader), template);
         String expectedOutput = Files.readString(Paths.get("src/test/resources/json/correct-output.ttl"));
 
         expectedOutput = expectedOutput.replaceAll("\\r\\n", "\n");

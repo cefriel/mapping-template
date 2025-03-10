@@ -92,7 +92,7 @@ public class TemplateFunctionsTest {
 
         CustomTemplateFunctions customTemplateFunctions = new CustomTemplateFunctions();
         Map<String, Reader> readerMap = new HashMap<>();
-        readerMap.put("reader", (Reader) null);
+        readerMap.put("reader", null);
         TemplateExecutor executor = new TemplateExecutor( true, false, false, null);
         String result = executor.executeMapping(readerMap, fileInputStream, customTemplateFunctions, null);
 

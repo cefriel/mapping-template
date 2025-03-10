@@ -72,7 +72,7 @@ public class RMLTests {
         TemplateExecutor rmlTemplateExecutor = new TemplateExecutor(false, false, true, null);
         TemplateExecutor templateExecutor = new TemplateExecutor(false, false, false, null);
         rmlTemplateExecutor.executeMapping(Map.of("reader", compilerReader), rmlCompiler, compiledTemplatePath, new RMLCompilerUtils(), new TemplateMap(rmlMap));
-        String result = templateExecutor.executeMapping(Map.of("reader", compilerReader), compiledTemplatePath, new TemplateFunctions(), null);
+        String result = templateExecutor.executeMapping(Map.of("reader", compilerReader), compiledTemplatePath);
         Files.delete(compiledTemplatePath);
 
         Model resultModel = parseRDFString(result);
