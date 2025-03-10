@@ -264,16 +264,15 @@ public class Util {
         if (readers != null) {
             if (readers.size() == 1) {
                 Map.Entry<String, Reader> singleReader = readers.entrySet().iterator().next();
+                // Put the original readers map into context
+                context.put("readers", readers);
+                // Create an alias "reader" for easier access
                 context.put("reader", singleReader.getValue());
-                Map<String, Reader> readerMap = new HashMap<>();
-                readerMap.put(singleReader.getKey(), singleReader.getValue());
-                context.put("readers", readerMap);
             }
+
             else if (readers.size() > 1) {
                 Map<String, Reader> allReaders = new HashMap<>(readers);
-                for(Map.Entry<String, Reader> entry: allReaders.entrySet()) {
-                    context.put(entry.getKey(), entry.getValue());
-                }
+                context.put("readers", allReaders);
             }
         }
         context.put("functions", templateFunctions);

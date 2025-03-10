@@ -1,0 +1,7 @@
+#set ($df1 = $readers.reader1.getDataframe('{
+     "iterator": "$[*]",
+     "paths": {"a": "a", "b": "b", "c": "c"}}'))
+#set ($df2 = $reader.getDataframe('{
+     "iterator": "$[*]",
+     "paths": {"a": "a", "b": "b", "c": "c"}}'))
+$df1[0].a,$df1[0].b,$df1[0].c,$df2[0].a,$df2[0].b,$df2[0].c
