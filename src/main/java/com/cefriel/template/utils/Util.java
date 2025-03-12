@@ -16,21 +16,22 @@
 
 package com.cefriel.template.utils;
 
-import com.cefriel.template.TemplateMap;
-import com.cefriel.template.io.Formatter;
-import com.cefriel.template.io.Reader;
-import com.cefriel.template.io.csv.CSVReader;
-import com.cefriel.template.io.json.JSONFormatter;
-import com.cefriel.template.io.json.JSONReader;
-import com.cefriel.template.io.rdf.RDFFormatter;
-import com.cefriel.template.io.rdf.RDFReader;
-import com.cefriel.template.io.sql.SQLReader;
-import com.cefriel.template.io.xml.XMLFormatter;
-import com.cefriel.template.io.xml.XMLReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.InvalidParameterException;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.apache.velocity.tools.generic.DateTool;
+import org.apache.velocity.tools.generic.ComparisonDateTool;
 import org.apache.velocity.tools.generic.EscapeTool;
 import org.apache.velocity.tools.generic.MathTool;
 import org.apache.velocity.tools.generic.NumberTool;
@@ -48,17 +49,17 @@ import org.eclipse.rdf4j.sail.shacl.ShaclSail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.InvalidParameterException;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.cefriel.template.TemplateMap;
+import com.cefriel.template.io.Formatter;
+import com.cefriel.template.io.Reader;
+import com.cefriel.template.io.csv.CSVReader;
+import com.cefriel.template.io.json.JSONFormatter;
+import com.cefriel.template.io.json.JSONReader;
+import com.cefriel.template.io.rdf.RDFFormatter;
+import com.cefriel.template.io.rdf.RDFReader;
+import com.cefriel.template.io.sql.SQLReader;
+import com.cefriel.template.io.xml.XMLFormatter;
+import com.cefriel.template.io.xml.XMLReader;
 
 public class Util {
     private static final Logger log = LoggerFactory.getLogger(Util.class);
@@ -279,7 +280,7 @@ public class Util {
         // apache velocity generic tools
         context.put("math", new MathTool());
         context.put("number", new NumberTool());
-        context.put("date", new DateTool());
+        context.put("date", new ComparisonDateTool());
         context.put("esc", new EscapeTool());
 
         if (templateMap != null)
