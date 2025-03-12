@@ -17,7 +17,7 @@ public class MultipleReadersTest {
         Map<String, Reader> readers = Map.of("reader1", new CSVReader(new File("src/test/resources/multiple-readers/a.csv")),
                 "reader2", new CSVReader(new File("src/test/resources/multiple-readers/b.csv")));
         Path template = Paths.get("src/test/resources/multiple-readers/template.vm");
-        TemplateExecutor templateExecutor = new TemplateExecutor(new TemplateFunctions(), true, false, false, null, null);
+        TemplateExecutor templateExecutor = new TemplateExecutor( true, false, false, null);
         String result = templateExecutor.executeMapping(readers, template).replaceAll("\\r\\n", "\n");;
         String expectedOutput = "1,2,3,4,5,6".replaceAll("\\r\\n", "\n");
         assert expectedOutput.equals(result);

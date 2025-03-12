@@ -204,29 +204,29 @@ public class Main {
 			rmlMap.put("basePath", basePath.toString() + "/");
 
 			Path compiledTemplatePath = Paths.get(basePath + "template.rml.vm");
-			TemplateExecutor templateExecutor = new TemplateExecutor(new RMLCompilerUtils(), false, false,
-					true, new TemplateMap(rmlMap), null);
-			templateExecutor.executeMapping(compilerReaderMap, rmlCompiler, compiledTemplatePath);
+			TemplateExecutor templateExecutor = new TemplateExecutor(false, false,
+					true, null);
+			templateExecutor.executeMapping(compilerReaderMap, rmlCompiler, compiledTemplatePath, new RMLCompilerUtils(), new TemplateMap(rmlMap));
 			templatePath = compiledTemplatePath;
 		}
 
 		try {
-			TemplateExecutor templateExecutor = new TemplateExecutor(templateFunctions, failInvalidRef, trimTemplate, templateInResources, templateMap, formatter);
+			TemplateExecutor templateExecutor = new TemplateExecutor(failInvalidRef, trimTemplate, templateInResources, formatter);
 			if(timePath != null)
 				try (FileWriter pw = new FileWriter(timePath.toFile(), true)) {
 					long start = Instant.now().toEpochMilli();
 					if(queryPath != null)
-						templateExecutor.executeMappingParametric(readerMap, templatePath, queryPath, destinationPath);
+						templateExecutor.executeMappingParametric(readerMap, templatePath, queryPath, destinationPath, templateFunctions, templateMap);
 					else
-						templateExecutor.executeMapping(readerMap, templatePath, destinationPath);
+						templateExecutor.executeMapping(readerMap, templatePath, destinationPath, templateFunctions, templateMap);
 					long duration = Instant.now().toEpochMilli() - start;
 					pw.write(templatePath + "," + destinationPath + "," + duration + "\n");
 				}
 			else{
 				if(queryPath != null)
-					templateExecutor.executeMappingParametric(readerMap, templatePath, queryPath, destinationPath);
+					templateExecutor.executeMappingParametric(readerMap, templatePath, queryPath, destinationPath, templateFunctions, templateMap);
 				else
-					templateExecutor.executeMapping(readerMap, templatePath, destinationPath);
+					templateExecutor.executeMapping(readerMap, templatePath, destinationPath, templateFunctions, templateMap);
 			}
 		} catch (Exception e) {
 			Files.deleteIfExists(destinationPath);

@@ -31,7 +31,7 @@ public class JsonReaderTest {
     @Test
     public void jsonTest() throws Exception {
         JSONReader reader = new JSONReader(new File("src/test/resources/json/example.json"));
-        TemplateExecutor executor = new TemplateExecutor(new TemplateFunctions(), true, false, false,null ,null);
+        TemplateExecutor executor = new TemplateExecutor(true, false, false,null);
         Path template = Paths.get("src/test/resources/json/template.vm");
 
         String result = executor.executeMapping(Map.of("reader",reader), template);
