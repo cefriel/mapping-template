@@ -54,4 +54,23 @@ public class CSVReaderTest {
         assert(row.get("latitude").equals("50.901389"));
         assert(row.get("longitude").equals("4.484444"));
     }
+
+    @Test
+    public void testCSVReaderMultipleDataframes() throws Exception {
+        String s = "id,stop,latitude,longitude\n6523,25,50.901389,4.484444";
+        csvReader = new CSVReader(s);
+        List<Map<String, String>> results = csvReader.getDataframe();
+        List<Map<String, String>> results2 = csvReader.getDataframe();
+        assert (!results.isEmpty());
+        assert (!results2.isEmpty());
+    }
+
+    @Test
+    public void testCSVReaderFileWithBOM() throws Exception {
+        File csvFile = new File("src/test/resources/csv-reader/test.csv");
+        csvReader = new CSVReader(csvFile);
+        List<Map<String, String>> results = csvReader.getDataframe();
+        assert (!results.isEmpty());
+        assert (results.get(0).keySet().size() == 3);
+    }
 }

@@ -18,45 +18,50 @@ package com.cefriel.template.io.csv;
 
 import com.cefriel.template.io.Reader;
 import com.cefriel.template.utils.TemplateFunctions;
-import de.siegmar.fastcsv.reader.NamedCsvReader;
-import de.siegmar.fastcsv.reader.NamedCsvRow;
+import de.siegmar.fastcsv.reader.CsvReader;
+import de.siegmar.fastcsv.reader.NamedCsvRecord;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CSVReader implements Reader {
 
-    public NamedCsvReader document;
+    private final List<NamedCsvRecord> csvRecords;
     private boolean hashVariable;
     private boolean onlyDistinct;
 
     public CSVReader(File file) throws IOException {
-        if (Files.exists(file.toPath()))
-            this.document = NamedCsvReader.builder().build(file.toPath());
-        else
+        if (Files.exists(file.toPath())) {
+            this.csvRecords = CsvReader.builder().ofNamedCsvRecord(file.toPath()).
+                    stream()
+                    .collect(Collectors.toList());
+        } else {
             throw new IllegalArgumentException("File does not exist: " + file.getPath());
+        }
     }
 
     public CSVReader(String csv) {
-        this.document = NamedCsvReader.builder().build(csv);
-    }
-    @Override
-    public void setQueryHeader(String header) {
-
+        this.csvRecords = CsvReader.builder().ofNamedCsvRecord(csv)
+                .stream()
+                .collect(Collectors.toList());
     }
 
     @Override
-    public void appendQueryHeader(String s) {
+    public void setQueryHeader(String header) {}
 
-    }
+    @Override
+    public void appendQueryHeader(String s) {}
 
     public List<Map<String, String>> getDataframe() throws Exception {
-        Set<String> headers = this.document.getHeader();
-        String[] columns = headers.toArray(new String[0]);
-        return getDataframe(columns);
+        if (csvRecords.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<String> headers = csvRecords.get(0).getHeader();
+        return getDataframe(headers.toArray(new String[0]));
     }
 
     @Override
@@ -66,31 +71,36 @@ public class CSVReader implements Reader {
     }
 
     public List<Map<String, String>> getDataframe(String... columns) throws Exception {
-        Set<String> headers = this.document.getHeader();
-        
-        // Return entire dataframe if no columns are provided or if empty string is provided
-        if ((columns == null || columns.length == 0) || (columns.length == 1 && columns[0].isEmpty()))
-            return getDataframe();
-      
-        int columnCount = 0;
-        for(String c : columns) {
-            if (!headers.contains(c))
-                throw new IllegalArgumentException("Column " + c + " not found");
-            columnCount += 1;
+        if (csvRecords.isEmpty()) {
+            return Collections.emptyList();
         }
-        // TODO Check if rowCount can be obtained to properly initialise the collection capacity
-        Collection<Map<String,String>> dataframe;
-        if (onlyDistinct)
-            dataframe = new ArrayList<>();
-        else
-            dataframe = new HashSet<>();
-        for (NamedCsvRow row : this.document) {
-            HashMap<String, String> map = new HashMap<>(columnCount);
+
+        List<String> headers = csvRecords.get(0).getHeader();
+
+        if ((columns == null || columns.length == 0) || (columns.length == 1 && columns[0].isEmpty())) {
+            return getDataframe();
+        }
+
+        int columnCount = 0;
+        for (String c : columns) {
+            if (!headers.contains(c)) {
+                throw new IllegalArgumentException("Column " + c + " not found");
+            }
+            columnCount++;
+        }
+
+        // initialize collection with max possible size. Could be fewer rows if only distinct rows are requested in the dataframe.
+        int rowCount = csvRecords.size();
+        Collection<Map<String, String>> dataframe = onlyDistinct ? new HashSet<>(rowCount) : new ArrayList<>(rowCount);
+
+        for (NamedCsvRecord row : csvRecords) {
+            Map<String, String> map = new HashMap<>(columnCount);
             for (String c : columns) {
-                if(hashVariable)
+                if (hashVariable) {
                     map.put(TemplateFunctions.literalHash(c), row.getField(c));
-                else
+                } else {
                     map.put(c, row.getField(c));
+                }
             }
             dataframe.add(map);
         }
@@ -98,18 +108,13 @@ public class CSVReader implements Reader {
     }
 
     @Override
-    public void debugQuery(String query, Path destinationPath) throws Exception {
+    public void debugQuery(String query, Path destinationPath) throws Exception {}
 
-    }
     @Override
     public void setVerbose(boolean verbose) {}
 
-    /**
-     * Not implemented for CSVReader yet.
-     * @param outputFormat String identifying the output format
-     */
     @Override
-    public void setOutputFormat(String outputFormat) { return;}
+    public void setOutputFormat(String outputFormat) {}
 
     @Override
     public void setHashVariable(boolean hashVariable) {
@@ -122,7 +127,5 @@ public class CSVReader implements Reader {
     }
 
     @Override
-    public void shutDown() {
-
-    }
+    public void shutDown() {}
 }
