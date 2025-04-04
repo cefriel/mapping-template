@@ -28,7 +28,7 @@ WHERE {
 
             # typhon-rml identifier
             ?_source rml:reader ?reader_id .
-
+			OPTIONAL {?_source rml:referenceFormulation ?ref_form .} # missing in BC page
 			OPTIONAL { ?_source rml:iterator ?iterator . }
 			OPTIONAL { ?_source rml:query ?query .}
             # TODO Handle rml:null
@@ -285,8 +285,8 @@ useful information (e.g., sourceHash)
     #* ITERATOR *#
     #set($iterator = $ls.iterator)
 
-    #* GET READER *#
-    ${h}set(${d}reader_$sourceHash = ${d}$ls.reader_id)
+    #* TYPHON GET READER *#
+    ${h}set(${d}reader_$sourceHash = ${d}readers.$functions.hash($ls.reader_id))
 
     #if($refForm == "http://w3id.org/rml/CSV")
         ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))
