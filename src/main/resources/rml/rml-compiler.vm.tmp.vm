@@ -167,7 +167,7 @@ WHERE {
 #set($lLogicalSources = $functions.getMap($mappings_content, "_source"))#foreach($ls in $lLogicalSources.keySet())#if(!$lLogicalSources.get($ls).get("_REFS_"))#set($refs = [])#set($foo = $lLogicalSources.get($ls).put("_REFS_", $refs))#end#end##
 #foreach($tm in $lTriplesMaps.keySet())#set($refs = $lTriplesMaps.get($tm).get("_REFS_"))#set($tm_source = $lTriplesMaps.get($tm)._source)#set($foo = $lLogicalSources.get($tm_source).get("_REFS_").addAll($refs))#end##
 #foreach($ls in $lLogicalSources.keySet())#set($refs = $lLogicalSources.get($ls).get("_REFS_"))#set($foo = $lLogicalSources.get($ls).put("_REFS_", $functions.getDistinct($refs)))#end##
-#set($sqlTypes = [])#foreach($lsEntry in $lLogicalSources.entrySet())#set($ls = $lsEntry.value)#end#end##
+#set($sqlTypes = [])#foreach($lsEntry in $lLogicalSources.entrySet())#set($ls = $lsEntry.value)#end##
 #set($refForm = $ls.ref_form)#set($sourceHash = $functions.hash($ls._source))#set($foo = $ls.put("_SOURCE_HASH_", $sourceHash))#set($lsReferences = $ls.get("_REFS_"))#set($iterator = $ls.iterator)${h}set(${d}reader_$sourceHash = ${d}readers.$functions.hash($ls.reader_id))##
 #if($refForm == "http://w3id.org/rml/CSV")##
 ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))##
@@ -196,7 +196,8 @@ ${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))##
 ')#set($referenceQuery = $referenceQuery.replace("VARIABLE", $refHash))#set($referenceQuery = $referenceQuery.replace("REFERENCE", $ref))#set($xmlQuery = "${xmlQuery}${referenceQuery}") #end#set($xmlQuery = $xmlQuery.trim())#set($xmlQuery = $xmlQuery.substring(0, $xmlQuery.length() - 1))#set($xmlQuery = "${xmlQuery} }")##
 ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$xmlQuery'))##
 #else${h}set(${d}dataframe_$sourceHash = [{"ITERATOR" : "ONCE"}])#end##
-#elseif($refForm=="http://w3id.org/rml/JSONPath")#if($functions.checkList($lsReferences))#set($jsonQuery = '{
+#elseif($refForm=="http://w3id.org/rml/JSONPath")##
+#if($functions.checkList($lsReferences))#set($jsonQuery = '{
     "iterator": "ITERATOR_PATH",
     "paths": {
 ')#set($jsonQuery = $jsonQuery.replace("ITERATOR_PATH", $iterator))##
