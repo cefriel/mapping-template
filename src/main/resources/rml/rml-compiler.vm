@@ -286,8 +286,22 @@ useful information (e.g., sourceHash)
     #* ITERATOR *#
     #set($iterator = $ls.iterator)
 
-    #* TYPHON GET READER *#
-    ${h}set(${d}reader_$sourceHash = ${d}readers.$functions.hash($ls.reader_id))
+    #* TYPHON GET READER
+        $sourceHash is the identifier of the LogicalSource, each LS by default generates 1 dataframe.
+        Multiple LS may refer to the same Reader if the same rml:source and rml:referenceFormulation are used. 
+        We generate one ${d}reader_${sourceHash} for each LS but they may point to the same Reader if the same 
+        reader_id (computed by typhon-rml as a hash of rml:source and rml:referenceFormulation) is provided for two LS.
+    *#
+    ${h}set(${d}reader_${sourceHash} = ${d}readers.$functions.hash($ls.reader_id))
+    #* 
+        If I have the same Reader for two Logical Source, can the same dataframe be reused?
+        For CSV files, I can combine all _REFS_ and extract a single dataframe for all the LS.
+        But... what about joins? Having two smaller dataframes may be more efficient if only one of the two is used in a join operation.
+        For SQL, I am not sure this can be done. Certain _REFS_ may be related to a specific query executed on the same SQLReader. 
+        It may be ok if the SQLReader is used to access always the same table.
+        The equality probably depends on the reader_id + "iterator" (e.g., also for JSON and XML), but in this case we assume that
+        is up to the user to reuse the same LS in the mappings.
+    *#
 
     #if($refForm == "http://w3id.org/rml/CSV")
         ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))
