@@ -24,69 +24,63 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.stream.Collectors;
 
-public class CSVReader extends CSVReaderAbstract {
+public class CSVStreamReader extends CSVReaderAbstract {
 
-    private final List<NamedCsvRecord> csvRecords;
+    public CsvReader<NamedCsvRecord> document;
 
-    public CSVReader(File file) throws IOException {
+    public CSVStreamReader(File file) throws IOException {
         if (Files.exists(file.toPath())) {
             try (CsvReader<NamedCsvRecord> input = CsvReader.builder().ofNamedCsvRecord(file.toPath())) {
-                this.csvRecords = input.stream().collect(Collectors.toList());
+                headers = input.stream().findFirst().orElseThrow().getHeader();
             }
-            headers = csvRecords.get(0).getHeader();
-        } else {
+            this.document = CsvReader.builder().ofNamedCsvRecord(file.toPath());
+        } else
             throw new IllegalArgumentException("File does not exist: " + file.getPath());
-        }
     }
 
-    public CSVReader(String csv) throws IOException {
+    public CSVStreamReader(String csv) throws IOException {
         try (CsvReader<NamedCsvRecord> input = CsvReader.builder().ofNamedCsvRecord(csv)) {
-            this.csvRecords = input.stream().collect(Collectors.toList());
+            headers = input.stream().findFirst().orElseThrow().getHeader();
         }
-        headers = csvRecords.get(0).getHeader();
+        this.document = CsvReader.builder().ofNamedCsvRecord(csv);
     }
 
     public List<Map<String, String>> getDataframe() throws Exception {
-        if (csvRecords.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return getDataframe(headers.toArray(new String[0]));
+        String[] columns = headers.toArray(new String[0]);
+        return getDataframe(columns);
     }
 
     public List<Map<String, String>> getDataframe(String... columns) throws Exception {
-        if (csvRecords.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        if ((columns == null || columns.length == 0) || (columns.length == 1 && columns[0].isEmpty())) {
+        // Return entire dataframe if no columns are provided or if empty string is provided
+        if ((columns == null || columns.length == 0) || (columns.length == 1 && columns[0].isEmpty()))
             return getDataframe();
-        }
 
         int columnCount = 0;
-        for (String c : columns) {
-            if (!headers.contains(c)) {
+        for(String c : columns) {
+            if (!headers.contains(c))
                 throw new IllegalArgumentException("Column " + c + " not found");
-            }
-            columnCount++;
+            columnCount += 1;
         }
+        // TODO Check if rowCount can be obtained to properly initialise the collection capacity
+        Collection<Map<String,String>> dataframe;
+        if (onlyDistinct)
+            dataframe = new ArrayList<>();
+        else
+            dataframe = new HashSet<>();
 
-        // initialize collection with max possible size. Could be fewer rows if only distinct rows are requested in the dataframe.
-        int rowCount = csvRecords.size();
-        Collection<Map<String, String>> dataframe = onlyDistinct ? new HashSet<>(rowCount) : new ArrayList<>(rowCount);
-
-        for (NamedCsvRecord row : csvRecords) {
-            Map<String, String> map = new HashMap<>(columnCount);
+        final int mapSize = columnCount;
+        this.document.stream().forEach(row -> {
+            HashMap<String, String> map = new HashMap<>(mapSize);
             for (String c : columns) {
-                if (hashVariable) {
+                if(hashVariable)
                     map.put(TemplateFunctions.literalHash(c), row.getField(c));
-                } else {
+                else
                     map.put(c, row.getField(c));
-                }
             }
             dataframe.add(map);
-        }
+        });
+
         return new ArrayList<>(dataframe);
     }
 }
