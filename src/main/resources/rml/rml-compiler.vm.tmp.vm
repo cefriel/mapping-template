@@ -143,6 +143,7 @@ WHERE {
 			    d2rq:password ?password .
 			}
 		}
+ORDER BY ?reader_id
 ") )##
 #set ( $subjectClassesQuery = "
     SELECT DISTINCT *
@@ -167,7 +168,7 @@ WHERE {
 #set($lLogicalSources = $functions.getMap($mappings_content, "_source"))#foreach($ls in $lLogicalSources.keySet())#if(!$lLogicalSources.get($ls).get("_REFS_"))#set($refs = [])#set($foo = $lLogicalSources.get($ls).put("_REFS_", $refs))#end#end##
 #foreach($tm in $lTriplesMaps.keySet())#set($refs = $lTriplesMaps.get($tm).get("_REFS_"))#set($tm_source = $lTriplesMaps.get($tm)._source)#set($foo = $lLogicalSources.get($tm_source).get("_REFS_").addAll($refs))#end##
 #foreach($ls in $lLogicalSources.keySet())#set($refs = $lLogicalSources.get($ls).get("_REFS_"))#set($foo = $lLogicalSources.get($ls).put("_REFS_", $functions.getDistinct($refs)))#end##
-#set($sqlTypes = [])#foreach($lsEntry in $lLogicalSources.entrySet())#set($ls = $lsEntry.value)#end##
+#set($sqlTypes = [])#foreach($lsEntry in $lLogicalSources.entrySet())#set($ls = $lsEntry.value)##
 #set($refForm = $ls.ref_form)#set($sourceHash = $functions.hash($ls._source))#set($foo = $ls.put("_SOURCE_HASH_", $sourceHash))#set($lsReferences = $ls.get("_REFS_"))#set($iterator = $ls.iterator)${h}set(${d}reader_$sourceHash = ${d}readers.$functions.hash($ls.reader_id))##
 #if($refForm == "http://w3id.org/rml/CSV")##
 ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))##

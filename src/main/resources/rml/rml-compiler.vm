@@ -155,6 +155,7 @@ WHERE {
 			    d2rq:password ?password .
 			}
 		}
+    ORDER BY ?reader_id
 ") )
 
 #* TODO Check if both subject graph and object graph are handled correctly *#
