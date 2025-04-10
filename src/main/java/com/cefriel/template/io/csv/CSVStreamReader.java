@@ -62,12 +62,8 @@ public class CSVStreamReader extends CSVReaderAbstract {
                 throw new IllegalArgumentException("Column " + c + " not found");
             columnCount += 1;
         }
-        // TODO Check if rowCount can be obtained to properly initialise the collection capacity
-        Collection<Map<String,String>> dataframe;
-        if (onlyDistinct)
-            dataframe = new ArrayList<>();
-        else
-            dataframe = new HashSet<>();
+        // For stream behaviour rowCount can not be obtained
+        Collection<Map<String, String>> dataframe = onlyDistinct ? new HashSet<>() : new ArrayList<>();
 
         final int mapSize = columnCount;
         this.document.stream().forEach(row -> {

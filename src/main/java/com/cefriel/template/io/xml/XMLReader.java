@@ -102,11 +102,7 @@ public class XMLReader implements Reader {
         XQueryExpression exp = sqc.compileQuery(query);
         SequenceIterator iter = exp.iterator(dynamicContext);
         // TODO Check if rowCount can be obtained to properly initialise the ArrayList capacity
-        Collection<Map<String,String>> dataframe;
-        if (onlyDistinct)
-            dataframe = new ArrayList<>();
-        else
-            dataframe = new HashSet<>();
+        Collection<Map<String, String>> dataframe = onlyDistinct ? new HashSet<>() : new ArrayList<>();
 
         while (true) {
             Item item = iter.next();
