@@ -177,8 +177,7 @@ SELECT DISTINCT *
 WHERE {
 	?view a rml:LogicalView ;
         rml:viewOn ?_source .
-    OPTIONAL { ?_source rml:referenceFormulation ?ref_form . }
-    OPTIONAL { ?_source rml:iterator ?iterator . }
+    OPTIONAL {?_source rml:referenceFormulation ?ref_form .} # To check if nested LV
     OPTIONAL  {
         ?view rml:field ?eField .
         ?eField a rml:ExpressionField ;
@@ -302,16 +301,17 @@ Get only distinct REFS for each TriplesMap
     #set($foo = $lLogicalSources.get($tm_source).get("_REFS_").addAll($refs))
 #end
 
-#* Add REFS for each Logical View *#
+#* Add REFS for each Logical View derived directly from a Logical Source *#
 #foreach($fe in $logical_views)
-    #set($lReferences = [])
-    #if($fe.fieldTemplate)
-        #set($foo = $lReferences.addAll($functions.getReferencesFromTemplate($fe.fieldTemplate)))
-    #elseif($fe.fieldReference)
-        #set($foo = $lReferences.add($fe.fieldReference))
+    #if($fe.ref_form)
+        #set($refs = [])
+        #if($fe.fieldTemplate)
+            #set($foo = $refs.addAll($functions.getReferencesFromTemplate($fe.fieldTemplate)))
+        #elseif($fe.fieldReference)
+            #set($foo = $refs.add($fe.fieldReference))
+        #end
+        #set($foo = $lLogicalSources.get($fe._source).get("_REFS_").addAll($refs))
     #end
-
-    #set($foo = $lLogicalSources.get($fe._source).get("_REFS_").addAll($refs))
 #end
 
 #* Apply distinct operation *#
@@ -350,14 +350,12 @@ Get only distinct REFS for each TriplesMap
         ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))
         ${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))
 
-        #if(!($lv_ls_map.keySet().contains($ls._source)))
-            #set($stringRefs = $functions.getAsCommaSeparatedString($lsReferences))
-            #if($functions.checkString($stringRefs))
-                ${h}set(${d}columns = "$stringRefs")
-                ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe(${d}columns))
-            #else
-                ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe())
-            #end
+        #set($stringRefs = $functions.getAsCommaSeparatedString($lsReferences))
+        #if($functions.checkString($stringRefs))
+            ${h}set(${d}columns = "$stringRefs")
+            ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe(${d}columns))
+        #else
+            ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe())
         #end
     #* TODO SQL2008TableName fix per KGCW mappings to be removed *#
     #elseif($refForm == "http://w3id.org/rml/SQL2008Table" || $refForm == "http://w3id.org/rml/SQL2008TableName" || $refForm == "http://w3id.org/rml/SQL2008Query")
@@ -365,106 +363,100 @@ Get only distinct REFS for each TriplesMap
         ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))
         ${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))
 
-        #if(!($lv_ls_map.keySet().contains($ls._source)))
-            #* TODO Check with RML-io *#
-            #if($ls.query)
-                #set($iterator = $ls.query)
-            #end
-            #* Postgres keeps table name lowercase, cf. Issue #123 rml-core *#
-            #if($refForm == "http://w3id.org/rml/SQL2008Table" && $ls.jdbcDSN.contains("postgres"))
-                #set($iterator = $iterator.toLowerCase())
-            #end
-            #set($stringRefs = $functions.getAsCommaSeparatedString($lsReferences))
-            #if($functions.checkString($stringRefs))
-                ${h}set(${d}columns = "$stringRefs")
-                ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getFilteredDataFrame("$iterator", ${d}columns))
-            #else
-                ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe("$iterator"))
-            #end
-            ${h}set(${d}types_$sourceHash = ${d}reader_${sourceHash}.getColumnTypes("$iterator"))
-            ${h}set(${d}columns = ${d}types_${sourceHash}.keySet())
-            ${h}set(${d}refColumns = $functions.getAsStringArray($lsReferences))
-
-            ${h}foreach(${d}column in ${d}refColumns)
-                ${h}if(!${d}columns.contains(${d}column))
-                    ${d}error: "${d}column not found in ${d}dataframe_$sourceHash."
-                ${h}end
-            ${h}end
-            #set($foo = $sqlTypes.add($sourceHash))
+        #* TODO Check with RML-io *#
+        #if($ls.query)
+            #set($iterator = $ls.query)
         #end
+        #* Postgres keeps table name lowercase, cf. Issue #123 rml-core *#
+        #if($refForm == "http://w3id.org/rml/SQL2008Table" && $ls.jdbcDSN.contains("postgres"))
+            #set($iterator = $iterator.toLowerCase())
+        #end
+        #set($stringRefs = $functions.getAsCommaSeparatedString($lsReferences))
+        #if($functions.checkString($stringRefs))
+            ${h}set(${d}columns = "$stringRefs")
+            ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getFilteredDataFrame("$iterator", ${d}columns))
+        #else
+            ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe("$iterator"))
+        #end
+        ${h}set(${d}types_$sourceHash = ${d}reader_${sourceHash}.getColumnTypes("$iterator"))
+        ${h}set(${d}columns = ${d}types_${sourceHash}.keySet())
+        ${h}set(${d}refColumns = $functions.getAsStringArray($lsReferences))
+
+        ${h}foreach(${d}column in ${d}refColumns)
+            ${h}if(!${d}columns.contains(${d}column))
+                ${d}error: "${d}column not found in ${d}dataframe_$sourceHash."
+            ${h}end
+        ${h}end
+        #set($foo = $sqlTypes.add($sourceHash))
     #elseif ($refForm == "http://w3id.org/rml/XPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getXMLReaderFromFile("$sourceUrl"))
         ${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))
 
-        #if(!($lv_ls_map.keySet().contains($ls._source)))
-            #*
-                Access the XML input to extract the dataframe considering references
-                in the triplemaps associated with the same logical source
-            *#
-            #if($functions.checkList($lsReferences))
-                #set($xmlQuery = '
-                    for $i in ITERATOR
-                    return map {
-                ')
-                #set($xmlQuery = $xmlQuery.replace("ITERATOR", $iterator))
-                #foreach($ref in $lsReferences)
-                    #set($refHash = $functions.hash($ref))
-                    #* Check if text() should be added *#
-                    #set ($parts = $ref.split("/"))
-                    #if(!$parts.get($parts.size() - 1).contains("@"))
-                        #set($ref = "${ref}/text()")
-                    #end
-                    #set($referenceQuery = '"VARIABLE": $i/REFERENCE,
-                    ')
-                    #set($referenceQuery = $referenceQuery.replace("VARIABLE", $refHash))
-                    #set($referenceQuery = $referenceQuery.replace("REFERENCE", $ref))
-                    #set($xmlQuery = "${xmlQuery}${referenceQuery}")
+        #*
+            Access the XML input to extract the dataframe considering references
+            in the triplemaps associated with the same logical source
+        *#
+        #if($functions.checkList($lsReferences))
+            #set($xmlQuery = '
+                for $i in ITERATOR
+                return map {
+            ')
+            #set($xmlQuery = $xmlQuery.replace("ITERATOR", $iterator))
+            #foreach($ref in $lsReferences)
+                #set($refHash = $functions.hash($ref))
+                #* Check if text() should be added *#
+                #set ($parts = $ref.split("/"))
+                #if(!$parts.get($parts.size() - 1).contains("@"))
+                    #set($ref = "${ref}/text()")
                 #end
-                #* Remove last comma *#
-                #set($xmlQuery = $xmlQuery.trim())
-                #set($xmlQuery = $xmlQuery.substring(0, $xmlQuery.length() - 1))
-                #set($xmlQuery = "${xmlQuery} }")
-
-                ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$xmlQuery'))
-            #else
-                #* CONSTANT values, iterate once *#
-                ${h}set(${d}dataframe_$sourceHash = [{"ITERATOR" : "ONCE"}])
+                #set($referenceQuery = '"VARIABLE": $i/REFERENCE,
+                ')
+                #set($referenceQuery = $referenceQuery.replace("VARIABLE", $refHash))
+                #set($referenceQuery = $referenceQuery.replace("REFERENCE", $ref))
+                #set($xmlQuery = "${xmlQuery}${referenceQuery}")
             #end
+            #* Remove last comma *#
+            #set($xmlQuery = $xmlQuery.trim())
+            #set($xmlQuery = $xmlQuery.substring(0, $xmlQuery.length() - 1))
+            #set($xmlQuery = "${xmlQuery} }")
+
+            ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$xmlQuery'))
+        #else
+            #* CONSTANT values, iterate once *#
+            ${h}set(${d}dataframe_$sourceHash = [{"ITERATOR" : "ONCE"}])
         #end
     #elseif ($refForm=="http://w3id.org/rml/JSONPath")
         ${h}set(${d}reader_$sourceHash = ${d}functions.getJSONReaderFromFile("$sourceUrl"))
-        #if(!($lv_ls_map.keySet().contains($ls._source)))
-            #*
-                Access the JSON input to extract the dataframe considering references
-                in the triplemaps associated with the same logical source
-            *#
-            #if($functions.checkList($lsReferences))
-                #set($jsonQuery = '{
-                    "iterator": "ITERATOR_PATH",
-                    "paths": {
+        #*
+            Access the JSON input to extract the dataframe considering references
+            in the triplemaps associated with the same logical source
+        *#
+        #if($functions.checkList($lsReferences))
+            #set($jsonQuery = '{
+                "iterator": "ITERATOR_PATH",
+                "paths": {
+            ')
+            #set($jsonQuery = $jsonQuery.replace("ITERATOR_PATH", $iterator))
+            #foreach($ref in $lsReferences)
+                #set($refHash = $functions.hash($ref))
+                #set($referenceQuery = '"VARIABLE": "REFERENCE",
                 ')
-                #set($jsonQuery = $jsonQuery.replace("ITERATOR_PATH", $iterator))
-                #foreach($ref in $lsReferences)
-                    #set($refHash = $functions.hash($ref))
-                    #set($referenceQuery = '"VARIABLE": "REFERENCE",
-                    ')
-                    #set($referenceQuery = $referenceQuery.replace("VARIABLE", $refHash))
-                    #set($ref = $ref.replace("$.",""))
-                    #set($referenceQuery = $referenceQuery.replace("REFERENCE", $ref))
-                    #set($jsonQuery = "${jsonQuery}${referenceQuery}")
-                #end
-                #* Remove last comma *#
-                #set($jsonQuery = $jsonQuery.trim())
-                #set($jsonQuery = $jsonQuery.substring(0, $jsonQuery.length() - 1))
-                #set($jsonQuery = "${jsonQuery} }}")
-
-                #set($jsonQuery = $functions.sanitizeJSON($jsonQuery))
-
-                ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$jsonQuery'))
-            #else
-                #* CONSTANT values, iterate once *#
-                ${h}set(${d}dataframe_$sourceHash = [{"ITERATOR" : "ONCE"}])
+                #set($referenceQuery = $referenceQuery.replace("VARIABLE", $refHash))
+                #set($ref = $ref.replace("$.",""))
+                #set($referenceQuery = $referenceQuery.replace("REFERENCE", $ref))
+                #set($jsonQuery = "${jsonQuery}${referenceQuery}")
             #end
+            #* Remove last comma *#
+            #set($jsonQuery = $jsonQuery.trim())
+            #set($jsonQuery = $jsonQuery.substring(0, $jsonQuery.length() - 1))
+            #set($jsonQuery = "${jsonQuery} }}")
+
+            #set($jsonQuery = $functions.sanitizeJSON($jsonQuery))
+
+            ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$jsonQuery'))
+        #else
+            #* CONSTANT values, iterate once *#
+            ${h}set(${d}dataframe_$sourceHash = [{"ITERATOR" : "ONCE"}])
         #end
     #else
         ${d}error: "No compatible Reader found."
@@ -503,62 +495,25 @@ Get only distinct REFS for each TriplesMap
     #set($lvHash = $functions.hash($lv.key))
     #set($lvSource = $functions.hash($lvFields[0]._source))
 
-    #set($refForm = $lvFields[0].ref_form)
-    #set($iterator = $lvFields[0].iterator)
+    #* TODO Create a copy of the dataframe to avoid overriding *#
+    ${h}set(${d}dataframe_$lvHash = ${d}dataframe_${lvSource})
 
-    #* Case in which a view references another view *#
-    #if(!$refForm)
-        #foreach($field in $lvFields)
-            #if($field.fieldReference)
-                ${h}set(${d}dataframe_$lvHash = ${d}functions.renameColumn(${d}dataframe_${lvSource}, "$functions.hash($field.fieldReference)", "$functions.hash($field.fieldName)"))
-            #elseif($field.fieldTemplate)
-                ${h}foreach(${d}i in ${d}dataframe_${lvSource})
-                    ${h}set(${d}i.put("$functions.hash($field.fieldName)") = $functions.resolveTemplate($field.fieldTemplate))
-                ${h}end
-            #end
-        #end
-    #elseif($refForm == "http://w3id.org/rml/CSV")
-        #set($refs = [])
-        #foreach($field in $lvFields)
-            #set($foo = $refs.put($field.fieldName))
-        #end
-        #set($stringRefs = $functions.getAsCommaSeparatedString($refs))
-        #if($functions.checkString($stringRefs))
-            ${h}set(${d}columns = "$stringRefs")
-            ${h}set(${d}dataframe_$lvHash = ${d}reader_${lvSource}.getDataframe(${d}columns))
-        #else
-            ${h}set(${d}dataframe_$lvHash = ${d}reader_${lvSource}.getDataframe())
-        #end
-         #* TODO Rename column if fieldName != referenceName *#
-    #elseif ($refForm=="http://w3id.org/rml/JSONPath")
-        #set($jsonQuery = '{
-            "iterator": "ITERATOR_PATH",
-            "paths": {
-        ')
-        #set($jsonQuery = $jsonQuery.replace("ITERATOR_PATH", $iterator))
-        #foreach($field in $lvFields)
-            #set($refHash = $functions.hash($field.fieldName))
-            #set($referenceQuery = '"VARIABLE": "REFERENCE",
-            ')
-            #set($referenceQuery = $referenceQuery.replace("VARIABLE", $refHash))
-            #set($ref = $field.fieldReference.replace("$.",""))
-            #set($referenceQuery = $referenceQuery.replace("REFERENCE", $ref))
-            #set($jsonQuery = "${jsonQuery}${referenceQuery}")
-        #end
-        #set($jsonQuery = $jsonQuery.trim())
-        #set($jsonQuery = $jsonQuery.substring(0, $jsonQuery.length() - 1))
-        #set($jsonQuery = "${jsonQuery} }}")
-
-        #set($jsonQuery = $functions.sanitizeJSON($jsonQuery))
-
-        ${h}set(${d}dataframe_$lvHash = ${d}reader_${lvSource}.getDataframe('$jsonQuery'))
-    #end
+    #* TODO Avoid rename if column already in the dataframe 
+    #set($lsReferences = $lLogicalSources.get($lvSource).get("_REFS_"))
+    *#
 
     #foreach($field in $lvFields)
         #if($field.fieldConstant)
-            ${h}foreach(${d}i in ${d}dataframe_${lvSource})
-                ${h}set(${d}i.put("$functions.hash($field.fieldName)") = "$field.fieldConstant")
+            ${h}foreach(${d}i in ${d}dataframe_$lvHash)
+                ${h}set(${d}foo = ${d}i.put("$functions.hash($field.fieldName)", "$field.fieldConstant"))
             ${h}end
+        #elseif($field.fieldReference)
+            ${h}set(${d}dataframe_$lvHash = ${d}functions.renameColumn(${d}dataframe_$lvHash, "$functions.hash($field.fieldReference)", "$functions.hash($field.fieldName)"))
+        #elseif($field.fieldTemplate)
+            ${h}foreach(${d}i in ${d}dataframe_$lvHash)
+                #set($template = $functions.encodeReferencesLiteral($functions.resolveTemplate($field.fieldTemplate)))
+                ${h}set(${d}foo = ${d}i.put("$functions.hash($field.fieldName)", $template))
+            ${h}end 
         #end
     #end
 #end
