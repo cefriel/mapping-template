@@ -342,6 +342,11 @@ useful information (e.g., sourceHash)
             ${h}end
         ${h}end
         #set($foo = $sqlTypes.add($sourceHash))
+    #elseif ($refForm == "http://www.w3.org/ns/formats/SPARQL_Results_CSV")
+        ${h}set(${d}foo = ${d}reader_${sourceHash}.setHashVariable(true))
+        ${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))
+
+        ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe("$iterator"))
     #elseif ($refForm == "http://w3id.org/rml/XPath")
         ${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))
         #*
