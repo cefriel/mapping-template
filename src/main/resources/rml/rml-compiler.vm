@@ -179,16 +179,40 @@ WHERE {
         rml:viewOn ?_source .
     OPTIONAL {?_source rml:referenceFormulation ?ref_form .} # To check if nested LV
     OPTIONAL  {
-        ?view rml:field ?eField .
-        ?eField a rml:ExpressionField ;
+        ?view rml:field ?field .
+        ?field a ?fieldClass ;
             rml:fieldName ?fieldName .
-        OPTIONAL { ?eField rml:template ?fieldTemplate . }
-        OPTIONAL { ?eField rml:reference ?fieldReference . }
-        OPTIONAL { ?eField rml:constant ?fieldConstant . }
+        OPTIONAL { ?field rml:template ?fieldTemplate . }
+        OPTIONAL { ?field rml:reference ?fieldReference . }
+        OPTIONAL { ?field rml:constant ?fieldConstant . }
+        OPTIONAL { ?field rml:iterator ?fieldIterator . }
     }
 }") )
 #set ( $lv_map = $functions.getListMap($logical_views, "view") )
-#set ( $lv_ls_map = $functions.getListMap($logical_views, "_source") )
+
+#set ( $iterable_fields = $reader.getDataframe("
+SELECT DISTINCT *
+WHERE {
+    ?iField a rml:IterableField ;
+        rml:fieldName ?iFieldName ;
+        rml:iterator ?iFieldIterator .
+    OPTIONAL {
+        ?view rml:field ?iField .
+        ?view a rml:LogicalView ;
+            rml:viewOn ?_source .
+        ?_source rml:referenceFormulation ?ref_form .
+    }
+    OPTIONAL { ?iField rml:referenceFormulation ?iFieldRefForm . }    
+    OPTIONAL  {
+        ?iField rml:field ?field .
+        ?field a rml:ExpressionField ;
+            rml:fieldName ?fieldName .
+        OPTIONAL { ?field rml:template ?fieldTemplate . }
+        OPTIONAL { ?field rml:reference ?fieldReference . }
+        OPTIONAL { ?field rml:constant ?fieldConstant . }
+    }
+}") )
+#set ( $itf_map = $functions.getListMap($iterable_fields, "iField") )
 
 #* TODO Check if both subject graph and object graph are handled correctly *#
 
@@ -277,14 +301,6 @@ useful information (e.g., sourceHash)
     #set($foo = $lTriplesMaps.get($row.triples_map_id).get("_REFS_").addAll($lReferences))
 #end
 
-#* TODO Not needed because distinct is already applied below 
-Get only distinct REFS for each TriplesMap 
-#foreach($tm in $lTriplesMaps.keySet())
-    #set($refs = $lTriplesMaps.get($tm).get("_REFS_"))
-    #set($foo = $lTriplesMaps.get($tm).put("_REFS_", $functions.getDistinct($refs)))
-#end
-*#
-
 #* Get REFS for each Logical Source *#
 #set($lLogicalSources = $functions.getMap($logical_sources, "_source"))
 #* Init REFS for each Logical Source as empty array *#
@@ -303,12 +319,15 @@ Get only distinct REFS for each TriplesMap
 
 #* Add REFS for each Logical View derived directly from a Logical Source *#
 #foreach($fe in $logical_views)
+    #* Check if LV derived directly from a Logical Source *#
     #if($fe.ref_form)
         #set($refs = [])
         #if($fe.fieldTemplate)
             #set($foo = $refs.addAll($functions.getReferencesFromTemplate($fe.fieldTemplate)))
         #elseif($fe.fieldReference)
             #set($foo = $refs.add($fe.fieldReference))
+        #elseif($fe.fieldIterator)
+            #set($foo = $refs.add($fe.fieldIterator))
         #end
         #set($foo = $lLogicalSources.get($fe._source).get("_REFS_").addAll($refs))
     #end
@@ -463,6 +482,76 @@ Get only distinct REFS for each TriplesMap
     #end
 #end
 
+#* ########## LOGICAL VIEWS ########## *#
+#foreach($lv in $lv_map.entrySet())
+    #set($lvFields = $lv.value)
+    #set($lvHash = $functions.hash($lv.key))
+    #set($lvSource = $functions.hash($lvFields[0]._source))
+
+    #* TODO Create a copy of the dataframe to avoid overriding *#
+    ${h}set(${d}dataframe_$lvHash = ${d}dataframe_${lvSource})
+
+    #foreach($field in $lvFields)
+        #if($field.fieldClass == "http://w3id.org/rml/ExpressionField")
+            #if($field.fieldConstant)
+                ${h}foreach(${d}i in ${d}dataframe_$lvHash)
+                    ${h}set(${d}foo = ${d}i.put("$functions.hash($field.fieldName)", "$field.fieldConstant"))
+                ${h}end
+            #elseif($field.fieldReference)
+                #* TODO Avoid rename if column already in the dataframe with the same name *#
+                ${h}set(${d}dataframe_$lvHash = ${d}functions.renameColumn(${d}dataframe_$lvHash, "$functions.hash($field.fieldReference)", "$functions.hash($field.fieldName)"))
+            #elseif($field.fieldTemplate)
+                ${h}foreach(${d}i in ${d}dataframe_$lvHash)
+                    #set($template = $functions.encodeReferencesLiteral($functions.resolveTemplate($field.fieldTemplate)))
+                    ${h}set(${d}foo = ${d}i.put("$functions.hash($field.fieldName)", $template))
+                ${h}end
+            #end
+        #elseif($field.fieldClass == "http://w3id.org/rml/IterableField")
+            #if($field.fieldIterator)
+                ${h}set(${d}dataframe_$lvHash = ${d}functions.renameColumn(${d}dataframe_$lvHash, "$functions.hash($field.fieldIterator)", "$functions.hash($field.fieldName)"))
+            #end
+            #set($itf_fields = $itf_map.get($field.field))
+            #set($fHash = $functions.hash($field.field))
+
+            #set($jsonQuery = '{
+                "iterator": "$.[*]",
+                "paths": {
+            ')
+            #* TODO Extract Reference and References from templates and iterate only over them
+
+            #if($itf_field.fieldConstant)
+                ${h}foreach(${d}i in ${d}dataframe_$lvHash_$fHash)
+                    ${h}set(${d}foo = ${d}i.put("$functions.hash($field.fieldName).$functions.hash($itf_field.fieldName)", "$itf_field.fieldConstant"))
+                ${h}end
+            #elseif($itf_field.fieldReference)
+            #elseif($itf_field.fieldTemplate)
+            #end
+            *#
+            #foreach($itf_field in $itf_fields)
+                #set($refHash = $itf_field.fieldName)
+                #set($referenceQuery = '"VARIABLE": "REFERENCE",
+                ')
+                #set($referenceQuery = $referenceQuery.replace("VARIABLE", $refHash))
+                #set($ref = $itf_field.fieldReference.replace("$.",""))
+                #set($referenceQuery = $referenceQuery.replace("REFERENCE", $ref))
+                #set($jsonQuery = "${jsonQuery}${referenceQuery}")
+            #end
+            #* Remove last comma *#
+            #set($jsonQuery = $jsonQuery.trim())
+            #set($jsonQuery = $jsonQuery.substring(0, $jsonQuery.length() - 1))
+            #set($jsonQuery = "${jsonQuery} }}")
+
+            #set($jsonQuery = $functions.sanitizeJSON($jsonQuery))
+            
+            #set($refForm = $itf_fields[0].ref_form)
+            #if($itf_fields[0].iFieldRefForm)
+                #set($refForm = $itf_fields[0].iFieldRefForm)
+            #end
+            ${h}set(${d}dataframe_$lvHash = ${d}functions.createView(${d}dataframe_$lvHash, "$field.fieldName", '$jsonQuery',  "$refForm"))
+        #end
+    #end
+#end
+
 #* ########## GENERATE DATAFRAMES FOR JOINS ########## *#
 #foreach($row in $mappings_content)
     #if($row.object_parent_triples_map)
@@ -485,35 +574,6 @@ Get only distinct REFS for each TriplesMap
             ${h}if(!${d}dataframe_join_$join_hash)
                 ${h}set(${d}dataframe_join_$join_hash = $parent_df)
             ${h}end
-        #end
-    #end
-#end
-
-#* ########## LOGICAL VIEWS ########## *#
-#foreach($lv in $lv_map.entrySet())
-    #set($lvFields = $lv.value)
-    #set($lvHash = $functions.hash($lv.key))
-    #set($lvSource = $functions.hash($lvFields[0]._source))
-
-    #* TODO Create a copy of the dataframe to avoid overriding *#
-    ${h}set(${d}dataframe_$lvHash = ${d}dataframe_${lvSource})
-
-    #* TODO Avoid rename if column already in the dataframe 
-    #set($lsReferences = $lLogicalSources.get($lvSource).get("_REFS_"))
-    *#
-
-    #foreach($field in $lvFields)
-        #if($field.fieldConstant)
-            ${h}foreach(${d}i in ${d}dataframe_$lvHash)
-                ${h}set(${d}foo = ${d}i.put("$functions.hash($field.fieldName)", "$field.fieldConstant"))
-            ${h}end
-        #elseif($field.fieldReference)
-            ${h}set(${d}dataframe_$lvHash = ${d}functions.renameColumn(${d}dataframe_$lvHash, "$functions.hash($field.fieldReference)", "$functions.hash($field.fieldName)"))
-        #elseif($field.fieldTemplate)
-            ${h}foreach(${d}i in ${d}dataframe_$lvHash)
-                #set($template = $functions.encodeReferencesLiteral($functions.resolveTemplate($field.fieldTemplate)))
-                ${h}set(${d}foo = ${d}i.put("$functions.hash($field.fieldName)", $template))
-            ${h}end 
         #end
     #end
 #end
