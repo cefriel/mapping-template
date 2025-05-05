@@ -197,7 +197,7 @@ ${h}set(${d}foo = ${d}reader_${sourceHash}.setOnlyDistinct(true))##
     for $i in ITERATOR
     return map {
 ')##
-#set($xmlQuery = $xmlQuery.replace("ITERATOR", $iterator))#foreach($ref in $lsReferences)#set($refHash = $functions.hash($ref))#set($parts = $ref.split("/"))#if(!$parts.get($parts.size() - 1).contains("@"))#set($ref = "${ref}/text()")#end#set($referenceQuery = '"VARIABLE": $i/REFERENCE,
+#set($xmlQuery = $xmlQuery.replace("ITERATOR", $iterator))#foreach($ref in $lsReferences)#set($refHash = $functions.hash($ref))#set($parts = $ref.split("/"))#if(!$parts.get($parts.size() - 1).contains("@"))#if(!$ref.contains("text()"))#set($ref = "${ref}/text()")#end#end#set($referenceQuery = '"VARIABLE": $i/REFERENCE,
 ')#set($referenceQuery = $referenceQuery.replace("VARIABLE", $refHash))#set($referenceQuery = $referenceQuery.replace("REFERENCE", $ref))#set($xmlQuery = "${xmlQuery}${referenceQuery}") #end#set($xmlQuery = $xmlQuery.trim())#set($xmlQuery = $xmlQuery.substring(0, $xmlQuery.length() - 1))#set($xmlQuery = "${xmlQuery} }")##
 ${h}set(${d}dataframe_$sourceHash = ${d}reader_${sourceHash}.getDataframe('$xmlQuery'))##
 #else${h}set(${d}dataframe_$sourceHash = [{"ITERATOR" : "ONCE"}])#end##

@@ -364,7 +364,9 @@ useful information (e.g., sourceHash)
                 #* Check if text() should be added *#
                 #set ($parts = $ref.split("/"))
                 #if(!$parts.get($parts.size() - 1).contains("@"))
-                    #set($ref = "${ref}/text()")
+                    #if(!$ref.contains("text()"))
+                        #set($ref = "${ref}/text()")
+                    #end
                 #end
                 #set($referenceQuery = '"VARIABLE": $i/REFERENCE,
                 ')
