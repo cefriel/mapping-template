@@ -550,11 +550,14 @@ public class TemplateFunctions {
         } else
             component = URLEncoder.encode(component, StandardCharsets.UTF_8);
 
+        // TODO Check how to generalize this
         for (char c : component.toCharArray()) {
             if (c == '+')
                 builder.append("%20");
             else if (c == '*')
                 builder.append("%2A");
+            else if (c == '/')
+                builder.append("%2F");
             else
                 builder.append(c);
         }
