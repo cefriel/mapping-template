@@ -6,6 +6,7 @@
 #set($d="$")#set($h="#")#set($pa="{")#set($pc="}")##
 #if($map.baseIRI)#set($base = "$map.baseIRI")#else#set($base = "http://example.com/base/")#end#set($foo = $functions.setBaseIRI($base))##
 ${h}set(${d}foo = ${d}functions.setBaseIRI("$base"))##
+#set($customBaseIRI = 0)##
 #set($mappings_content = $reader.getDataframe("
 SELECT DISTINCT *
 WHERE {
@@ -20,6 +21,8 @@ WHERE {
 			OPTIONAL { ?_source rml:iterator ?iterator . }
 			OPTIONAL { ?_source rml:query ?query .}
             # TODO Handle rml:null
+
+			OPTIONAL {?triples_map_id rml:baseIRI ?tm_baseIRI .}
 
 			?triples_map_id rml:subjectMap ?_subject_map .
 			OPTIONAL {?_subject_map rml:template ?subject_template .}
@@ -216,7 +219,9 @@ ${d}error: "No compatible Reader found."#end#end##
 $s#end## 
 #set($lmSources = $functions.getListMap($mappings_content, "_source"))## 
 #foreach($lmSource in $lmSources.entrySet())#set($ls = $lLogicalSources.get($lmSource.key))#set($sourceHash = $functions.hash($ls._source))#set($lmTmSource = $functions.getListMap($lmSource.value,"triples_map_id"))## 
-#foreach($lmTmSourceEntry in $lmTmSource.entrySet())#set($tm = $lmTmSourceEntry.value.get(0))#set($subject = "#subjectRender($tm)")#set($subject = $subject.trim())#set($graph = $null)#if($tm.graph_template)#set($graph = $functions.resolveTemplate($tm.graph_template))#elseif($tm.graph_reference)#set($graph = $functions.resolveReference($tm.graph_reference))#elseif($tm.graph_constant)#set($graph = $tm.graph_constant)#elseif($tm.graph_constant_shortcut)#set($graph = $tm.graph_constant_shortcut)#end#if($graph.equals("http://w3id.org/rml/defaultGraph")) #set($graph = $null)#else#set($graph = $functions.encodeReferencesIRI($graph, $tm.graph_termtype))#end#if($tm.graph_termtype.equals("http://w3id.org/rml/Literal"))${d}error: graph can not be of type Literal.#end## 
+#foreach($lmTmSourceEntry in $lmTmSource.entrySet())#set($tm = $lmTmSourceEntry.value.get(0))#set($tm_baseIRI = $tm.tm_baseIRI)#if($tm_baseIRI)#set($foo = $functions.setBaseIRI($tm_baseIRI))##
+${h}set(${d}foo = ${d}functions.setBaseIRI("$tm_baseIRI"))#set($customBaseIRI = 1)#else#if($customBaseIRI)#set($foo = $functions.setBaseIRI($base))${h}set(${d}foo = ${d}functions.setBaseIRI("$base"))#set($customBaseIRI = 0)#end#end##
+#set($subject = "#subjectRender($tm)")#set($subject = $subject.trim())#set($graph = $null)#if($tm.graph_template)#set($graph = $functions.resolveTemplate($tm.graph_template))#elseif($tm.graph_reference)#set($graph = $functions.resolveReference($tm.graph_reference))#elseif($tm.graph_constant)#set($graph = $tm.graph_constant)#elseif($tm.graph_constant_shortcut)#set($graph = $tm.graph_constant_shortcut)#end#if($graph.equals("http://w3id.org/rml/defaultGraph")) #set($graph = $null)#else#set($graph = $functions.encodeReferencesIRI($graph, $tm.graph_termtype))#end#if($tm.graph_termtype.equals("http://w3id.org/rml/Literal"))${d}error: graph can not be of type Literal.#end## 
 ${h}foreach(${d}i in ${d}dataframe_$sourceHash)## 
 #set($rSubjectClassesQuery = $subjectClassesQuery.replace("TRIPLES_MAP", $tm.triples_map_id))#set($subjectClasses = $reader.getDataframe($rSubjectClassesQuery))#foreach($subjClass in $subjectClasses)#if($graph) 
 $subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <$subjClass.subject_rdf_class> $graph.
