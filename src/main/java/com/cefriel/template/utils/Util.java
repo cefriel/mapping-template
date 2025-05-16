@@ -30,10 +30,7 @@ import com.cefriel.template.io.xml.XMLReader;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.apache.velocity.tools.generic.DateTool;
-import org.apache.velocity.tools.generic.EscapeTool;
-import org.apache.velocity.tools.generic.MathTool;
-import org.apache.velocity.tools.generic.NumberTool;
+import org.apache.velocity.tools.generic.*;
 import org.eclipse.rdf4j.common.exception.ValidationException;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.vocabulary.RDF4J;
@@ -279,7 +276,7 @@ public class Util {
         // apache velocity generic tools
         context.put("math", new MathTool());
         context.put("number", new NumberTool());
-        context.put("date", new DateTool());
+        context.put("date", new ComparisonDateTool());
         context.put("esc", new EscapeTool());
 
         if (templateMap != null)
