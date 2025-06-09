@@ -550,11 +550,14 @@ public class TemplateFunctions {
         } else
             component = URLEncoder.encode(component, StandardCharsets.UTF_8);
 
+        // TODO Check how to generalize this
         for (char c : component.toCharArray()) {
             if (c == '+')
                 builder.append("%20");
             else if (c == '*')
                 builder.append("%2A");
+            else if (c == '/')
+                builder.append("%2F");
             else
                 builder.append(c);
         }
@@ -579,7 +582,7 @@ public class TemplateFunctions {
     public String resolveIRI(String s) throws Exception {
         if(s != null) {
             if (!isAbsoluteURI(s)) {
-                s = baseIRI + s;
+                s = baseIRI + encodeURIComponent(s);
                 s = new URI(s).toString();
             } else {
                 URLComponents url = new URLComponents(s);

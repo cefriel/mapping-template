@@ -17,21 +17,22 @@
 package com.cefriel.template;
 
 import com.cefriel.template.io.csv.CSVReader;
+import com.cefriel.template.io.csv.CSVStreamReader;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-public class CSVReaderTest {
+public class CSVStreamReaderTest {
 
-    private static CSVReader csvReader;
+    private static CSVStreamReader csvReader;
 
     @Test
-    public void testCSVReaderFile() throws Exception {
+    public void testCSVStreamReaderFile() throws Exception {
         String filePath = "src/test/resources/testCSVWithHeaders.csv";
         File f = new File(filePath);
-        csvReader = new CSVReader(f);
+        csvReader = new CSVStreamReader(f);
         List<Map<String, String>> results = csvReader.getDataframe("id", "stop", "latitude", "longitude");
         assert (!results.isEmpty());
         assert (results.size() == 1);
@@ -42,9 +43,9 @@ public class CSVReaderTest {
         assert(row.get("longitude").equals("4.484444"));
     }
     @Test
-    public void testCSVReaderFromString() throws Exception {
+    public void testCSVStreamReaderFromString() throws Exception {
         String s = "id,stop,latitude,longitude\n6523,25,50.901389,4.484444";
-        csvReader = new CSVReader(s);
+        csvReader = new CSVStreamReader(s);
         List<Map<String, String>> results = csvReader.getDataframe();
         assert (!results.isEmpty());
         assert (results.size() == 1);
@@ -56,19 +57,20 @@ public class CSVReaderTest {
     }
 
     @Test
-    public void testCSVReaderMultipleDataframes() throws Exception {
+    public void testCSVStreamReaderMultipleDataframes() throws Exception {
         String s = "id,stop,latitude,longitude\n6523,25,50.901389,4.484444";
-        csvReader = new CSVReader(s);
+        csvReader = new CSVStreamReader(s);
         List<Map<String, String>> results = csvReader.getDataframe();
         List<Map<String, String>> results2 = csvReader.getDataframe();
         assert (!results.isEmpty());
-        assert (!results2.isEmpty());
+        // The stream is consumed so the second call is empty
+        assert (results2.isEmpty());
     }
 
     @Test
-    public void testCSVReaderFileWithBOM() throws Exception {
+    public void testCSVStreamReaderFileWithBOM() throws Exception {
         File csvFile = new File("src/test/resources/csv-reader/test.csv");
-        csvReader = new CSVReader(csvFile);
+        csvReader = new CSVStreamReader(csvFile);
         List<Map<String, String>> results = csvReader.getDataframe();
         assert (!results.isEmpty());
         assert (results.get(0).keySet().size() == 3);

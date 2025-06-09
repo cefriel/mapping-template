@@ -124,12 +124,8 @@ public class SQLReader implements Reader {
     private List<Map<String, String>> populateDataframe(int rowCount, ResultSet resultSet, String filterVariables) throws SQLException {
         ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
-        
-        Collection<Map<String,String>> dataframe;
-        if (onlyDistinct)
-            dataframe = new ArrayList<>(rowCount);
-        else
-            dataframe = new HashSet<>(rowCount);
+
+        Collection<Map<String, String>> dataframe = onlyDistinct ? new HashSet<>(rowCount) : new ArrayList<>(rowCount);
 
         List<String> filters = null;
         if (filterVariables != null)

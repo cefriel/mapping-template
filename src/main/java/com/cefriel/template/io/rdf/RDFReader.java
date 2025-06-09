@@ -152,11 +152,7 @@ public class RDFReader implements Reader {
      */
     private List<Map<String,String>> getQueryResultsStringValue(String query) {
         List<Map<String,Value>> valueResults = executeQuery(query);
-        Collection<Map<String,String>> dataframe;
-        if (onlyDistinct)
-            dataframe = new ArrayList<>();
-        else
-            dataframe = new HashSet<>();
+        Collection<Map<String, String>> dataframe = onlyDistinct ? new HashSet<>() : new ArrayList<>();
         for(Map<String,Value> row : valueResults) {
             if (hashVariable)
                 dataframe.add(row.entrySet().stream()
