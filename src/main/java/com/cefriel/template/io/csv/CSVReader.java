@@ -42,7 +42,9 @@ public class CSVReader extends CSVReaderAbstract {
     }
 
     public CSVReader(String csv) throws IOException {
-        try (CsvReader<NamedCsvRecord> input = CsvReader.builder().ofNamedCsvRecord(csv)) {
+        try (CsvReader<NamedCsvRecord> input = CsvReader.builder()
+                .detectBomHeader(true).
+                ofNamedCsvRecord(csv)) {
             this.csvRecords = input.stream().collect(Collectors.toList());
         }
         headers = csvRecords.get(0).getHeader();
