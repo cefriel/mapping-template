@@ -31,7 +31,9 @@ public class CSVStreamReader extends CSVReaderAbstract {
 
     public CSVStreamReader(File file) throws IOException {
         if (Files.exists(file.toPath())) {
-            try (CsvReader<NamedCsvRecord> input = CsvReader.builder().ofNamedCsvRecord(file.toPath())) {
+            try (CsvReader<NamedCsvRecord> input = CsvReader.builder()
+                    .detectBomHeader(true)
+                    .ofNamedCsvRecord(file.toPath())) {
                 headers = input.stream().findFirst().orElseThrow().getHeader();
             }
             this.document = CsvReader.builder().ofNamedCsvRecord(file.toPath());
