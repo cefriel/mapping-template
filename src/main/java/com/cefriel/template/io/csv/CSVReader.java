@@ -19,6 +19,7 @@ package com.cefriel.template.io.csv;
 import com.cefriel.template.utils.TemplateFunctions;
 import de.siegmar.fastcsv.reader.CsvReader;
 import de.siegmar.fastcsv.reader.NamedCsvRecord;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,10 +80,14 @@ public class CSVReader extends CSVReaderAbstract {
         for (NamedCsvRecord row : csvRecords) {
             Map<String, String> map = new HashMap<>(columnCount);
             for (String c : columns) {
+                String value = row.getField(c);
                 if (hashVariable) {
-                    map.put(TemplateFunctions.literalHash(c), row.getField(c));
+                    if ("xml".equalsIgnoreCase(this.outputFormat)) {
+                        value = StringEscapeUtils.escapeXml11(value);
+                    }
+                    map.put(TemplateFunctions.literalHash(c), value);
                 } else {
-                    map.put(c, row.getField(c));
+                    map.put(c, value);
                 }
             }
             dataframe.add(map);

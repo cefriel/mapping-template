@@ -26,6 +26,7 @@ import java.util.*;
 public abstract class CSVReaderAbstract implements Reader {
 
     List<String> headers;
+    String outputFormat;
     boolean hashVariable;
     boolean onlyDistinct;
 
@@ -52,7 +53,9 @@ public abstract class CSVReaderAbstract implements Reader {
     public void setVerbose(boolean verbose) {}
 
     @Override
-    public void setOutputFormat(String outputFormat) {}
+    public void setOutputFormat(String outputFormat) {
+        this.outputFormat = outputFormat;
+    }
 
     @Override
     public void setHashVariable(boolean hashVariable) {
