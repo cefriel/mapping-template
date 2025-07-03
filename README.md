@@ -74,11 +74,11 @@ If `-url` and `-id` options are set a remote database/repository is used for que
 
 If you would like to use the `mapping-template` for more advanced integration scenarios, check out the integration within the [Chimera](https://github.com/cefriel/chimera) framework. Chimera is implemented on top of Apache Camel and offers components to define schema and data transformation pipelines based on Semantic Web solutions.
 
-### References
+### Cite as
 
 If you use the `mapping-template` for publications, cite the following article: 
 
-Scrocca, M., Carenini, A., Grassi, M., Comerio, M., & Celino, I. (2024). `Not Everybody Speaks RDF: Knowledge Conversion between Different Data Representations`. In: Fifth International Workshop on Knowledge Graph Construction co-located with the ESWC2024. CEUR-WS. https://ceur-ws.org/Vol-3718/paper3.pdf
+> Scrocca, M., Carenini, A., Grassi, M., Comerio, M., & Celino, I. (2024). `Not Everybody Speaks RDF: Knowledge Conversion between Different Data Representations`. In: Fifth International Workshop on Knowledge Graph Construction co-located with the ESWC2024. CEUR-WS. https://ceur-ws.org/Vol-3718/paper3.pdf
 
 Check the [Chimera](https://github.com/cefriel/chimera) repository for a list of projects using the `mapping-template`.
 
