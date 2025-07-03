@@ -41,7 +41,7 @@ options:
   -b, --basepath <arg>            Base path for files (input, template, output). Default value is './'.
   -c, --contextIRI <arg>          IRI identifies the named graph for context-aware querying of the repository. 
                                   Default behaviour: the entire repository is considered for querying.
-  -q, --query <arg>               Path to the file containing a query.
+  -q, --query <arg>               Path to the file containing a query for parametric template execution.
   -dq, --debug-query              Saves in the output file the result of the query provided with -q option.
   -f, --format <arg>              Activate procedures for specific output formats. Supported values: 'xml' 
                                   (XML escape, XML parsing to check structure, indentation), 'turtle', 'rdfxml', 'nt', 'json'.
@@ -70,15 +70,17 @@ A `$reader` is initialized based on the specified `-if` option. Additional `Read
 
 If `-url` and `-id` options are set a remote database/repository is used for queries and the `-i`  option is ignored. If they are not set the `-i` option is mandatory. Assumptions to use a remote database/repository are: (i) it is up and running, and (ii) data are already in there.
 
+### Usage via Chimera 
+
+If you would like to use the `mapping-template` for more advanced integration scenarios, check out the integration within the [Chimera](https://github.com/cefriel/chimera) framework. Chimera is implemented on top of Apache Camel and offers components to define schema and data transformation pipelines based on Semantic Web solutions.
+
 ### References
 
-Projects using the `mapping-template`:
-- SmartEdge: Semantic Low-code Programming Tools for Edge Intelligence https://www.smart-edge.eu/ (GA 101092908)
-- TANGENT: Enhanced Data Processing Techniques for Dynamic Management of Multimodal Traffic https://tangent-h2020.eu/ (GA 955273)
+If you use the `mapping-template` for publications, cite the following article: 
 
-Publications:
-- Scrocca, M., Carenini, A., Grassi, M., Comerio, M., & Celino, I. (2024). `Not Everybody Speaks RDF: Knowledge Conversion between Different Data Representations`. In: Fifth International Workshop on Knowledge Graph Construction co-located with the ESWC2024. CEUR-WS. https://ceur-ws.org/Vol-3718/paper3.pdf
-- Scrocca, M., Grassi, M., Comerio, M., Carriero, V. A., Dias, T. D., Da Silva, A. V., & Celino, I. (2024). `Intelligent Urban Traffic Management via Semantic Interoperability across Multiple Heterogeneous Mobility Data Sources`. In: The Semantic Web – ISWC 2024. Springer. (_to appear_). https://arxiv.org/abs/2407.10539
+Scrocca, M., Carenini, A., Grassi, M., Comerio, M., & Celino, I. (2024). `Not Everybody Speaks RDF: Knowledge Conversion between Different Data Representations`. In: Fifth International Workshop on Knowledge Graph Construction co-located with the ESWC2024. CEUR-WS. https://ceur-ws.org/Vol-3718/paper3.pdf
+
+Check the [Chimera](https://github.com/cefriel/chimera) repository for a list of projects using the `mapping-template`.
 
 ### Commercial Support
 
