@@ -92,7 +92,7 @@ When contributing to this repository, please first discuss the change you wish t
 
 ### License
 
-_Copyright (c) 2019-2024 Cefriel._
+_Copyright (c) 2019-2025 Cefriel._
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
