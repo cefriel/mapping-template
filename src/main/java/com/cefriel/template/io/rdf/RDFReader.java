@@ -198,9 +198,8 @@ public class RDFReader implements Reader {
      */
     public List<Map<String, String>> getDataframe(String query) {
         List<Map<String, String>> results = extractDataframe(query);
-        if (outputFormat != null)
-            if (outputFormat.equalsIgnoreCase("xml"))
-                return getDataframeXMLEscaped(results);
+        if ("xml".equalsIgnoreCase(this.outputFormat))
+            return getDataframeXMLEscaped(results);
         return results;
     }
 
