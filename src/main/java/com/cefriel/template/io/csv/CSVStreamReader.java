@@ -36,13 +36,16 @@ public class CSVStreamReader extends CSVReaderAbstract {
                     .ofNamedCsvRecord(file.toPath())) {
                 headers = input.stream().findFirst().orElseThrow().getHeader();
             }
-            this.document = CsvReader.builder().ofNamedCsvRecord(file.toPath());
+            this.document = CsvReader.builder()
+                    .detectBomHeader(true)
+                    .ofNamedCsvRecord(file.toPath());
         } else
             throw new IllegalArgumentException("File does not exist: " + file.getPath());
     }
 
     public CSVStreamReader(String csv) throws IOException {
-        try (CsvReader<NamedCsvRecord> input = CsvReader.builder().ofNamedCsvRecord(csv)) {
+        try (CsvReader<NamedCsvRecord> input = CsvReader.builder()
+                .ofNamedCsvRecord(csv)) {
             headers = input.stream().findFirst().orElseThrow().getHeader();
         }
         this.document = CsvReader.builder().ofNamedCsvRecord(csv);

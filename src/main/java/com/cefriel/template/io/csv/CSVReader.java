@@ -33,7 +33,9 @@ public class CSVReader extends CSVReaderAbstract {
 
     public CSVReader(File file) throws IOException {
         if (Files.exists(file.toPath())) {
-            try (CsvReader<NamedCsvRecord> input = CsvReader.builder().ofNamedCsvRecord(file.toPath())) {
+            try (CsvReader<NamedCsvRecord> input = CsvReader.builder()
+                    .detectBomHeader(true)
+                    .ofNamedCsvRecord(file.toPath())) {
                 this.csvRecords = input.stream().collect(Collectors.toList());
             }
             headers = csvRecords.get(0).getHeader();
@@ -44,8 +46,7 @@ public class CSVReader extends CSVReaderAbstract {
 
     public CSVReader(String csv) throws IOException {
         try (CsvReader<NamedCsvRecord> input = CsvReader.builder()
-                .detectBomHeader(true).
-                ofNamedCsvRecord(csv)) {
+                .ofNamedCsvRecord(csv)) {
             this.csvRecords = input.stream().collect(Collectors.toList());
         }
         headers = csvRecords.get(0).getHeader();
