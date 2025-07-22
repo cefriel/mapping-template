@@ -81,10 +81,10 @@ public class CSVReader extends CSVReaderAbstract {
             Map<String, String> map = new HashMap<>(columnCount);
             for (String c : columns) {
                 String value = row.getField(c);
+                if ("xml".equalsIgnoreCase(this.outputFormat)) {
+                    value = StringEscapeUtils.escapeXml11(value);
+                }
                 if (hashVariable) {
-                    if ("xml".equalsIgnoreCase(this.outputFormat)) {
-                        value = StringEscapeUtils.escapeXml11(value);
-                    }
                     map.put(TemplateFunctions.literalHash(c), value);
                 } else {
                     map.put(c, value);
