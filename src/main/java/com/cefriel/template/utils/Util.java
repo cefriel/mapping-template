@@ -16,6 +16,7 @@
 
 package com.cefriel.template.utils;
 
+import com.cefriel.template.TemplateExecutor;
 import com.cefriel.template.TemplateMap;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
@@ -330,5 +331,45 @@ public class Util {
      */
     public static VelocityContext createVelocityContext(Map<String, Reader> readers, TemplateMap templateMap) {
         return createVelocityContext(readers, templateMap, new TemplateFunctions());
+    }
+
+    /**
+     * Compiles an MTL mapping from the given RML file.
+     *
+     * @param mappingRML Path to the RML mapping file.
+     * @param baseIri Base IRI to use if not found in the mapping.
+     * @param basePath Base path for output files.
+     * @param trimTemplate Whether to use the trimmed template.
+     * @param verbose Enable verbose validation output.
+     * @return Path to the compiled template.
+     * @throws Exception if validation or compilation fails.
+     */
+    public static Path compiledMTLMapping(Path mappingRML, String baseIri, Path basePath, boolean trimTemplate, boolean verbose) throws Exception {
+        Util.validateRML(mappingRML, verbose);
+
+        Reader compilerReader = TemplateFunctions.getRDFReaderFromFile(mappingRML.toString());
+        Map<String, Reader> compilerReaderMap = new HashMap<>();
+        compilerReaderMap.put("reader", compilerReader);
+
+        Path rmlCompilerTemplatePath = trimTemplate
+                ? Paths.get("rml", "rml-compiler.vm.tmp.vm")
+                : Paths.get("rml", "rml-compiler.vm");
+        RMLCompilerUtils rmlCompilerUtils = new RMLCompilerUtils();
+
+        Map<String, String> rmlMap = new HashMap<>();
+        String baseIriRML = rmlCompilerUtils.getBaseIRI(mappingRML);
+        baseIriRML = baseIriRML != null ? baseIriRML : baseIri;
+        rmlMap.put("baseIRI", baseIriRML);
+        rmlMap.put("basePath", basePath.toString() + "/");
+
+        Path compiledTemplatePath = Paths.get(basePath.toString(), "template.rml.vm");
+        TemplateExecutor templateExecutor = new TemplateExecutor(false, false, true, null);
+        return templateExecutor.executeMapping(
+                compilerReaderMap,
+                rmlCompilerTemplatePath,
+                compiledTemplatePath,
+                rmlCompilerUtils,
+                new TemplateMap(rmlMap)
+        );
     }
 }

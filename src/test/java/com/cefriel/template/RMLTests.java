@@ -54,7 +54,6 @@ public class RMLTests {
 
     @Test
     public void validRMLTest() throws Exception {
-
         String folder = "rml";
         String rmlMappings = resolvePath(folder, "mapping.ttl");
 
@@ -63,17 +62,15 @@ public class RMLTests {
         Util.validateRML(Paths.get(rmlMappings), false);
 
         Reader compilerReader = TemplateFunctions.getRDFReaderFromFile(rmlMappings);
-        Path rmlCompiler = Paths.get("rml/rml-compiler.vm");
-        Path compiledTemplatePath = Paths.get(resolvePath(folder,"template.rml.vm"));
 
         Map<String,String> rmlMap = new HashMap<>();
-        rmlMap.put("basePath", FOLDER);
+        rmlMap.put("basePath", null);
 
-        TemplateExecutor rmlTemplateExecutor = new TemplateExecutor(false, false, true, null);
+
         TemplateExecutor templateExecutor = new TemplateExecutor(false, false, false, null);
-        rmlTemplateExecutor.executeMapping(Map.of("reader", compilerReader), rmlCompiler, compiledTemplatePath, new RMLCompilerUtils(), new TemplateMap(rmlMap));
-        String result = templateExecutor.executeMapping(Map.of("reader", compilerReader), compiledTemplatePath);
-        Files.delete(compiledTemplatePath);
+        Path mappingMTL = Util.compiledMTLMapping(Path.of(rmlMappings), null, Path.of(FOLDER), false, false);
+        String result = templateExecutor.executeMapping(Map.of("reader", compilerReader), mappingMTL);
+        Files.delete(mappingMTL);
 
         Model resultModel = parseRDFString(result);
         Model expectedOutputModel = parseRDFString(expectedOutput);
