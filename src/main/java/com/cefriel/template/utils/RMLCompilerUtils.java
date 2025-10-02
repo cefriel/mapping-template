@@ -209,6 +209,17 @@ public class RMLCompilerUtils extends TemplateFunctions {
         return false;                     
     }
 
+    public String getBaseIRI(String turtle) {
+        Pattern p = Pattern.compile("@base <([^<>]*)>");
+        Matcher m = p.matcher(turtle);
+
+        if (m.find()) {
+            return m.group(1);
+        } else {
+            return null;
+        }
+    }
+
     /**
      * From rmlmapper <a href="https://github.com/RMLio/rmlmapper-java/blob/6492743f9c81523b6e9142c929d3aaecc78d67eb/src/main/java/be/ugent/rml/Utils.java#L634">...</a>
      *
@@ -223,15 +234,7 @@ public class RMLCompilerUtils extends TemplateFunctions {
         } catch (IOException e) {
             turtle = "";
         }
-
-        Pattern p = Pattern.compile("@base <([^<>]*)>");
-        Matcher m = p.matcher(turtle);
-
-        if (m.find()) {
-            return m.group(1);
-        } else {
-            return null;
-        }
+        return getBaseIRI(turtle);
     }
 
 }
