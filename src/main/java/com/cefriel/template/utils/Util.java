@@ -347,25 +347,27 @@ public class Util {
         Map<String, Reader> compilerReaderMap = new HashMap<>();
         compilerReaderMap.put("reader", compilerReader);
 
-        Path rmlCompilerTemplatePath = trimTemplate
-                ? Paths.get("rml", "rml-compiler.vm.tmp.vm")
-                : Paths.get("rml", "rml-compiler.vm");
-        RMLCompilerUtils rmlCompilerUtils = new RMLCompilerUtils();
+        try (InputStream rmlCompiler = trimTemplate
+                ? Util.class.getResourceAsStream("/rml/rml-compiler.vm.tmp.vm")
+                : Util.class.getResourceAsStream("/rml/rml-compiler.vm")) {
 
-        Map<String, String> rmlMap = new HashMap<>();
-        String baseIriRML = rmlCompilerUtils.getBaseIRI(mappingRMLString);
-        baseIriRML = baseIriRML != null ? baseIriRML : baseIri;
-        rmlMap.put("baseIRI", baseIriRML);
-        rmlMap.put("basePath", basePath.toString() + "/");
+            RMLCompilerUtils rmlCompilerUtils = new RMLCompilerUtils();
 
-        Path compiledTemplatePath = Paths.get(basePath.toString(), "template.rml.vm");
-        TemplateExecutor templateExecutor = new TemplateExecutor(false, false, true, null);
-        return templateExecutor.executeMapping(
-                compilerReaderMap,
-                rmlCompilerTemplatePath,
-                compiledTemplatePath,
-                rmlCompilerUtils,
-                new TemplateMap(rmlMap)
-        );
+            Map<String, String> rmlMap = new HashMap<>();
+            String baseIriRML = rmlCompilerUtils.getBaseIRI(mappingRMLString);
+            baseIriRML = baseIriRML != null ? baseIriRML : baseIri;
+            rmlMap.put("baseIRI", baseIriRML);
+            rmlMap.put("basePath", basePath.toString() + "/");
+
+            Path compiledTemplatePath = Paths.get(basePath.toString(), "template.rml.vm");
+            TemplateExecutor templateExecutor = new TemplateExecutor(false, false, true, null);
+            return templateExecutor.executeMapping(
+                    compilerReaderMap,
+                    rmlCompiler,
+                    compiledTemplatePath,
+                    rmlCompilerUtils,
+                    new TemplateMap(rmlMap)
+            );
+        }
     }
 }
