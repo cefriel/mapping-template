@@ -200,7 +200,8 @@ public class Util {
         velocityEngine.init();
         return velocityEngine;
     }
-    public static void validateRML(Path templatePath, boolean verbose) {
+    
+    public static void validateRML(InputStream rmlMapping, boolean verbose) {
 
         ShaclSail shaclSail = new ShaclSail(new MemoryStore());
         SailRepository repository = new SailRepository(shaclSail);
@@ -209,33 +210,25 @@ public class Util {
         try (RepositoryConnection connection = repository.getConnection()) {
             try (InputStream shapesStream = Util.class.getResourceAsStream("/rml/core.ttl")) {
                 Model rules = Rio.parse(shapesStream, RDFFormat.TURTLE);
-                // cf. https://github.com/eclipse-rdf4j/rdf4j/discussions/4287
                 rules.remove(null, SHACL.NAME, null);
                 rules.remove(null, SHACL.DESCRIPTION, null);
-
                 connection.begin();
                 connection.add(rules, RDF4J.SHACL_SHAPE_GRAPH);
                 connection.commit();
             }
-
-            // Load RML
-            try (InputStream dataStream = Files.newInputStream(templatePath)) {
-                connection.begin();
-                connection.add(dataStream, "", org.eclipse.rdf4j.rio.RDFFormat.TURTLE);
-
-                try {
-                    connection.commit();
-                    log.info("RML validated correctly");
-                } catch (RepositoryException exception) {
-                    Throwable cause = exception.getCause();
-                    log.error("RML not valid");
-                    if (verbose)
-                        if (cause instanceof ValidationException) {
-                            Model validationReportModel = ((ValidationException) cause).validationReportAsModel();
-                            Rio.write(validationReportModel, System.out, RDFFormat.TURTLE);
-                        }
-                    throw exception;
+            connection.begin();
+            connection.add(rmlMapping, "", RDFFormat.TURTLE);
+            try {
+                connection.commit();
+                log.info("RML validated correctly");
+            } catch (RepositoryException exception) {
+                Throwable cause = exception.getCause();
+                log.error("RML not valid");
+                if (verbose && cause instanceof ValidationException) {
+                    Model validationReportModel = ((ValidationException) cause).validationReportAsModel();
+                    Rio.write(validationReportModel, System.out, RDFFormat.TURTLE);
                 }
+                throw exception;
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -243,6 +236,7 @@ public class Util {
             repository.shutDown();
         }
     }
+
 
     /**
      * Creates a new {@link VelocityContext} and populates it with the provided readers, template map, and template functions.
@@ -345,7 +339,11 @@ public class Util {
      * @throws Exception if validation or compilation fails.
      */
     public static Path compiledMTLMapping(Path mappingRML, String baseIri, Path basePath, boolean trimTemplate, boolean verbose) throws Exception {
-        Util.validateRML(mappingRML, verbose);
+
+        try (InputStream mappingRMLStream = Files.newInputStream(mappingRML)) {
+            Util.validateRML(mappingRMLStream, verbose);
+        }
+
 
         Reader compilerReader = TemplateFunctions.getRDFReaderFromFile(mappingRML.toString());
         Map<String, Reader> compilerReaderMap = new HashMap<>();
