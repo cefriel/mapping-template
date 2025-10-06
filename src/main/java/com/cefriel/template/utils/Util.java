@@ -16,6 +16,7 @@
 
 package com.cefriel.template.utils;
 
+import com.cefriel.template.TemplateExecutor;
 import com.cefriel.template.TemplateMap;
 import com.cefriel.template.io.Formatter;
 import com.cefriel.template.io.Reader;
@@ -30,9 +31,11 @@ import com.cefriel.template.io.xml.XMLReader;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 import org.apache.velocity.tools.generic.*;
 import org.eclipse.rdf4j.common.exception.ValidationException;
 import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.base.CoreDatatype;
 import org.eclipse.rdf4j.model.vocabulary.RDF4J;
 import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
@@ -45,6 +48,7 @@ import org.eclipse.rdf4j.sail.shacl.ShaclSail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -195,11 +199,16 @@ public class Util {
             velocityEngine.setProperty("resource.loaders", "class");
             velocityEngine.setProperty("resource.loader.class.class",
                     ClasspathResourceLoader.class.getName());
+        } else{
+            velocityEngine.setProperty("resource.loaders", "file");
+            velocityEngine.setProperty("resource.loader.file.class", FileResourceLoader.class.getName());
+            velocityEngine.setProperty("resource.loader.file.path", "");
         }
         velocityEngine.init();
         return velocityEngine;
     }
-    public static void validateRML(Path templatePath, boolean verbose) {
+    
+    public static void validateRML(InputStream rmlMapping, boolean verbose) {
 
         ShaclSail shaclSail = new ShaclSail(new MemoryStore());
         SailRepository repository = new SailRepository(shaclSail);
@@ -208,33 +217,25 @@ public class Util {
         try (RepositoryConnection connection = repository.getConnection()) {
             try (InputStream shapesStream = Util.class.getResourceAsStream("/rml/core.ttl")) {
                 Model rules = Rio.parse(shapesStream, RDFFormat.TURTLE);
-                // cf. https://github.com/eclipse-rdf4j/rdf4j/discussions/4287
                 rules.remove(null, SHACL.NAME, null);
                 rules.remove(null, SHACL.DESCRIPTION, null);
-
                 connection.begin();
                 connection.add(rules, RDF4J.SHACL_SHAPE_GRAPH);
                 connection.commit();
             }
-
-            // Load RML
-            try (InputStream dataStream = Files.newInputStream(templatePath)) {
-                connection.begin();
-                connection.add(dataStream, "", org.eclipse.rdf4j.rio.RDFFormat.TURTLE);
-
-                try {
-                    connection.commit();
-                    log.info("RML validated correctly");
-                } catch (RepositoryException exception) {
-                    Throwable cause = exception.getCause();
-                    log.error("RML not valid");
-                    if (verbose)
-                        if (cause instanceof ValidationException) {
-                            Model validationReportModel = ((ValidationException) cause).validationReportAsModel();
-                            Rio.write(validationReportModel, System.out, RDFFormat.TURTLE);
-                        }
-                    throw exception;
+            connection.begin();
+            connection.add(rmlMapping, "", RDFFormat.TURTLE);
+            try {
+                connection.commit();
+                log.info("RML validated correctly");
+            } catch (RepositoryException exception) {
+                Throwable cause = exception.getCause();
+                log.error("RML not valid");
+                if (verbose && cause instanceof ValidationException) {
+                    Model validationReportModel = ((ValidationException) cause).validationReportAsModel();
+                    Rio.write(validationReportModel, System.out, RDFFormat.TURTLE);
                 }
+                throw exception;
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -242,6 +243,7 @@ public class Util {
             repository.shutDown();
         }
     }
+
 
     /**
      * Creates a new {@link VelocityContext} and populates it with the provided readers, template map, and template functions.
@@ -330,5 +332,47 @@ public class Util {
      */
     public static VelocityContext createVelocityContext(Map<String, Reader> readers, TemplateMap templateMap) {
         return createVelocityContext(readers, templateMap, new TemplateFunctions());
+    }
+
+    /**
+     * Compiles an MTL mapping from the given RML file.
+     *
+     * @param mappingRML Path to the RML mapping file.
+     * @param baseIri Base IRI to use if not found in the mapping.
+     * @param basePath Base path for output files.
+     * @param trimTemplate Whether to use the trimmed template.
+     * @param verbose Enable verbose validation output.
+     * @return Path to the compiled template.
+     * @throws Exception if validation or compilation fails.
+     */
+    public static Path compiledMTLMapping(InputStream mappingRML, String baseIri, Path basePath, boolean trimTemplate, boolean verbose) throws Exception {
+        String mappingRMLString = inputStreamToString(mappingRML);
+        Util.validateRML(new ByteArrayInputStream(mappingRMLString.getBytes(StandardCharsets.UTF_8)), verbose);
+        Reader compilerReader = TemplateFunctions.getRDFReaderFromString(mappingRMLString, RDFFormat.TURTLE.toString());
+        Map<String, Reader> compilerReaderMap = new HashMap<>();
+        compilerReaderMap.put("reader", compilerReader);
+
+        try (InputStream rmlCompiler = trimTemplate
+                ? Util.class.getResourceAsStream("/rml/rml-compiler.vm.tmp.vm")
+                : Util.class.getResourceAsStream("/rml/rml-compiler.vm")) {
+
+            RMLCompilerUtils rmlCompilerUtils = new RMLCompilerUtils();
+
+            Map<String, String> rmlMap = new HashMap<>();
+            String baseIriRML = rmlCompilerUtils.getBaseIRI(mappingRMLString);
+            baseIriRML = baseIriRML != null ? baseIriRML : baseIri;
+            rmlMap.put("baseIRI", baseIriRML);
+            rmlMap.put("basePath", basePath.toString() + "/");
+
+            Path compiledTemplatePath = Paths.get(basePath.toString(), "template.rml.vm");
+            TemplateExecutor templateExecutor = new TemplateExecutor(false, false, true, null);
+            return templateExecutor.executeMapping(
+                    compilerReaderMap,
+                    rmlCompiler,
+                    compiledTemplatePath,
+                    rmlCompilerUtils,
+                    new TemplateMap(rmlMap)
+            );
+        }
     }
 }

@@ -29,6 +29,7 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -181,7 +182,10 @@ public class Main {
 			}
 		}
 		if(compileRML) {
-			Util.validateRML(templatePath, verbose);
+			try (InputStream rmlMappingStream = Files.newInputStream(templatePath))
+			{
+				Util.validateRML(rmlMappingStream, verbose);
+			}
 
 			Reader compilerReader = TemplateFunctions.getRDFReaderFromFile(templatePath.toString());
 			Map<String, Reader> compilerReaderMap = new HashMap<>();
