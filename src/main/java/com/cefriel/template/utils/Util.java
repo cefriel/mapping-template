@@ -31,6 +31,7 @@ import com.cefriel.template.io.xml.XMLReader;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 import org.apache.velocity.tools.generic.*;
 import org.eclipse.rdf4j.common.exception.ValidationException;
 import org.eclipse.rdf4j.model.Model;
@@ -198,6 +199,10 @@ public class Util {
             velocityEngine.setProperty("resource.loaders", "class");
             velocityEngine.setProperty("resource.loader.class.class",
                     ClasspathResourceLoader.class.getName());
+        } else{
+            velocityEngine.setProperty("resource.loaders", "file");
+            velocityEngine.setProperty("resource.loader.file.class", FileResourceLoader.class.getName());
+            velocityEngine.setProperty("resource.loader.file.path", "");
         }
         velocityEngine.init();
         return velocityEngine;
