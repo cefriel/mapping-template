@@ -74,7 +74,6 @@ public class RMLTests {
 
             Model resultModel = parseRDFString(result);
             Model expectedOutputModel = parseRDFString(expectedOutput);
-
             assert(Models.isomorphic(resultModel, expectedOutputModel));
         }
     }
