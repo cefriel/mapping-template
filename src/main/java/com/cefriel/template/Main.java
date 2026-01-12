@@ -83,6 +83,8 @@ public class Main {
 	private boolean debugQuery;
 	@Parameter(names={"--verbose","-v"})
 	private boolean verbose;
+	@Parameter(names={"--version"})
+	private boolean version;
 	@Parameter(names={"--time","-tm"})
 	private Path timePath;
 	@Parameter(names={"--functions","-fun"})
@@ -99,8 +101,22 @@ public class Main {
 				.build()
 				.parse(argv);
 
+		if (main.version) {
+			main.printVersion();
+			return;
+		}
+
 		main.updateBasePath();
 		main.exec();
+	}
+
+	private void printVersion() {
+		String version = getClass().getPackage().getImplementationVersion();
+		String title = getClass().getPackage().getImplementationTitle();
+
+		if (version != null) {
+			System.out.println((title != null ? title : "mapping-template") + " version " + version);
+		}
 	}
 
 	public void updateBasePath(){
