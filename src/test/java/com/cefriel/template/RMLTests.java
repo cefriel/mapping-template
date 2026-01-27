@@ -29,6 +29,7 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
 import org.junit.jupiter.api.Test;
 
+import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,54 +41,48 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class RMLTests {
 
-    final static String FOLDER = "src/test/resources/rml/";
-    private String resolvePath(String folder, String file) {
-        return FOLDER + file;
-    }
+    final static Path FOLDER = Path.of("src/test/resources/rml/");
 
     @Test
     public void invalidRMLTest() throws Exception {
-        String folder = "rml";
-        Path rmlMappings = Paths.get(resolvePath(folder, "invalid-mapping.ttl"));
-        assertThrows(RuntimeException.class, () -> Util.validateRML(rmlMappings, false));
+        Path rmlMappings = FOLDER.resolve(Path.of("invalid-mapping.ttl"));
+        try (InputStream rmlMapping = Files.newInputStream(rmlMappings)) {
+            assertThrows(RuntimeException.class,
+                    () -> Util.validateRML(rmlMapping, false));
+        }
     }
 
     @Test
     public void validRMLTest() throws Exception {
+        Path rmlMapping = FOLDER.resolve(Path.of("mapping.ttl"));
+        String expectedOutput = Files.readString(FOLDER.resolve("output.nq"));
 
-        String folder = "rml";
-        String rmlMappings = resolvePath(folder, "mapping.ttl");
+        try (InputStream rmlMappingStream = Files.newInputStream(rmlMapping)) {
+            Util.validateRML(rmlMappingStream, false);
+        }
 
-        String expectedOutput = Files.readString(Paths.get(resolvePath(folder, "output.nq")));
-
-        Util.validateRML(Paths.get(rmlMappings), false);
-
-        Reader compilerReader = TemplateFunctions.getRDFReaderFromFile(rmlMappings);
-        Path rmlCompiler = Paths.get("rml/rml-compiler.vm");
-        Path compiledTemplatePath = Paths.get(resolvePath(folder,"template.rml.vm"));
+        Reader compilerReader = TemplateFunctions.getRDFReaderFromFile(rmlMapping.toString());
 
         Map<String,String> rmlMap = new HashMap<>();
-        rmlMap.put("basePath", FOLDER);
+        rmlMap.put("basePath", null);
 
-        TemplateExecutor rmlTemplateExecutor = new TemplateExecutor(false, false, true, null);
         TemplateExecutor templateExecutor = new TemplateExecutor(false, false, false, null);
-        rmlTemplateExecutor.executeMapping(Map.of("reader", compilerReader), rmlCompiler, compiledTemplatePath, new RMLCompilerUtils(), new TemplateMap(rmlMap));
-        String result = templateExecutor.executeMapping(Map.of("reader", compilerReader), compiledTemplatePath);
-        Files.delete(compiledTemplatePath);
+        try (InputStream rmlMappingStream = Files.newInputStream(rmlMapping)) {
+            Path mappingMTL = Util.compiledMTLMapping(rmlMappingStream, null, FOLDER, false, false);
+            String result = templateExecutor.executeMapping(Map.of("reader", compilerReader), FOLDER.resolve(mappingMTL.getFileName()));
+            Files.delete(mappingMTL);
 
-        Model resultModel = parseRDFString(result);
-        Model expectedOutputModel = parseRDFString(expectedOutput);
-
-        assert(Models.isomorphic(resultModel, expectedOutputModel));
+            Model resultModel = parseRDFString(result);
+            Model expectedOutputModel = parseRDFString(expectedOutput);
+            assert(Models.isomorphic(resultModel, expectedOutputModel));
+        }
     }
 
     private static Model parseRDFString(String rdfString) throws Exception {
         RDFParser rdfParser = Rio.createParser(RDFFormat.NQUADS);
-
         Model model = new TreeModel();
         rdfParser.setRDFHandler(new StatementCollector(model));
         rdfParser.parse(new StringReader(rdfString), "http://example.com/base/");
         return model;
     }
-
 }
