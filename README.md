@@ -92,6 +92,10 @@ Before contributing, please read carefully, complete and sign our [Contributor L
 
 When contributing to this repository, please first discuss the change you wish to make via issue or any other available method with the repository's owners.
 
+### Acknowledgements
+
+The development of mapping-template has been partially supported by the European Commission through: the Chips Act Joint Undertaking project SMARTY (Grant Agreement 101140087), the SmartEdge project (Grant Agreement 101092908), funded under the Horizon Europe RIA Research and Innovation Programme; the TANGENT project (Grant Agreement 955273) and the SPRINT project (Grant Agreement 826172),  co-funded  by  the European  Commission  under  the  Horizon  2020  Framework Programme.
+
 ### License
 
 _Copyright (c) 2019-2025 Cefriel._
