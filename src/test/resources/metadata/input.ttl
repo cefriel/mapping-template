@@ -1,0 +1,15 @@
+@prefix base: <http://sprint-transport.eu/data/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix gtfs: <http://vocab.gtfs.org/terms#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<http://sprint-transport.eu/data/agencies/BEST-AGENCY> a gtfs:Agency;
+  dct:language "en";
+  foaf:name "Best Agency" ;
+  rdfs:label "Migliore"@it .
+
+<http://sprint-transport.eu/data/agencies/WOW-AGENCY> a gtfs:Agency;
+  dct:language "en";
+  foaf:name "Wow Agency" ;
+  rdfs:label "Stupenda"@it .
