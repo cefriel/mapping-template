@@ -1,0 +1,15 @@
+@prefix ex: <http://example.com/> .
+
+<http://sprint-transport.eu/data/agencies/BEST-AGENCY>
+  ex:name "Best Agency" ;
+  ex:nameType "literal" ;
+  ex:nameDatatype "http://www.w3.org/2001/XMLSchema#string" ;
+  ex:label "Migliore" ;
+  ex:labelLang "it" .
+
+<http://sprint-transport.eu/data/agencies/WOW-AGENCY>
+  ex:name "Wow Agency" ;
+  ex:nameType "literal" ;
+  ex:nameDatatype "http://www.w3.org/2001/XMLSchema#string" ;
+  ex:label "Stupenda" ;
+  ex:labelLang "it" .

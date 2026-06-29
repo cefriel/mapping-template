@@ -171,6 +171,59 @@ public class RDFReader implements Reader {
     }
 
     /**
+     * Executes a SPARQL query returning a list of rows as {@code List<Map<String, Map<String, String>>>}.
+     * Each element of the list is a row mapping every variable name to a metadata map describing the
+     * bound value. The metadata map mirrors the SPARQL JSON results structure and may contain the keys
+     * {@code value}, {@code type} , {@code datatype} and  {@code lang}.
+     * If {@code hashVariable} is set, variable names are hashed; if {@code onlyDistinct} is set, duplicate rows are removed.
+     * @param query SPARQL query to be executed
+     * @return Result of the SPARQL query with per-binding metadata maps
+     */
+    public List<Map<String, Map<String, String>>> getDataframeWithMetadata(String query) {
+        List<Map<String, Value>> valueResults = executeQuery(query);
+        Collection<Map<String, Map<String, String>>> dataframe = onlyDistinct ? new LinkedHashSet<>() : new ArrayList<>();
+        for (Map<String, Value> row : valueResults) {
+            Map<String, Map<String, String>> bindingRow = new HashMap<>(row.size());
+            for (var rowEntry : row.entrySet()) {
+                String sparqlBindingKey = hashVariable
+                        ? TemplateFunctions.literalHash(rowEntry.getKey())
+                        : rowEntry.getKey();
+                bindingRow.put(sparqlBindingKey, bindingMetadata(rowEntry.getValue()));
+            }
+            dataframe.add(bindingRow);
+        }
+        return new ArrayList<>(dataframe);
+    }
+
+    /**
+     * Builds the metadata map for a single binding {@code value}, mirroring the SPARQL JSON results
+     * structure. For a missing (unbound) value an empty map is returned. Otherwise, it contains {@code value},
+     * {@code type}  and, for literals, {@code datatype} and an optional {@code lang}.
+     * @param value binding value, may be {@code null}
+     * @return metadata map for the binding, empty if {@code value} is {@code null}
+     */
+    private Map<String, String> bindingMetadata(Value value) {
+        Map<String, String> valueMap = new HashMap<>();
+        if (value == null)
+            return valueMap;
+        valueMap.put("value", value.stringValue());
+        if (value instanceof IRI) {
+            valueMap.put("type", "uri");
+        } else if (value instanceof BNode) {
+            valueMap.put("type", "bnode");
+        } else if (value instanceof Literal) {
+            valueMap.put("type", "literal");
+            Literal literal = (Literal) value;
+            literal.getLanguage().ifPresent(lang -> valueMap.put("lang", lang));
+            if (literal.getDatatype() != null)
+                valueMap.put("datatype", literal.getDatatype().stringValue());
+        }
+        return valueMap;
+    }
+
+
+
+    /**
      * Executes a SPARQL query returning a list of rows as {@code List<Map<String,String>>}
      * and logging ({@code INFO} level) the query, the duration and the number of rows returned.
      * @param query SPARQL query to be executed
